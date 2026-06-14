@@ -1,3 +1,121 @@
+-- =================================================================
+--  Action Mobile Optimizer (手機端 UI 尺寸縮放與懸浮按鈕優化)
+-- =================================================================
+
+task.spawn(function()
+    local CoreGui = game:GetService("CoreGui")
+    local UserInputService = game:GetService("UserInputService")
+    local TweenService = game:GetService("TweenService")
+    
+    -- 1. 自動監聽並將 UI 視窗調整為手機適應大小
+    CoreGui.DescendantAdded:Connect(function(descendant)
+        -- 捕捉 Linoria 主畫面的外框 (通常名為 "MainWindow" 或帶有特定的主框架特徵)
+        if descendant:IsA("Frame") and (descendant.Name == "MainWindow" or descendant.Name == "Main") then
+            task.wait(0.1)
+            -- 限制最大寬度與高度，避免超出手機螢幕，改用 Scale 比例或安全 Offset
+            descendant.Size = UDim2.new(0, 480, 0, 320) -- 適合手機的黃金比例大小
+            
+            -- 如果有滾動區域，確保它在手機上能滑動
+            for _, child in pairs(descendant:GetDescendants()) do
+                if child:IsA("ScrollingFrame") then
+                    child.CanvasSize = UDim2.new(0, 0, 0, child.AbsoluteCanvasSize.Y + 100)
+                    child.ScrollBarThickness = 4 -- 稍微加粗方便觸控
+                end
+            end
+        end
+    end)
+
+    -- 2. 建立手機專用的「UI 開關懸浮按鈕」
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "MobileToggleGui"
+    screenGui.ResetOnSpawn = false
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+    screenGui.DisplayOrder = 999999 -- 確保在最上層
+    
+    -- 相容不同的執行器環境 (Delta, Vega X, Fluxus 等)
+    local parentGui = (gethui and gethui()) or CoreGui
+    screenGui.Parent = parentGui
+
+    local toggleButton = Instance.new("TextButton")
+    toggleButton.Name = "InstanceMobileToggleButton"
+    toggleButton.Size = UDim2.fromOffset(55, 55) -- 適合手指點擊的大小
+    toggleButton.Position = UDim2.new(0.1, 0, 0.2, 0) -- 預設左上方
+    toggleButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    toggleButton.Text = "UI"
+    toggleButton.TextColor3 = Color3.fromRGB(0, 200, 255) -- 使用與你腳本相同的藍色主題色
+    toggleButton.TextSize = 16
+    toggleButton.Font = Enum.Font.GothamBold
+    toggleButton.Parent = screenGui
+
+    -- 幫按鈕加上美化圓角與邊框
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = UDim.new(0, 12)
+    uiCorner.Parent = toggleButton
+
+    local uiStroke = Instance.new("UIStroke")
+    uiStroke.Color = Color3.fromRGB(0, 200, 255)
+    uiStroke.Thickness = 2
+    uiStroke.Parent = toggleButton
+
+    -- 3. 讓懸浮按鈕可以在手機螢幕上自由「拖拽移動」位置
+    local dragging, dragInput, dragStart, startPos
+    toggleButton.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = toggleButton.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    toggleButton.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            toggleButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    -- 4. 點擊按鈕時，觸發 LinoriaLib 的內建隱藏機制
+    toggleButton.MouseButton1Click:Connect(function()
+        -- 嘗試觸發全局變數中的 Library 開關（Linoria 預設通常支援 Library:Toggle() 或內建按鈕監聽）
+        if getgenv().Library then
+            if getgenv().Library.Toggle then
+                getgenv().Library:Toggle()
+            elseif getgenv().Library.ScreenGui then
+                getgenv().Library.ScreenGui.Enabled = not getgenv().Library.ScreenGui.Enabled
+            end
+        else
+            -- 如果封裝在內部，直接暴力切換 CoreGui 下所有主要外掛 Frame 的顯示狀態
+            for _, gui in pairs(CoreGui:GetChildren()) do
+                if gui:IsA("ScreenGui") and gui.Name ~= "MobileToggleGui" and gui:FindFirstChild("MainWindow") then
+                    gui.Enabled = not gui.Enabled
+                end
+            end
+        end
+        
+        -- 點擊特效反饋
+        local originalColor = Color3.fromRGB(20, 20, 20)
+        toggleButton.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+        toggleButton.TextColor3 = Color3.fromRGB(20, 20, 20)
+        task.wait(0.1)
+        TweenService:Create(toggleButton, TweenInfo.new(0.2), {BackgroundColor3 = originalColor, TextColor3 = Color3.fromRGB(0, 200, 255)}):Play()
+    end)
+end)
+
+-- =================================================================
+--  以下接你原本的腳本程式碼...
+-- =================================================================
 local function instanceShowLoadingNotification()
     local RunService = game:GetService("RunService")
     local guiParent = (gethui and gethui()) or game:GetService("CoreGui")
