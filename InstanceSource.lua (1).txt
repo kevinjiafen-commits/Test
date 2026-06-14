@@ -1,25 +1,42 @@
 -- =================================================================
---  Action Mobile Optimizer (手機端 UI 尺寸縮放與懸浮按鈕優化)
+--  Action Mobile Optimizer (手機端 UI 尺寸縮放與懸浮按鈕優化 - 完美相容版)
 -- =================================================================
 
 task.spawn(function()
     local CoreGui = game:GetService("CoreGui")
     local UserInputService = game:GetService("UserInputService")
     local TweenService = game:GetService("TweenService")
+    local Workspace = game:GetService("Workspace")
     
+    -- 取得目前螢幕的實際像素大小（用來計算安全比例）
+    local currentCamera = Workspace.CurrentCamera
+    local function getMobileSafeSize()
+        local screenSize = currentCamera and currentCamera.ViewportSize or Vector2.new(800, 600)
+        -- 計算適合手機的尺寸：最大不超過 500x340，但若螢幕太小則自動佔用螢幕的 80% 寬 與 75% 高
+        local width = math.min(500, screenSize.X * 0.85)
+        local height = math.min(330, screenSize.Y * 0.75)
+        return UDim2.new(0, width, 0, height)
+    end
+
     -- 1. 自動監聽並將 UI 視窗調整為手機適應大小
     CoreGui.DescendantAdded:Connect(function(descendant)
         -- 捕捉 Linoria 主畫面的外框 (通常名為 "MainWindow" 或帶有特定的主框架特徵)
         if descendant:IsA("Frame") and (descendant.Name == "MainWindow" or descendant.Name == "Main") then
             task.wait(0.1)
-            -- 限制最大寬度與高度，避免超出手機螢幕，改用 Scale 比例或安全 Offset
-            descendant.Size = UDim2.new(0, 480, 0, 320) -- 適合手機的黃金比例大小
+            
+            -- 使用動態安全尺寸，徹底解決手機端過大的問題
+            descendant.Size = getMobileSafeSize()
+            
+            -- 將 UI 稍微往螢幕中間靠攏，避免被手機的瀏海或虛擬按鍵擋住
+            descendant.AnchorPoint = Vector2.new(0.5, 0.5)
+            descendant.Position = UDim2.new(0.5, 0, 0.5, 0)
             
             -- 如果有滾動區域，確保它在手機上能滑動
             for _, child in pairs(descendant:GetDescendants()) do
                 if child:IsA("ScrollingFrame") then
-                    child.CanvasSize = UDim2.new(0, 0, 0, child.AbsoluteCanvasSize.Y + 100)
-                    child.ScrollBarThickness = 4 -- 稍微加粗方便觸控
+                    child.CanvasSize = UDim2.new(0, 0, 0, child.AbsoluteCanvasSize.Y + 120)
+                    child.ScrollBarThickness = 5 -- 稍微加粗，讓手指更容易觸控和滑動
+                    child.ScrollingDirection = Enum.ScrollingDirection.Y
                 end
             end
         end
@@ -38,8 +55,8 @@ task.spawn(function()
 
     local toggleButton = Instance.new("TextButton")
     toggleButton.Name = "InstanceMobileToggleButton"
-    toggleButton.Size = UDim2.fromOffset(55, 55) -- 適合手指點擊的大小
-    toggleButton.Position = UDim2.new(0.1, 0, 0.2, 0) -- 預設左上方
+    toggleButton.Size = UDim2.fromOffset(50, 50) -- 適合手指點擊的大小
+    toggleButton.Position = UDim2.new(0.05, 0, 0.2, 0) -- 預設左上方安全區域
     toggleButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     toggleButton.Text = "UI"
     toggleButton.TextColor3 = Color3.fromRGB(0, 200, 255) -- 使用與你腳本相同的藍色主題色
@@ -88,13 +105,35 @@ task.spawn(function()
 
     -- 4. 點擊按鈕時，觸發 LinoriaLib 的內建隱藏機制
     toggleButton.MouseButton1Click:Connect(function()
-        -- 嘗試觸發全局變數中的 Library 開關（Linoria 預設通常支援 Library:Toggle() 或內建按鈕監聽）
+        -- 嘗試觸發全局變數中的 Library 開關
         if getgenv().Library then
             if getgenv().Library.Toggle then
                 getgenv().Library:Toggle()
             elseif getgenv().Library.ScreenGui then
                 getgenv().Library.ScreenGui.Enabled = not getgenv().Library.ScreenGui.Enabled
             end
+        else
+            -- 如果封裝在內部，直接切換 CoreGui 下所有主要外掛 Frame 的顯示狀態
+            for _, gui in pairs(CoreGui:GetChildren()) do
+                if gui:IsA("ScreenGui") and gui.Name ~= "MobileToggleGui" and gui:FindFirstChild("MainWindow") then
+                    gui.Enabled = not gui.Enabled
+                end
+            end
+        end
+        
+        -- 點擊特效反饋
+        local originalColor = Color3.fromRGB(20, 20, 20)
+        toggleButton.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+        toggleButton.TextColor3 = Color3.fromRGB(20, 20, 20)
+        task.wait(0.1)
+        TweenService:Create(toggleButton, TweenInfo.new(0.2), {BackgroundColor3 = originalColor, TextColor3 = Color3.fromRGB(0, 200, 255)}):Play()
+    end)
+end)
+
+-- =================================================================
+--  以下接你原本的腳本程式碼... (不用做任何變動)
+-- =================================================================
+
         else
             -- 如果封裝在內部，直接暴力切換 CoreGui 下所有主要外掛 Frame 的顯示狀態
             for _, gui in pairs(CoreGui:GetChildren()) do
