@@ -1,0 +1,1410 @@
+-- =============================================================================
+-- KEVIN PRIVATE SCRIPT V3 + EMOTE ENHANCEMENTS V3 + CSYNC VOID (FULLY INTEGRATED)
+-- VOID DEPTH 1,000,000,000 (SOLIX LIBRARY UI)
+-- =============================================================================
+
+repeat task.wait() until game:IsLoaded()
+
+-- =============================================================================
+-- 1. 核心服務與共用變數
+-- =============================================================================
+local Players           = game:GetService("Players")
+local RunService        = game:GetService("RunService")
+local TweenService      = game:GetService("TweenService")
+local UIS               = game:GetService("UserInputService")
+local UserInputService  = UIS
+local HttpService       = game:GetService("HttpService")
+local TeleportService   = game:GetService("TeleportService")
+local Workspace         = game:GetService("Workspace")
+
+local player            = Players.LocalPlayer
+local camera            = Workspace.CurrentCamera
+
+pcall(function()
+    local r = game:GetService("ReplicatedStorage"):FindFirstChild("SendLikelySpeakingUsers")
+    if r and r:IsA("RemoteEvent") then r.OnClientEvent:Connect(function() end) end
+end)
+
+-- =============================================================================
+-- 2. CSYNC VOID MODULE
+-- =============================================================================
+local Void = {
+    settings = {
+        enable_void = false,
+        switchSpeed = 0.05,
+        depthMultiplier = 1,
+        rand_vel_x = 0,
+        rand_vel_y = 0,
+        rand_vel_z = 0,
+        jerk_intensity = 20,
+        random_vel_intensity = 15,
+        void_keybind = Enum.KeyCode.H
+    },
+    voidActive = false,
+    lastSwitch = 0,
+    currentVoidIndex = 1,
+    originalCFrame = nil,
+    csyncConnection = nil,
+    desyncEnabled = false,
+    simPosition = Vector3.new(0,0,0),
+    simVelocity = Vector3.new(0,0,0),
+    jerkTimer = 0,
+    keybindPressed = false,
+    deepVoidPositions = {}
+}
+
+local function find(obj, name)
+    return obj and obj:FindFirstChild(name)
+end
+
+local function cframeInvalid(cf)
+    if not cf then return true end
+    local p = cf.Position
+    if not p then return true end
+    return p.Y < -100000 or math.abs(p.X) > 5000000 or math.abs(p.Z) > 5000000
+end
+
+local function generateDeepVoid()
+    local positions = {}
+    local depths = {-8e8, -1e9, -1.2e9, -1.5e9, -2e9}
+    local far = {-5e8, -2e8, -1e8, 1e8, 2e8, 5e8}
+    for i = 1, 20 do
+        local x = far[math.random(1,#far)] + math.random(-5000000,5000000)
+        local y = depths[math.random(1,#depths)] + math.random(-5000000,5000000)
+        local z = far[math.random(1,#far)] + math.random(-5000000,5000000)
+        positions[i] = CFrame.new(x,y,z)
+    end
+    return positions
+end
+Void.deepVoidPositions = generateDeepVoid()
+
+local function updateSimulation(dt)
+    if not Void.desyncEnabled then return end
+    local S = Void.settings
+    local baseVel = Vector3.new(
+        math.random(-S.rand_vel_x, S.rand_vel_x),
+        math.random(-S.rand_vel_y, S.rand_vel_y),
+        math.random(-S.rand_vel_z, S.rand_vel_z)
+    )
+    local jerkIntensity = S.jerk_intensity / 100
+    local randIntensity = S.random_vel_intensity / 100
+    Void.jerkTimer -= dt
+    if Void.jerkTimer <= 0 then
+        Void.jerkTimer = math.random(3,10)/10
+        local jerk = Vector3.new(
+            math.random(-40,40) * jerkIntensity,
+            math.random(-40,40) * jerkIntensity,
+            math.random(-40,40) * jerkIntensity
+        )
+        Void.simVelocity = Void.simVelocity + jerk
+    end
+    local chaos = Vector3.new(
+        math.random(-60,60) * randIntensity,
+        math.random(-60,60) * randIntensity,
+        math.random(-60,60) * randIntensity
+    )
+    Void.simVelocity = (Void.simVelocity * 0.9) + baseVel + chaos
+    Void.simPosition = Void.simPosition + Void.simVelocity * dt
+end
+
+local function getDesyncOffset()
+    local S = Void.settings
+    local anchor = Vector3.new(0,0,0)
+    if Void.voidActive and Void.deepVoidPositions[Void.currentVoidIndex] then
+        local baseCF = Void.deepVoidPositions[Void.currentVoidIndex]
+        local depth = S.depthMultiplier or 1
+        local bp = baseCF.Position
+        anchor = Vector3.new(bp.X * depth, bp.Y * depth, bp.Z * depth)
+    end
+    return anchor + Void.simPosition
+end
+
+local function startCSync()
+    local char = player.Character
+    local hrp = char and find(char,"HumanoidRootPart")
+    if not hrp then return end
+    if Void.csyncConnection then return end
+    Void.csyncConnection = RunService.Heartbeat:Connect(function()
+        local char = player.Character
+        local hrp = char and find(char,"HumanoidRootPart")
+        if not hrp then return end
+        local realCF = hrp.CFrame
+        local offset = getDesyncOffset()
+        hrp.CFrame = CFrame.new(offset)
+        RunService.RenderStepped:Wait()
+        hrp.CFrame = realCF
+    end)
+end
+
+local function stopCSync()
+    if Void.csyncConnection then
+        Void.csyncConnection:Disconnect()
+        Void.csyncConnection = nil
+    end
+end
+
+local function updateVoid(dt)
+    if not Void.voidActive then return end
+    local S = Void.settings
+    if tick() - Void.lastSwitch < S.switchSpeed then return end
+    Void.lastSwitch = tick()
+    Void.currentVoidIndex = (Void.currentVoidIndex % #Void.deepVoidPositions) + 1
+end
+
+local function startVoid()
+    local char = player.Character
+    local hrp = char and find(char,"HumanoidRootPart")
+    if not hrp then return end
+    Void.originalCFrame = hrp.CFrame
+    Void.voidActive = true
+    Void.desyncEnabled = true
+    startCSync()
+end
+
+local function stopVoid()
+    Void.voidActive = false
+    Void.desyncEnabled = false
+    stopCSync()
+end
+
+local function safeReturn()
+    stopCSync()
+    task.wait(0.1)
+    local char = player.Character
+    local hrp = char and find(char,"HumanoidRootPart")
+    if not hrp then return end
+    local returnCF = Void.originalCFrame or CFrame.new(0,20,0)
+    if cframeInvalid(returnCF) then
+        returnCF = CFrame.new(0,20,0)
+    end
+    hrp.CFrame = returnCF
+end
+
+-- =============================================================================
+-- 3. EMOTE ENHANCEMENTS V3
+-- =============================================================================
+local isCustomEmoteActive = false
+local currentRotationSpeed = 0
+local defaultSpeedFactor = 1
+local rotationAngle = 0
+local currentEmoteStyle = "Glitched Chaos"
+local characterParts = nil
+local chaoticSeed = tick()
+local perlinOffset = 0
+local targetPlayer = player
+local lastTargetPlayer = nil
+local currentEmoteConfig = nil
+
+local isNoodleMode = false
+local isNeonGlitchMode = false
+local isPaperMode = false
+local isJitterMode = false
+local isMeatballMode = false
+local isGhostMode = false
+local isTrailsMode = false
+local isRainbowMode = false
+local isMorphMode = false
+local currentMatIndex = 1
+local customMatList = {
+    {name = "Original", mat = nil},
+    {name = "ForceField", mat = Enum.Material.ForceField},
+    {name = "Glass", mat = Enum.Material.Glass},
+    {name = "Foil", mat = Enum.Material.Foil},
+    {name = "Marble", mat = Enum.Material.Marble}
+}
+
+local fakePartsFolder = workspace:FindFirstChild("KevinEmoteEnhancementsV3_FakeParts")
+if not fakePartsFolder then
+    fakePartsFolder = Instance.new("Folder")
+    fakePartsFolder.Name = "KevinEmoteEnhancementsV3_FakeParts"
+    fakePartsFolder.Parent = workspace
+end
+
+local allowedBodyParts = {
+    ["Head"]=true, ["Torso"]=true, ["UpperTorso"]=true, ["LowerTorso"]=true,
+    ["Left Arm"]=true, ["Right Arm"]=true, ["Left Leg"]=true, ["Right Leg"]=true,
+    ["LeftUpperArm"]=true, ["LeftLowerArm"]=true, ["LeftHand"]=true,
+    ["RightUpperArm"]=true, ["RightLowerArm"]=true, ["RightHand"]=true,
+    ["LeftUpperLeg"]=true, ["LeftLowerLeg"]=true, ["LeftFoot"]=true,
+    ["RightUpperLeg"]=true, ["RightLowerLeg"]=true, ["RightFoot"]=true
+}
+
+local function isValidPart(part)
+    if not part:IsA("BasePart") then return false end
+    if allowedBodyParts[part.Name] then return true end
+    if part.Parent and part.Parent:IsA("Accessory") and part.Name == "Handle" then return true end
+    return false
+end
+
+local function getCharacterParts(character)
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return nil end
+    local partsInfo = { RootPart = rootPart, Pieces = {} }
+    character.Archivable = true
+    
+    for _, child in ipairs(character:GetDescendants()) do
+        if isValidPart(child) then
+            child.Archivable = true
+            local fakePart = child:Clone()
+            for _, subChild in ipairs(fakePart:GetDescendants()) do
+                if subChild:IsA("JointInstance") or subChild:IsA("Script") or subChild:IsA("LocalScript") or subChild:IsA("Constraint") or subChild:IsA("BodyMover") or subChild:IsA("Attachment") then
+                    subChild:Destroy()
+                end
+            end
+            fakePart.Name = "EmoteVisual_" .. child.Name
+            fakePart.Anchored = true
+            fakePart.CanCollide = false
+            fakePart.CanQuery = false
+            fakePart.Massless = true
+            fakePart.CastShadow = false
+            fakePart.Parent = fakePartsFolder
+            
+            fakePart.Material = isNeonGlitchMode and Enum.Material.Neon or (customMatList[currentMatIndex].mat or fakePart.Material)
+
+            local a0 = Instance.new("Attachment", fakePart)
+            a0.Position = Vector3.new(0, fakePart.Size.Y/2, 0)
+            local a1 = Instance.new("Attachment", fakePart)
+            a1.Position = Vector3.new(0, -fakePart.Size.Y/2, 0)
+            
+            local trail = Instance.new("Trail", fakePart)
+            trail.Attachment0 = a0
+            trail.Attachment1 = a1
+            trail.Enabled = isTrailsMode
+            trail.Lifetime = 0.4
+            trail.LightEmission = 0.8
+            trail.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0,0), NumberSequenceKeypoint.new(1,1)})
+            trail.Color = ColorSequence.new(fakePart.Color)
+            
+            local emitter = Instance.new("ParticleEmitter", fakePart)
+            emitter.Enabled = isGhostMode or isNeonGlitchMode
+            emitter.Rate = 15
+            emitter.Speed = NumberRange.new(1, 3)
+            emitter.Lifetime = NumberRange.new(0.5, 1)
+            emitter.Size = NumberSequence.new({NumberSequenceKeypoint.new(0,0.5), NumberSequenceKeypoint.new(1,0)})
+            emitter.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0,0.5), NumberSequenceKeypoint.new(1,1)})
+            
+            table.insert(partsInfo.Pieces, {
+                realPart = child,
+                fakePart = fakePart,
+                trail = trail,
+                emitter = emitter,
+                physicsSeed = chaoticSeed + #partsInfo.Pieces * 13,
+                spinAxis = Vector3.new(math.random(-100,100), math.random(-100,100), math.random(-100,100)).Unit,
+                originalMaterial = child.Material,
+                originalColor = fakePart.Color
+            })
+        end
+    end
+    return partsInfo
+end
+
+function playCustomEmote(baseSpeed, style)
+    currentEmoteConfig = {speed = baseSpeed, style = style}
+    
+    if not isCustomEmoteActive or (targetPlayer ~= lastTargetPlayer) then
+        stopCustomEmote()
+        local success = false
+        for attempt = 1, 15 do
+            if targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                fakePartsFolder:ClearAllChildren()
+                characterParts = getCharacterParts(targetPlayer.Character)
+                if characterParts and #characterParts.Pieces > 0 then
+                    success = true
+                    lastTargetPlayer = targetPlayer
+                    break
+                end
+            end
+            task.wait(0.2)
+        end
+        if not success then
+            Library:Notification("表情啟動失敗", "目標角色尚未載入完整，請稍後重試", 3)
+            return
+        end
+        isCustomEmoteActive = true
+    end
+    
+    currentRotationSpeed = baseSpeed
+    currentEmoteStyle = style
+    rotationAngle = 0
+    chaoticSeed = tick()
+end
+
+function stopCustomEmote()
+    isCustomEmoteActive = false
+    currentRotationSpeed = 0
+    if characterParts then
+        for _, info in ipairs(characterParts.Pieces) do
+            if info.realPart and info.realPart.Parent then info.realPart.LocalTransparencyModifier = 0 end
+        end
+        characterParts = nil
+    end
+    fakePartsFolder:ClearAllChildren()
+    workspace.CurrentCamera.FieldOfView = 70
+    lastTargetPlayer = nil
+    currentEmoteConfig = nil
+end
+
+local renderConnection
+if renderConnection then renderConnection:Disconnect() end
+
+renderConnection = RunService.RenderStepped:Connect(function(dt)
+    if not isCustomEmoteActive or not characterParts then return end
+    if not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        stopCustomEmote()
+        return
+    end
+    
+    local speedMultiplier = defaultSpeedFactor
+    local actualSpeed = currentRotationSpeed * speedMultiplier
+    rotationAngle = rotationAngle + (actualSpeed * dt)
+    perlinOffset = perlinOffset + (dt * 0.5)
+    
+    local rootCFrame = characterParts.RootPart.CFrame
+    local numPieces = #characterParts.Pieces
+    local timeElapsed = tick() * (1 + (speedMultiplier / 100))
+    
+    for i, info in ipairs(characterParts.Pieces) do
+        if info.realPart and info.realPart.Parent then info.realPart.LocalTransparencyModifier = 1 end
+        if not info.fakePart or not info.fakePart.Parent then continue end
+
+        local angleRad = math.rad(rotationAngle)
+        local pieceSeed = info.physicsSeed
+        local finalPosition = Vector3.new(0,0,0)
+        local currentSize = info.realPart.Size
+        local targetTransparency = 0
+        local audioRadiusMult = 1
+        
+        if isRainbowMode then
+            local hue = (timeElapsed * 0.3 + (i / numPieces)) % 1
+            info.fakePart.Color = Color3.fromHSV(hue, 1, 1)
+            info.trail.Color = ColorSequence.new(info.fakePart.Color)
+            info.emitter.Color = ColorSequence.new(info.fakePart.Color)
+        elseif isNeonGlitchMode then
+            local r = math.noise(timeElapsed * 20, pieceSeed, 0) + 0.5
+            local g = math.noise(0, timeElapsed * 25, pieceSeed) + 0.5
+            local b = math.noise(pieceSeed, 0, timeElapsed * 18) + 0.5
+            if math.random() > 0.4 then
+                info.fakePart.Color = Color3.new(math.clamp(r, 0, 1), math.clamp(g, 0, 1), math.clamp(b, 0, 1))
+            else
+                info.fakePart.Color = math.random() > 0.5 and Color3.new(0, 0, 0) or Color3.new(1, 1, 1)
+            end
+            info.trail.Color = ColorSequence.new(info.fakePart.Color)
+        end
+        
+        if currentEmoteStyle == "Head Centric Orbit" then
+            if info.realPart.Name == "Head" then finalPosition = Vector3.new(0, 1.5, 0)
+            else
+                local radius = (2.5 + math.noise(pieceSeed, 0, 0) * 1.5) * audioRadiusMult
+                local theta = angleRad * 1.5 + ((i / numPieces) * math.pi * 2)
+                local yOffset = 1.5 + math.sin(timeElapsed * 4 + pieceSeed) * 1.5
+                finalPosition = Vector3.new(math.cos(theta) * radius, yOffset, math.sin(theta) * radius)
+            end
+        elseif currentEmoteStyle == "Glitched Chaos" then
+            if info.realPart.Name == "Head" then finalPosition = Vector3.new(0, 1.5, 0)
+            else
+                local t = timeElapsed * (1.5 + (pieceSeed % 3))
+                local radius = (4.5 + math.noise(pieceSeed, perlinOffset * 0.5, 0) * 2) * audioRadiusMult
+                local phi = (t * 0.7) + math.noise(perlinOffset, 0, pieceSeed) * math.pi
+                finalPosition = Vector3.new(radius * math.sin(phi) * math.cos(t), 1.5 + (radius * math.cos(phi)), radius * math.sin(phi) * math.sin(t))
+            end
+        elseif currentEmoteStyle == "Black Hole" then
+            local t = ((timeElapsed - chaoticSeed) % 10) / 10
+            local radius = 8 * (1 - t^2) * audioRadiusMult
+            if t > 0.9 then radius = radius * math.random(50, 200)/100 end
+            local chaoticAngle = angleRad + math.rad((i / numPieces) * 360) + (t * 100)
+            finalPosition = Vector3.new(math.cos(chaoticAngle) * radius, math.sin(pieceSeed * t) * (1 - t) * 4, math.sin(chaoticAngle) * radius)
+        elseif currentEmoteStyle == "Hyperspace Drift" then
+            finalPosition = (info.spinAxis * (3 + math.abs(math.sin(timeElapsed * 1.5 + pieceSeed)) * 7) + Vector3.new(math.sin(timeElapsed * 0.5 + pieceSeed) * 2, math.cos(timeElapsed * 0.7 + pieceSeed * 2) * 2, math.sin(timeElapsed * 0.3 + pieceSeed * 3) * 2)) * audioRadiusMult
+        elseif currentEmoteStyle == "Quantum Scatter" then
+            finalPosition = (Vector3.new(math.sin(timeElapsed * 2.31 + pieceSeed) * 8, math.cos(timeElapsed * 1.73 + pieceSeed * 1.5) * 6, math.sin(timeElapsed * 3.17 + pieceSeed * 0.8) * 8) + (Vector3.new(math.random(-10,10), math.random(-10,10), math.random(-10,10)) / (100 / defaultSpeedFactor))) * audioRadiusMult
+        elseif currentEmoteStyle == "Explosive Tornado" then
+            local t = ((timeElapsed * 1.5 + (pieceSeed % 5)) % 5) / 5
+            local chaoticRadius = ((t * 6) + math.noise(pieceSeed, timeElapsed, 0) * 2) * audioRadiusMult
+            if t > 0.85 then chaoticRadius = chaoticRadius + ((t - 0.85) * 80 * (math.random(80, 120)/100)) end
+            finalPosition = Vector3.new(math.cos(angleRad * 2 + (pieceSeed * 5)) * chaoticRadius, (t * 18) - 5, math.sin(angleRad * 2 + (pieceSeed * 5)) * chaoticRadius)
+        elseif currentEmoteStyle == "Dimensional Fracture" then
+            local freq = timeElapsed * 8
+            if math.random(1, 100) > 85 then finalPosition = Vector3.new(math.random(-25,25), math.random(-10,30), math.random(-25,25))
+            else finalPosition = Vector3.new(math.noise(pieceSeed, freq, 0), math.noise(0, pieceSeed, freq), math.noise(freq, 0, pieceSeed)) * (12 + math.random(-8, 8)) end
+            finalPosition = finalPosition * audioRadiusMult
+        elseif currentEmoteStyle == "Brownian Swarm" then
+            local t = timeElapsed * (2 + (pieceSeed % 7))
+            local chaosX = math.clamp(math.sin(t * 3.1) * math.cos(t * 2.7) * math.tan(math.sin(t * 0.5)), -1.5, 1.5)
+            local chaosY = math.clamp(math.cos(t * 4.2) * math.sin(t * 1.3) * math.tan(math.cos(t * 0.8)), -1.5, 1.5)
+            local chaosZ = math.clamp(math.sin(t * 2.9) * math.cos(t * 5.1) * math.tan(math.sin(t * 1.1)), -1.5, 1.5)
+            finalPosition = Vector3.new(chaosX, chaosY, chaosZ) * (15 + math.random(0, 15)) * audioRadiusMult
+            if math.random() > 0.85 then finalPosition = finalPosition * -1 end
+        elseif currentEmoteStyle == "Void Eruption" then
+            local burstNoise = math.noise(pieceSeed, timeElapsed * 2.5, 0)
+            local radius = (burstNoise > 0.25 and math.random(20, 50) or (burstNoise < -0.3 and math.random(0, 4) or 3)) * audioRadiusMult
+            local angle1, angle2 = math.noise(0, pieceSeed, timeElapsed * 4) * math.pi * 2, math.noise(timeElapsed * 4, 0, pieceSeed) * math.pi * 2
+            finalPosition = Vector3.new(radius * math.sin(angle1) * math.cos(angle2), radius * math.sin(angle1) * math.sin(angle2), radius * math.cos(angle1)) + (Vector3.new(math.random(-100,100), math.random(-100,100), math.random(-100,100)) / (5000/defaultSpeedFactor))
+        elseif currentEmoteStyle == "Neural Glitch" then
+            local steppedTime = math.floor(timeElapsed * (15 + (pieceSeed % 15)))
+            local gX, gY, gZ = math.noise(steppedTime, pieceSeed, 1) * 25, math.noise(1, steppedTime, pieceSeed) * 25, math.noise(pieceSeed, 1, steppedTime) * 25
+            if math.noise(steppedTime * 0.5, pieceSeed, 0) > 0.6 then gX, gY, gZ = gX * 0.1, gY * 0.1, gZ * 0.1 end
+            finalPosition = Vector3.new(gX, gY, gZ) * audioRadiusMult
+        elseif currentEmoteStyle == "Plasma Orbit" then
+            local chaoticT = timeElapsed * (1.5 + (pieceSeed % 4))
+            local orbitRadius = (12 + math.sin(chaoticT * 2 + pieceSeed) * 8) * audioRadiusMult
+            local theta, phi = chaoticT * math.pi + math.noise(pieceSeed, chaoticT * 0.8, 0) * 10, chaoticT * 1.5 + math.noise(0, pieceSeed, chaoticT * 0.8) * 10
+            finalPosition = Vector3.new(orbitRadius * math.sin(phi) * math.cos(theta), orbitRadius * math.sin(phi) * math.sin(theta), orbitRadius * math.cos(phi))
+            if math.random(1, 100) > 92 then finalPosition = finalPosition * -1 end
+        elseif currentEmoteStyle == "Omniversal Singularity" then
+            local cycle = (timeElapsed * 1.5) % math.pi
+            local pulse = math.abs(math.sin(cycle ^ 2))
+            local radius = (2 + (pulse * 30)) * audioRadiusMult
+            local theta = pieceSeed + timeElapsed * 10
+            local phi = pieceSeed * 2 + timeElapsed * 15
+            finalPosition = Vector3.new(radius * math.sin(phi) * math.cos(theta), radius * math.sin(phi) * math.sin(theta), radius * math.cos(phi))
+            finalPosition = finalPosition + (info.spinAxis * (math.sin(timeElapsed * 20) * 5))
+        elseif currentEmoteStyle == "Reality Disintegration" then
+            local step = math.floor(timeElapsed * 20)
+            local glitchX = (math.noise(step, pieceSeed, 0) > 0) and 15 or -15
+            local glitchY = (math.noise(0, step, pieceSeed) > 0) and 15 or -15
+            local glitchZ = (math.noise(pieceSeed, 0, step) > 0) and 15 or -15
+            local coreRadius = 5 * audioRadiusMult
+            if math.random() > 0.8 then finalPosition = Vector3.new(glitchX, glitchY, glitchZ) * math.random(1, 3) * audioRadiusMult
+            else finalPosition = Vector3.new(math.sin(timeElapsed * 2 + pieceSeed) * coreRadius, math.cos(timeElapsed * 2.6 + pieceSeed) * coreRadius, math.tan(math.sin(timeElapsed * 2 + pieceSeed)) * coreRadius) end
+        elseif currentEmoteStyle == "DNA Helix" then
+            local yOffset = ((i / numPieces) * 15) - 7.5 + math.sin(timeElapsed * 3) * 1.5
+            local angle = angleRad * 0.5 + (i * math.pi / (numPieces / 4))
+            local radius = 3.5 * audioRadiusMult
+            finalPosition = Vector3.new(math.cos(angle) * radius, yOffset, math.sin(angle) * radius)
+        elseif currentEmoteStyle == "Pulsing Sphere" then
+            local goldenRatio = (1 + math.sqrt(5)) / 2
+            local theta = 2 * math.pi * i / goldenRatio
+            local phi = math.acos(1 - 2 * (i + 0.5) / numPieces)
+            local baseRadius = 5 + math.sin(timeElapsed * 4 + pieceSeed * 0.1) * 2
+            local radius = baseRadius * audioRadiusMult
+            local spherePos = Vector3.new(math.cos(theta) * math.sin(phi) * radius, math.cos(phi) * radius, math.sin(theta) * math.sin(phi) * radius)
+            finalPosition = CFrame.Angles(0, angleRad, 0) * spherePos
+        elseif currentEmoteStyle == "Saturn Rings" then
+            local ringIndex = (i % 3) + 1
+            local radius = (3 + ringIndex * 2.5) * audioRadiusMult
+            local theta = angleRad * (1 + (ringIndex * 0.5)) + (i / numPieces) * math.pi * 2
+            local ringPos = Vector3.new(math.cos(theta) * radius, math.sin(timeElapsed * 2 + ringIndex) * 0.5, math.sin(theta) * radius)
+            finalPosition = CFrame.Angles(math.rad(20), 0, math.rad(-15)) * ringPos
+        elseif currentEmoteStyle == "Meteor Strike" then
+            local dropCycle = ((timeElapsed * 1.5) + (pieceSeed % 3)) % 3
+            local startY = 25
+            local endY = -3
+            local currentY
+            if dropCycle < 1.5 then currentY = startY - (startY - endY) * (dropCycle / 1.5)^3
+            else currentY = endY + math.random(-2, 2) * (3 - dropCycle) end
+            local radius = (2 + math.noise(pieceSeed, 0, 0) * 8) * audioRadiusMult
+            local theta = pieceSeed * 10 + angleRad * 0.2
+            finalPosition = Vector3.new(math.cos(theta) * radius, currentY, math.sin(theta) * radius)
+        elseif currentEmoteStyle == "Hyper Torus" then
+            local u = (i / numPieces) * math.pi * 2 + angleRad * 0.5
+            local v = pieceSeed * 0.1 + timeElapsed * 2
+            local R = 7 * audioRadiusMult
+            local r = 3.5 * audioRadiusMult
+            local hX = (R + r * math.cos(v)) * math.cos(u)
+            local hY = r * math.sin(v) + math.sin(timeElapsed + pieceSeed) * 2
+            local hZ = (R + r * math.sin(v)) * math.sin(u)
+            finalPosition = Vector3.new(hX, hY, hZ)
+        end
+        
+        local rotRandomizer = math.random(50,200)/100
+        local rotX, rotY, rotZ = math.rad(rotationAngle * rotRandomizer), math.rad(rotationAngle * rotRandomizer), math.rad(rotationAngle * rotRandomizer)
+
+        if isMorphMode then
+            local stretchX = 1 + math.abs(math.sin(timeElapsed * 3.1 + pieceSeed)) * 3
+            local stretchY = 1 + math.abs(math.cos(timeElapsed * 4.2 + pieceSeed)) * 3
+            local stretchZ = 1 + math.abs(math.sin(timeElapsed * 5.3 + pieceSeed)) * 3
+            currentSize = currentSize * Vector3.new(stretchX, stretchY, stretchZ)
+        end
+
+        if isMeatballMode then
+            local meatRadius = 1 + math.sin(timeElapsed * 5 + pieceSeed) * 0.5
+            finalPosition = Vector3.new(math.sin(pieceSeed) * meatRadius, math.cos(pieceSeed * 1.5) * meatRadius, math.sin(pieceSeed * 2) * meatRadius)
+            local throb = math.max(0.1, math.abs(math.sin(timeElapsed * 10 + pieceSeed)) * 3)
+            currentSize = currentSize * throb
+        end
+
+        if isNoodleMode then
+            local chaoticNoise = math.noise(pieceSeed, timeElapsed * 15, 0)
+            local thicknessX = math.clamp(math.abs(math.sin(timeElapsed * 25 + pieceSeed) * 8) + chaoticNoise * 5, 0.01, 10)
+            local thicknessY = math.clamp(math.abs(math.cos(timeElapsed * 18 + pieceSeed * 1.5) * 8) - chaoticNoise * 5, 0.01, 10)
+            local length = info.realPart.Size.Magnitude * (25 + math.sin(timeElapsed * 15 + pieceSeed) * math.cos(timeElapsed * 9 + pieceSeed) * 20)
+            currentSize = Vector3.new(thicknessX, thicknessY, length)
+            local spiralRadius = 5 + chaoticNoise * 8
+            finalPosition = finalPosition + Vector3.new(math.cos(timeElapsed * 20 + pieceSeed) * spiralRadius, math.sin(timeElapsed * 22 + pieceSeed) * spiralRadius, math.sin(timeElapsed * 14 + pieceSeed) * spiralRadius)
+            rotX = rotX + math.sin(timeElapsed * 15 + pieceSeed) * 5
+            rotY = rotY + math.cos(timeElapsed * 12 + pieceSeed) * 5
+            rotZ = rotZ + chaoticNoise * 15
+        end
+
+        if isPaperMode then
+            currentSize = Vector3.new(currentSize.X, currentSize.Y, 0.01)
+            rotZ = rotZ + (timeElapsed * 50)
+        end
+
+        if isJitterMode then
+            local glitchOffset = Vector3.new(math.random(-20, 20)/10, math.random(-20, 20)/10, math.random(-20, 20)/10)
+            if math.random() > 0.9 then glitchOffset = glitchOffset * 5 end
+            finalPosition = finalPosition + glitchOffset
+        end
+
+        if isGhostMode then
+            local flicker = math.noise(timeElapsed * 30, pieceSeed, 0)
+            if flicker > 0.2 then targetTransparency = 1
+            elseif flicker < -0.2 then targetTransparency = 0.8 end
+            info.emitter.Color = ColorSequence.new(Color3.new(0,0,0))
+        end
+
+        info.fakePart.Size = currentSize
+        info.fakePart.Transparency = targetTransparency
+        info.fakePart.CFrame = (rootCFrame * CFrame.new(finalPosition)) * CFrame.Angles(rotX, rotY, rotZ)
+    end
+end)
+
+local emotePacks = {
+    ["The Ultimates"] = { {name = "Omni Singularity", speed = 2000, style = "Omniversal Singularity"}, {name = "Reality Disintegration", speed = 2000, style = "Reality Disintegration"} },
+    ["Cosmic Chaos"] = { {name = "Head Spin", speed = 400, style = "Head Centric Orbit"}, {name = "Orbital Glitch", speed = 200, style = "Glitched Chaos"}, {name = "Black Hole", speed = 300, style = "Black Hole"}, {name = "Drift", speed = 250, style = "Hyperspace Drift"}, {name = "Scatter", speed = 350, style = "Quantum Scatter"}, {name = "Tornado", speed = 280, style = "Explosive Tornado"}, {name = "Fracture", speed = 450, style = "Dimensional Fracture"}, {name = "Swarm", speed = 500, style = "Brownian Swarm"}, {name = "Eruption", speed = 400, style = "Void Eruption"}, {name = "Neural", speed = 600, style = "Neural Glitch"}, {name = "Orbit", speed = 350, style = "Plasma Orbit"} },
+    ["Chill Modes"] = { {name = "Slow Orbit", speed = 50, style = "Plasma Orbit"}, {name = "Gentle Drift", speed = 30, style = "Hyperspace Drift"}, {name = "Soft Swarm", speed = 40, style = "Brownian Swarm"}, {name = "Lazy Tornado", speed = 60, style = "Explosive Tornado"} },
+    ["Insanity"] = { {name = "Hyper Glitch", speed = 1500, style = "Glitched Chaos"}, {name = "Max Tornado", speed = 1200, style = "Explosive Tornado"}, {name = "Quantum Death", speed = 2000, style = "Quantum Scatter"} },
+    ["Cyber Matrix"] = { {name = "System Override", speed = 800, style = "Neural Glitch"}, {name = "Data Corrupted", speed = 750, style = "Glitched Chaos"}, {name = "Code Scatter", speed = 900, style = "Quantum Scatter"} },
+    ["Divine Halo"] = { {name = "Angelic Orbit", speed = 100, style = "Plasma Orbit"}, {name = "Holy Rings", speed = 150, style = "Hyperspace Drift"}, {name = "Ascension", speed = 80, style = "Brownian Swarm"} },
+    ["Abyssal Curse"] = { {name = "Dark Grasp", speed = 120, style = "Black Hole"}, {name = "Void Consume", speed = 180, style = "Void Eruption"}, {name = "Shattered Soul", speed = 200, style = "Dimensional Fracture"} },
+    ["Galactic Core"] = { {name = "Stellar Spin", speed = 400, style = "Plasma Orbit"}, {name = "Core Collapse", speed = 600, style = "Black Hole"}, {name = "Nebula Storm", speed = 500, style = "Explosive Tornado"} },
+    ["Time Warp"] = { {name = "Slow Motion", speed = 10, style = "Glitched Chaos"}, {name = "Fast Forward", speed = 1000, style = "Brownian Swarm"}, {name = "Time Fracture", speed = 450, style = "Dimensional Fracture"} },
+    ["Nuclear Fallout"] = { {name = "Atomic Blast", speed = 700, style = "Void Eruption"}, {name = "Radiation Swarm", speed = 650, style = "Brownian Swarm"}, {name = "Mushroom Cloud", speed = 550, style = "Explosive Tornado"} },
+    ["Glitch Dimension"] = { {name = "Reality Tear", speed = 850, style = "Dimensional Fracture"}, {name = "404 Error", speed = 900, style = "Neural Glitch"}, {name = "Z-Fighting", speed = 950, style = "Glitched Chaos"} },
+    ["Supernova"] = { {name = "Star Death", speed = 800, style = "Plasma Orbit"}, {name = "Energy Burst", speed = 1000, style = "Void Eruption"}, {name = "Light Speed", speed = 1200, style = "Hyperspace Drift"} },
+    ["Poltergeist"] = { {name = "Ghostly Float", speed = 60, style = "Quantum Scatter"}, {name = "Possession", speed = 150, style = "Neural Glitch"}, {name = "Ectoplasm", speed = 120, style = "Brownian Swarm"} },
+    ["Absolute Zero"] = { {name = "Frozen Particles", speed = 5, style = "Quantum Scatter"}, {name = "Ice Crystals", speed = 15, style = "Dimensional Fracture"}, {name = "Blizzard", speed = 400, style = "Explosive Tornado"} },
+    ["Sacred Geometry"] = { {name = "Pulsing Sphere", speed = 100, style = "Pulsing Sphere"}, {name = "Saturn Rings", speed = 150, style = "Saturn Rings"}, {name = "Hyper Torus", speed = 250, style = "Hyper Torus"} },
+    ["Biohazard"] = { {name = "DNA Helix", speed = 150, style = "DNA Helix"}, {name = "Viral Swarm", speed = 400, style = "Brownian Swarm"}, {name = "Parasite", speed = 600, style = "Neural Glitch"} },
+    ["Armageddon"] = { {name = "Meteor Strike", speed = 300, style = "Meteor Strike"}, {name = "World Ender", speed = 2000, style = "Reality Disintegration"}, {name = "Doomsday", speed = 800, style = "Black Hole"} }
+}
+
+-- =============================================================================
+-- 4. 核心對抗與走位邏輯
+-- =============================================================================
+local character, hrp, humanoid
+local running, riotRunning, evasionEnabled, blinkEnabled, ghostEnabled = false, false, false, false, false
+local currentDistance, teleportInterval, jitterStrength = 500, 0.035, 14
+local tpScaleX, tpScaleY, tpScaleZ = 1, 1, 1
+
+local riotXJitter, riotYJitter, riotZJitter, riotDistance, spinSpeed = 30, 8, 30, 300, 720
+local riotPitchMult, riotRollMult, riotOscFreq = 0.37, 0.19, 3.1
+local riotAsymmetryXPos, riotAsymmetryXNeg, riotAsymmetryYPos, riotAsymmetryYNeg, riotAsymmetryZPos, riotAsymmetryZNeg = 1, 1, 1, 1, 1, 1
+
+local teleportMode = "RANDOM"
+local lastTeleport, lastDeathNotification = 0, 0
+local originalCFrame, riotOriginalCFrame = nil, nil
+
+local closestEnabled, enemyPositionMode, enemyTeleportDistance = false, "Behind", 10
+local enemyOffsetX, enemyOffsetY, enemyOffsetZ = 0, 0, 0
+local ignoreDeathCheck = false
+local evasionIntensityX, evasionIntensityY, evasionIntensityZ = 3.0, 3.0, 3.0
+local blinkRadiusX, blinkRadiusY, blinkRadiusZ = 80, 80, 80
+local blinkRate = 60
+local ghostDistanceX, ghostDistanceY, ghostDistanceZ = 150, 150, 150
+local autocollectEnabled, autocollectRadius = false, 60
+local returnHomeEnabled, homeReturnDelay, homePosition = false, 3.0, nil
+local safeZoneEnabled, safeZoneY, safeZoneSavedPos = false, -10, nil
+local teleportLoopEnabled, teleportLoopPositions, teleportLoopDelay, teleportLoopIndex = false, {}, 1.5, 1
+
+local clickTeleportHotkey = Enum.KeyCode.Z
+local orbitEnemyEnabled, orbitRadius, orbitSpeed = false, 15, 5
+local yoyoStrikeEnabled, yoyoAnchor = false, nil
+local noclipBypassEnabled = false
+local cframeFlightEnabled, flightSpeedX, flightSpeedY, flightSpeedZ = false, 50, 50, 50
+local fakeLagEnabled, fakeLagInterval, lastFakeLagUpdate = false, 0.2, 0
+local antiAimEnabled, antiAimSpeed = false, 1500
+local lowHpEscapeEnabled, lowHpThreshold, lowHpHeight = false, 20, 1000
+local autoHealEnabled = false
+local antiFallDamageEnabled = false
+local projectileDodgeEnabled, projectileDodgeRadius = false, 40
+local dynamicSafeAnchorEnabled, dynamicTargetPlayer = false, ""
+local espBoxTracersEnabled, waypointEspEnabled, aoeWarningEnabled = false, false, false
+local targetSpectateEnabled = false
+local hitboxExpanderEnabled, hitboxSize = false, 10
+local autoFacingEnabled = false
+local clientInvisibilityEnabled, fakeDeathNPC = false, nil
+
+local connections = {}
+
+local function updateChar(c)
+    character = c
+    if c then
+        hrp = c:WaitForChild("HumanoidRootPart", 5)
+        humanoid = c:WaitForChild("Humanoid", 5)
+    else
+        hrp, humanoid = nil, nil
+    end
+end
+if player.Character then updateChar(player.Character) end
+player.CharacterAdded:Connect(updateChar)
+player.CharacterRemoving:Connect(function() updateChar(nil) end)
+
+local SAFE_FLOOR = 2
+local SAFE_MAX_RISE = 800
+
+local function safeTeleport(pos)
+    if not hrp then return end
+    local x, y, z = pos.X, pos.Y, pos.Z
+    y = math.min(y, hrp.Position.Y + SAFE_MAX_RISE)
+    y = math.max(y, SAFE_FLOOR)
+    local params = RaycastParams.new()
+    params.FilterType = Enum.RaycastFilterType.Exclude
+    params.FilterDescendantsInstances = {character}
+    local hit = Workspace:Raycast(Vector3.new(x, y + 60, z), Vector3.new(0, -220, 0), params)
+    if hit then y = math.max(hit.Position.Y + 3, SAFE_FLOOR) end
+    hrp.CFrame = CFrame.new(x, y, z)
+end
+
+local function getClosestHRP()
+    if not hrp then return nil end
+    local closest, minD = nil, math.huge
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Character then
+            local t = plr.Character:FindFirstChild("HumanoidRootPart")
+            local h = plr.Character:FindFirstChild("Humanoid")
+            if t and h and h.Health > 0 then
+                local d = (t.Position - hrp.Position).Magnitude
+                if d < minD then minD = d; closest = t end
+            end
+        end
+    end
+    return closest
+end
+
+local function runRiotAbuser(dt)
+    if not riotRunning or not hrp then return end
+    local yaw = math.rad(spinSpeed * dt)
+    local pitch = math.rad(spinSpeed * riotPitchMult * dt * math.sin(tick() * riotOscFreq))
+    local roll = math.rad(spinSpeed * riotRollMult * dt * math.cos(tick() * (riotOscFreq + 2.6)))
+    local spinCF = hrp.CFrame * CFrame.Angles(pitch, yaw, roll)
+    local spread = riotDistance / 300
+    local jX = (math.random() * (riotAsymmetryXPos + riotAsymmetryXNeg) - riotAsymmetryXNeg) * riotXJitter * spread * 2
+    local jY = (math.random() * (riotAsymmetryYPos + riotAsymmetryYNeg) - riotAsymmetryYNeg) * riotYJitter * spread
+    local jZ = (math.random() * (riotAsymmetryZPos + riotAsymmetryZNeg) - riotAsymmetryZNeg) * riotZJitter * spread * 2
+    local newY = math.max(spinCF.Position.Y + jY, SAFE_FLOOR)
+    hrp.CFrame = spinCF + Vector3.new(jX, newY - spinCF.Position.Y, jZ)
+end
+
+local function runEvasion()
+    if not evasionEnabled or not hrp then return end
+    local t = tick()
+    local oX = math.cos(t*18.7) * currentDistance * 0.18 * evasionIntensityX
+    local oZ = math.sin(t*18.7) * currentDistance * 0.18 * evasionIntensityZ
+    local oY = math.sin(t*11.3) * currentDistance * 0.12 * evasionIntensityY
+    safeTeleport(hrp.CFrame.Position + Vector3.new(oX, oY, oZ))
+end
+
+local function runBlink()
+    if not blinkEnabled or not hrp then return end
+    if math.random() < blinkRate/60 then
+        local offset = Vector3.new(
+            (math.random() * 2 - 1) * blinkRadiusX,
+            (math.random() * 2 - 1) * blinkRadiusY,
+            (math.random() * 2 - 1) * blinkRadiusZ
+        )
+        safeTeleport(hrp.Position + offset)
+    end
+end
+
+local function runGhost()
+    if not ghostEnabled or not hrp then return end
+    local offset = Vector3.new(
+        math.sin(tick() * 5) * ghostDistanceX,
+        math.cos(tick() * 7) * ghostDistanceY,
+        math.sin(tick() * 6) * ghostDistanceZ
+    )
+    safeTeleport(hrp.Position + offset)
+end
+
+local function runOrbitEnemy()
+    if not orbitEnemyEnabled or not hrp then return end
+    local target = getClosestHRP()
+    if target then
+        local t = tick() * orbitSpeed
+        local xOffset = math.sin(t) * orbitRadius
+        local zOffset = math.cos(t) * orbitRadius
+        safeTeleport(target.Position + Vector3.new(xOffset, 2, zOffset))
+        hrp.CFrame = CFrame.new(hrp.Position, target.Position)
+    end
+end
+
+local function runCFrameFlight(dt)
+    if not cframeFlightEnabled or not hrp or not humanoid then return end
+    humanoid.PlatformStand = true
+    local moveDir = humanoid.MoveDirection
+    local cameraCF = camera.CFrame
+    local forward = cameraCF:VectorToWorldSpace(Vector3.new(0, 0, -1))
+    local right = cameraCF:VectorToWorldSpace(Vector3.new(1, 0, 0))
+    local up = Vector3.new(0, 1, 0)
+    local vel = forward * moveDir.Z * flightSpeedZ + right * moveDir.X * flightSpeedX
+    if UIS:IsKeyDown(Enum.KeyCode.Space) then vel = vel + up * flightSpeedY end
+    if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then vel = vel - up * flightSpeedY end
+    local newPos = hrp.Position + vel * dt
+    hrp.CFrame = CFrame.new(newPos) * CFrame.Angles(cameraCF:ToEulerAnglesXYZ())
+end
+
+local function runFakeLag()
+    if not fakeLagEnabled or not hrp then return end
+    if tick() - lastFakeLagUpdate > fakeLagInterval then
+        lastFakeLagUpdate = tick()
+        hrp.Anchored = false
+    else hrp.Anchored = true end
+end
+
+local function runAntiAim()
+    if not antiAimEnabled or not hrp then return end
+    local rX, rY, rZ = math.rad(math.random(-180, 180)), math.rad(tick() * antiAimSpeed % 360), math.rad(math.random(-180, 180))
+    hrp.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(rX, rY, rZ)
+end
+
+connections["Noclip"] = RunService.Stepped:Connect(function()
+    if noclipBypassEnabled and character then
+        for _, part in ipairs(character:GetChildren()) do
+            if part:IsA("BasePart") then part.CanCollide = false end
+        end
+    end
+end)
+
+connections["LowHPEscape"] = RunService.Heartbeat:Connect(function()
+    if lowHpEscapeEnabled and humanoid and hrp and humanoid.Health > 0 then
+        if (humanoid.Health / humanoid.MaxHealth) * 100 < lowHpThreshold then
+            safeTeleport(hrp.Position + Vector3.new(0, lowHpHeight, 0))
+            task.wait(1)
+        end
+    end
+end)
+
+local HEAL_WORDS = {"heal","health","medkit","medic","kit","potion","pack","firstaid","bandage","hp","restore","pickup","orb","heart","regen","pill","syringe","cure","bottle","food","apple"}
+connections["AutoHeal"] = RunService.Heartbeat:Connect(function()
+    if autoHealEnabled and humanoid and humanoid.Health < humanoid.MaxHealth * 0.5 then
+        local backpack = player:FindFirstChild("Backpack")
+        if backpack then
+            for _, tool in ipairs(backpack:GetChildren()) do
+                for _, word in ipairs(HEAL_WORDS) do
+                    if tool.Name:lower():find(word) then
+                        humanoid:EquipTool(tool)
+                        tool:Activate()
+                        task.wait(0.3)
+                        break
+                    end
+                end
+            end
+        end
+    end
+end)
+
+connections["AntiFall"] = RunService.Heartbeat:Connect(function()
+    if antiFallDamageEnabled and hrp then
+        if hrp.AssemblyLinearVelocity.Y < -60 then
+            local params = RaycastParams.new()
+            params.FilterType = Enum.RaycastFilterType.Exclude
+            params.FilterDescendantsInstances = {character}
+            local hit = Workspace:Raycast(hrp.Position, Vector3.new(0, -15, 0), params)
+            if hit then
+                hrp.AssemblyLinearVelocity = Vector3.new(hrp.AssemblyLinearVelocity.X, 0, hrp.AssemblyLinearVelocity.Z)
+                safeTeleport(hrp.Position + Vector3.new(0, 2, 0))
+            end
+        end
+    end
+end)
+
+connections["ProjectileDodge"] = RunService.Heartbeat:Connect(function()
+    if projectileDodgeEnabled and hrp then
+        for _, desc in ipairs(Workspace:GetDescendants()) do
+            if desc:IsA("BasePart") and not desc.Anchored and desc:GetAttribute("Velocity") or desc.AssemblyLinearVelocity.Magnitude > 50 then
+                if (desc.Position - hrp.Position).Magnitude < projectileDodgeRadius then
+                    local dot = desc.AssemblyLinearVelocity.Unit:Dot((hrp.Position - desc.Position).Unit)
+                    if dot > 0.7 then
+                        local sideVector = Vector3.new(-desc.AssemblyLinearVelocity.Z, 0, desc.AssemblyLinearVelocity.X).Unit * 15
+                        safeTeleport(hrp.Position + sideVector)
+                        break
+                    end
+                end
+            end
+        end
+    end
+end)
+
+connections["DynamicAnchor"] = RunService.Heartbeat:Connect(function()
+    if dynamicSafeAnchorEnabled and hrp and dynamicTargetPlayer ~= "" then
+        local tPlayer = Players:FindFirstChild(dynamicTargetPlayer)
+        if tPlayer and tPlayer.Character and tPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local tHrp = tPlayer.Character.HumanoidRootPart
+            if humanoid and (humanoid:GetState() == Enum.HumanoidStateType.Ragdoll or hrp.AssemblyLinearVelocity.Magnitude > 120) then
+                task.wait(0.2)
+                safeTeleport(tHrp.Position + Vector3.new(0, 3, 0))
+            end
+        end
+    end
+end)
+
+local function runMainTeleport(dt)
+    if not (running or closestEnabled) or not hrp then return end
+    if closestEnabled then
+        local enemy = getClosestHRP()
+        if enemy then
+            local offset = Vector3.new(0, 0, 0)
+            if enemyPositionMode == "Above" then offset = Vector3.new(0, enemyTeleportDistance, 0)
+            elseif enemyPositionMode == "Behind" then offset = -enemy.CFrame.LookVector * enemyTeleportDistance
+            elseif enemyPositionMode == "Under" then offset = Vector3.new(0, -enemyTeleportDistance, 0)
+            elseif enemyPositionMode == "InFront" then offset = enemy.CFrame.LookVector * enemyTeleportDistance
+            end
+            offset = offset + Vector3.new(enemyOffsetX, enemyOffsetY, enemyOffsetZ)
+            local tp = enemy.Position + offset
+            if not ignoreDeathCheck and tp.Y < -20 then return end
+            safeTeleport(tp)
+        end
+        return
+    end
+
+    if tick() - lastTeleport < teleportInterval then return end
+    lastTeleport = tick()
+
+    if teleportMode == "RANDOM" then
+        local phase = tick() * 28
+        local r1 = currentDistance * (0.60 + 0.40 * math.sin(phase * 2.3))
+        local oX = math.cos(phase*7.1) * r1 * tpScaleX
+        local oY = math.sin(phase*11.3) * r1 * tpScaleY
+        local oZ = math.sin(phase*7.1) * r1 * tpScaleZ
+        safeTeleport(hrp.Position + Vector3.new(oX, oY, oZ))
+    elseif teleportMode == "FORWARD" then
+        safeTeleport(hrp.Position + (hrp.CFrame.LookVector * currentDistance))
+    elseif teleportMode == "CAMERA" then
+        safeTeleport(hrp.Position + (camera.CFrame.LookVector * currentDistance))
+    end
+end
+
+local function runAutoFacing()
+    if not autoFacingEnabled or not hrp then return end
+    local target = getClosestHRP()
+    if target then hrp.CFrame = CFrame.new(hrp.Position, Vector3.new(target.Position.X, hrp.Position.Y, target.Position.Z)) end
+end
+
+connections["MainLoop"] = RunService.Heartbeat:Connect(function(dt)
+    runMainTeleport(dt)
+    runRiotAbuser(dt)
+    runEvasion()
+    runBlink()
+    runGhost()
+    runOrbitEnemy()
+    runCFrameFlight(dt)
+    runFakeLag()
+    runAntiAim()
+    runAutoFacing()
+    updateVoid(dt)
+    updateSimulation(dt)
+end)
+
+connections["ClickTeleport"] = UIS.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == clickTeleportHotkey then
+        local mouse = player:GetMouse()
+        if mouse.Hit then safeTeleport(mouse.Hit.Position) end
+    end
+end)
+
+connections["YoYoStrike"] = UIS.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Enum.KeyCode.V then
+        if hrp and not yoyoStrikeEnabled then
+            local target = getClosestHRP()
+            if target then
+                yoyoAnchor = hrp.CFrame
+                yoyoStrikeEnabled = true
+                safeTeleport(target.Position - target.CFrame.LookVector * 4)
+            end
+        end
+    end
+end)
+connections["YoYoStrikeEnd"] = UIS.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.V and yoyoStrikeEnabled and yoyoAnchor then
+        if hrp then hrp.CFrame = yoyoAnchor end
+        yoyoStrikeEnabled = false
+        yoyoAnchor = nil
+    end
+end)
+
+connections["SafeZoneRescue"] = RunService.Heartbeat:Connect(function()
+    if not hrp then return end
+    if hrp.Position.Y > safeZoneY then safeZoneSavedPos = hrp.Position
+    elseif safeZoneEnabled and safeZoneSavedPos then hrp.CFrame = CFrame.new(safeZoneSavedPos) end
+end)
+
+connections["AutocollectHeals"] = RunService.Heartbeat:Connect(function()
+    if not autocollectEnabled or not hrp then return end
+    local bestPos, bestDist = nil, math.huge
+    for _, obj in ipairs(Workspace:GetDescendants()) do
+        local isHealItem = false
+        local n = obj.Name:lower()
+        for _, h in ipairs(HEAL_WORDS) do if n:find(h) then isHealItem = true; break end end
+        if isHealItem then
+            local pos = obj:IsA("BasePart") and obj.Position or (obj:IsA("Model") and obj.PrimaryPart and obj.PrimaryPart.Position)
+            if pos then
+                local d = (pos - hrp.Position).Magnitude
+                if d < bestDist and d <= autocollectRadius then bestDist = d; bestPos = pos end
+            end
+        end
+    end
+    if bestPos then safeTeleport(bestPos) end
+end)
+
+connections["ReturnHomeLoop"] = task.spawn(function()
+    while true do
+        task.wait(homeReturnDelay)
+        if returnHomeEnabled and hrp and homePosition then
+            if (hrp.Position - homePosition).Magnitude > 50 then safeTeleport(homePosition) end
+        end
+    end
+end)
+
+connections["WaypointLoop"] = task.spawn(function()
+    while true do
+        task.wait(teleportLoopDelay)
+        if teleportLoopEnabled and #teleportLoopPositions > 0 and hrp then
+            local target = teleportLoopPositions[teleportLoopIndex]
+            if target then safeTeleport(target) end
+            teleportLoopIndex = (teleportLoopIndex % #teleportLoopPositions) + 1
+        end
+    end
+end)
+
+local function createESP()
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= player and p.Character then
+            if espBoxTracersEnabled and not p.Character:FindFirstChild("KevinESP") then
+                local highlight = Instance.new("Highlight")
+                highlight.Name = "KevinESP"
+                highlight.FillColor = Color3.fromRGB(255, 0, 0)
+                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                highlight.Parent = p.Character
+            elseif not espBoxTracersEnabled and p.Character:FindFirstChild("KevinESP") then
+                p.Character.KevinESP:Destroy()
+            end
+        end
+    end
+    if waypointEspEnabled then
+        for i, pos in ipairs(teleportLoopPositions) do
+            if not Workspace:FindFirstChild("WP_Node_"..i) then
+                local node = Instance.new("Part", Workspace)
+                node.Name = "WP_Node_"..i
+                node.Size = Vector3.new(3,3,3)
+                node.Position = pos
+                node.Anchored = true
+                node.CanCollide = false
+                node.Material = Enum.Material.Neon
+                node.Color = Color3.fromRGB(0, 255, 255)
+            end
+        end
+    else
+        for i = 1, 5 do
+            local node = Workspace:FindFirstChild("WP_Node_"..i)
+            if node then node:Destroy() end
+        end
+    end
+end
+
+task.spawn(function()
+    while true do task.wait(1); pcall(createESP) end
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        if targetSpectateEnabled then
+            local target = getClosestHRP()
+            if target and target.Parent and target.Parent:FindFirstChild("Humanoid") then
+                camera.CameraSubject = target.Parent.Humanoid
+            end
+        else if humanoid then camera.CameraSubject = humanoid end end
+    end
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(1)
+        if hitboxExpanderEnabled then
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p ~= player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    p.Character.HumanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                    p.Character.HumanoidRootPart.CanCollide = false
+                end
+            end
+        end
+    end
+end)
+
+local function toggleInvisibility(state)
+    clientInvisibilityEnabled = state
+    if state and hrp then
+        originalCFrame = hrp.CFrame
+        character.Archivable = true
+        fakeDeathNPC = character:Clone()
+        fakeDeathNPC.Parent = Workspace
+        fakeDeathNPC:MoveTo(hrp.Position)
+        safeTeleport(Vector3.new(99999, -500, 99999))
+    else
+        if fakeDeathNPC then fakeDeathNPC:Destroy(); fakeDeathNPC = nil end
+        if originalCFrame then safeTeleport(originalCFrame.Position) end
+    end
+end
+
+UIS.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.T then running = not running end
+    if input.KeyCode == Enum.KeyCode.R then riotRunning = not riotRunning end
+    if input.KeyCode == Enum.KeyCode.E then evasionEnabled = not evasionEnabled end
+    if input.KeyCode == Enum.KeyCode.B then blinkEnabled = not blinkEnabled end
+    if input.KeyCode == Enum.KeyCode.G then ghostEnabled = not ghostEnabled end
+    if input.KeyCode == Void.settings.void_keybind then
+        if Void.keybindPressed then return end
+        Void.keybindPressed = true
+        local newState = not Void.settings.enable_void
+        if newState then startVoid() else stopVoid() end
+        Void.settings.enable_void = newState
+        task.delay(0.2, function() Void.keybindPressed = false end)
+    end
+end)
+
+-- =============================================================================
+-- 5. SOLIX LIBRARY UI 構建
+-- =============================================================================
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/NIcoGabrielRealYtr/Solix-Hub-Library/refs/heads/retard/Source"))()
+local Window = Library:Window({
+    Name = "kevin private lua",
+    Size = UDim2.new(0, 550, 0, 350),
+    FadeSpeed = 0.25
+})
+local Watermark = Library:Watermark("Kevin Private | V3")
+local KeybindList = Library:KeybindList()
+
+-- == 頁面 1: 走位與生存 ==
+local MovementPage = Window:Page({ Name = "走位與生存", Columns = 2 })
+
+local BaseTPSection = MovementPage:Section({ Name = "基礎傳送系統 (範圍上限 100k)", Side = 1 })
+BaseTPSection:Toggle({
+    Name = "啟用基礎隨機傳送 (T 鍵)", Flag = "Toggle_RandomTP", Default = false,
+    Callback = function(Value) running = Value end
+})
+local tpmodeDropdown = BaseTPSection:Dropdown({
+    Name = "傳送模式", Flag = "Dropdown_TPMode", Items = {"RANDOM", "FORWARD", "CAMERA"}, Default = "RANDOM",
+    Callback = function(Value) teleportMode = Value end
+})
+BaseTPSection:Slider({
+    Name = "傳送範圍 (基礎距離)", Flag = "Slider_TPRadius", Min = 50, Max = 100000, Default = 500, Decimals = 0, Suffix = "",
+    Callback = function(Value) currentDistance = Value end
+})
+BaseTPSection:Textbox({
+    Name = "傳送頻率 (秒/次，支援小數點後10位)", Flag = "Input_TPInterval", Placeholder = "例如 0.035",
+    Callback = function(Text)
+        local num = tonumber(Text)
+        if num and num > 0 then teleportInterval = math.max(1e-10, math.min(num, 1)) end
+    end
+})
+
+local TPScaleSection = MovementPage:Section({ Name = "傳送軸向獨立縮放 (隨機模式)", Side = 2 })
+TPScaleSection:Slider({ Name = "X軸縮放", Flag = "Slider_TPScaleX", Min = 0, Max = 100, Default = 1, Decimals = 1, Callback = function(Value) tpScaleX = Value end })
+TPScaleSection:Slider({ Name = "Y軸縮放", Flag = "Slider_TPScaleY", Min = 0, Max = 100, Default = 1, Decimals = 1, Callback = function(Value) tpScaleY = Value end })
+TPScaleSection:Slider({ Name = "Z軸縮放", Flag = "Slider_TPScaleZ", Min = 0, Max = 100, Default = 1, Decimals = 1, Callback = function(Value) tpScaleZ = Value end })
+
+local RiotSection = MovementPage:Section({ Name = "Riot 隔離防禦晶片 (上限 100k)", Side = 1 })
+RiotSection:Toggle({ Name = "啟用 Riot Abuse 異常抖動 (R 鍵)", Flag = "Toggle_Riot", Default = false, Callback = function(Value) riotRunning = Value end })
+RiotSection:Slider({ Name = "旋轉速度 (Deg/S)", Flag = "Slider_SpinSpeed", Min = 100, Max = 100000, Default = 720, Decimals = 0, Callback = function(Value) spinSpeed = Value end })
+RiotSection:Slider({ Name = "抖動距離 (Riot Distance)", Flag = "Slider_RiotDist", Min = 50, Max = 100000, Default = 300, Decimals = 0, Callback = function(Value) riotDistance = Value end })
+RiotSection:Slider({ Name = "抖動 X 軸強度", Flag = "Slider_RiotX", Min = 0, Max = 100000, Default = 30, Decimals = 0, Callback = function(Value) riotXJitter = Value end })
+RiotSection:Slider({ Name = "抖動 Y 軸強度", Flag = "Slider_RiotY", Min = 0, Max = 100000, Default = 8, Decimals = 0, Callback = function(Value) riotYJitter = Value end })
+RiotSection:Slider({ Name = "抖動 Z 軸強度", Flag = "Slider_RiotZ", Min = 0, Max = 100000, Default = 30, Decimals = 0, Callback = function(Value) riotZJitter = Value end })
+RiotSection:Slider({ Name = "Pitch 乘數 (0.1~2.0)", Flag = "Slider_RiotPitch", Min = 0.1, Max = 2.0, Default = 0.37, Decimals = 2, Callback = function(Value) riotPitchMult = Value end })
+RiotSection:Slider({ Name = "Roll 乘數 (0.1~2.0)", Flag = "Slider_RiotRoll", Min = 0.1, Max = 2.0, Default = 0.19, Decimals = 2, Callback = function(Value) riotRollMult = Value end })
+RiotSection:Slider({ Name = "震盪頻率 (0.5~20)", Flag = "Slider_RiotFreq", Min = 0.5, Max = 20, Default = 3.1, Decimals = 1, Callback = function(Value) riotOscFreq = Value end })
+
+local RiotAsymSection = MovementPage:Section({ Name = "Riot 不對稱倍率 (正/負向)", Side = 2 })
+RiotAsymSection:Slider({ Name = "X正向倍率", Flag = "Slider_RiotAsymXPos", Min = 0, Max = 10, Default = 1, Decimals = 1, Callback = function(Value) riotAsymmetryXPos = Value end })
+RiotAsymSection:Slider({ Name = "X負向倍率", Flag = "Slider_RiotAsymXNeg", Min = 0, Max = 10, Default = 1, Decimals = 1, Callback = function(Value) riotAsymmetryXNeg = Value end })
+RiotAsymSection:Slider({ Name = "Y正向倍率", Flag = "Slider_RiotAsymYPos", Min = 0, Max = 10, Default = 1, Decimals = 1, Callback = function(Value) riotAsymmetryYPos = Value end })
+RiotAsymSection:Slider({ Name = "Y負向倍率", Flag = "Slider_RiotAsymYNeg", Min = 0, Max = 10, Default = 1, Decimals = 1, Callback = function(Value) riotAsymmetryYNeg = Value end })
+RiotAsymSection:Slider({ Name = "Z正向倍率", Flag = "Slider_RiotAsymZPos", Min = 0, Max = 10, Default = 1, Decimals = 1, Callback = function(Value) riotAsymmetryZPos = Value end })
+RiotAsymSection:Slider({ Name = "Z負向倍率", Flag = "Slider_RiotAsymZNeg", Min = 0, Max = 10, Default = 1, Decimals = 1, Callback = function(Value) riotAsymmetryZNeg = Value end })
+
+local AdvMovementSection = MovementPage:Section({ Name = "高階走位擴充 (軸向獨立)", Side = 1 })
+AdvMovementSection:Toggle({ Name = "啟用 敵人環繞步法", Flag = "Toggle_OrbitEnemy", Default = false, Callback = function(Value) orbitEnemyEnabled = Value end })
+AdvMovementSection:Slider({ Name = "環繞半徑", Flag = "Slider_OrbitRadius", Min = 5, Max = 100000, Default = 15, Decimals = 0, Callback = function(Value) orbitRadius = Value end })
+AdvMovementSection:Slider({ Name = "環繞速度", Flag = "Slider_OrbitSpeed", Min = 1, Max = 100000, Default = 5, Decimals = 0, Callback = function(Value) orbitSpeed = Value end })
+AdvMovementSection:Toggle({ Name = "啟用 智能穿牆模式 (Noclip Bypass)", Flag = "Toggle_Noclip", Default = false, Callback = function(Value) noclipBypassEnabled = Value end })
+AdvMovementSection:Toggle({ Name = "啟用 平滑無重力飛行 (CFrame Flight)", Flag = "Toggle_Flight", Default = false, Callback = function(Value) cframeFlightEnabled = Value; if not Value and humanoid then humanoid.PlatformStand = false end end })
+AdvMovementSection:Slider({ Name = "飛行速度 X (左右)", Flag = "Slider_FlightX", Min = 10, Max = 100000, Default = 50, Decimals = 0, Callback = function(Value) flightSpeedX = Value end })
+AdvMovementSection:Slider({ Name = "飛行速度 Y (上下)", Flag = "Slider_FlightY", Min = 10, Max = 100000, Default = 50, Decimals = 0, Callback = function(Value) flightSpeedY = Value end })
+AdvMovementSection:Slider({ Name = "飛行速度 Z (前後)", Flag = "Slider_FlightZ", Min = 10, Max = 100000, Default = 50, Decimals = 0, Callback = function(Value) flightSpeedZ = Value end })
+AdvMovementSection:Toggle({ Name = "假延遲 / 判定偏移 (Fake Lag)", Flag = "Toggle_FakeLag", Default = false, Callback = function(Value) fakeLagEnabled = Value; if not Value and hrp then hrp.Anchored = false end end })
+AdvMovementSection:Slider({ Name = "假延遲間隔 (秒)", Flag = "Slider_FakeLagInt", Min = 0.01, Max = 2.0, Default = 0.2, Decimals = 2, Callback = function(Value) fakeLagInterval = Value end })
+
+local BlinkGhostSection = MovementPage:Section({ Name = "Blink / Ghost / Evasion (獨立軸向)", Side = 2 })
+BlinkGhostSection:Toggle({ Name = "啟用 Blink 位移模式 (B 鍵)", Flag = "Toggle_Blink", Default = false, Callback = function(Value) blinkEnabled = Value end })
+BlinkGhostSection:Slider({ Name = "Blink X軸半徑", Flag = "Slider_BlinkX", Min = 10, Max = 100000, Default = 80, Decimals = 0, Callback = function(Value) blinkRadiusX = Value end })
+BlinkGhostSection:Slider({ Name = "Blink Y軸半徑", Flag = "Slider_BlinkY", Min = 10, Max = 100000, Default = 80, Decimals = 0, Callback = function(Value) blinkRadiusY = Value end })
+BlinkGhostSection:Slider({ Name = "Blink Z軸半徑", Flag = "Slider_BlinkZ", Min = 10, Max = 100000, Default = 80, Decimals = 0, Callback = function(Value) blinkRadiusZ = Value end })
+BlinkGhostSection:Slider({ Name = "Blink 觸發率 (次/秒)", Flag = "Slider_BlinkRate", Min = 1, Max = 100000, Default = 60, Decimals = 0, Callback = function(Value) blinkRate = Value end })
+BlinkGhostSection:Toggle({ Name = "啟用 Ghost 幽靈模式 (G 鍵)", Flag = "Toggle_Ghost", Default = false, Callback = function(Value) ghostEnabled = Value end })
+BlinkGhostSection:Slider({ Name = "Ghost X軸距離", Flag = "Slider_GhostX", Min = 50, Max = 100000, Default = 150, Decimals = 0, Callback = function(Value) ghostDistanceX = Value end })
+BlinkGhostSection:Slider({ Name = "Ghost Y軸距離", Flag = "Slider_GhostY", Min = 50, Max = 100000, Default = 150, Decimals = 0, Callback = function(Value) ghostDistanceY = Value end })
+BlinkGhostSection:Slider({ Name = "Ghost Z軸距離", Flag = "Slider_GhostZ", Min = 50, Max = 100000, Default = 150, Decimals = 0, Callback = function(Value) ghostDistanceZ = Value end })
+BlinkGhostSection:Toggle({ Name = "啟用 Evasion 閃避模式 (E 鍵)", Flag = "Toggle_Evasion", Default = false, Callback = function(Value) evasionEnabled = Value end })
+BlinkGhostSection:Slider({ Name = "Evasion X 強度", Flag = "Slider_EvasionX", Min = 0.1, Max = 100000, Default = 3.0, Decimals = 1, Callback = function(Value) evasionIntensityX = Value end })
+BlinkGhostSection:Slider({ Name = "Evasion Y 強度", Flag = "Slider_EvasionY", Min = 0.1, Max = 100000, Default = 3.0, Decimals = 1, Callback = function(Value) evasionIntensityY = Value end })
+BlinkGhostSection:Slider({ Name = "Evasion Z 強度", Flag = "Slider_EvasionZ", Min = 0.1, Max = 100000, Default = 3.0, Decimals = 1, Callback = function(Value) evasionIntensityZ = Value end })
+
+MovementPage:Section({ Name = "手機玩家虛擬快捷區", Side = 1 }):Button():Add("模擬點擊傳送", function()
+    local mouse = player:GetMouse()
+    if mouse.Hit then safeTeleport(mouse.Hit.Position) end
+end)
+
+local SurvivalSection = MovementPage:Section({ Name = "自動化生存與地圖支援", Side = 2 })
+SurvivalSection:Toggle({ Name = "低血量自動逃生 (Panic Escape)", Flag = "Toggle_LowHPEscape", Default = false, Callback = function(Value) lowHpEscapeEnabled = Value end })
+SurvivalSection:Slider({ Name = "逃生血量閾值 (%)", Flag = "Slider_EscapeHP", Min = 5, Max = 50, Default = 20, Decimals = 0, Callback = function(Value) lowHpThreshold = Value end })
+SurvivalSection:Slider({ Name = "逃生向上傳送高度", Flag = "Slider_EscapeHeight", Min = 100, Max = 100000, Default = 1000, Decimals = 0, Callback = function(Value) lowHpHeight = Value end })
+SurvivalSection:Toggle({ Name = "自動使用補血道具 (Auto Heal)", Flag = "Toggle_AutoHeal", Default = false, Callback = function(Value) autoHealEnabled = Value end })
+SurvivalSection:Toggle({ Name = "免疫墜落傷害 (Smart Anti-Fall)", Flag = "Toggle_AntiFall", Default = false, Callback = function(Value) antiFallDamageEnabled = Value end })
+SurvivalSection:Toggle({ Name = "自動閃避飛來投射物", Flag = "Toggle_ProjDodge", Default = false, Callback = function(Value) projectileDodgeEnabled = Value end })
+SurvivalSection:Slider({ Name = "投射物閃避半徑", Flag = "Slider_ProjDodgeRad", Min = 10, Max = 100000, Default = 40, Decimals = 0, Callback = function(Value) projectileDodgeRadius = Value end })
+SurvivalSection:Toggle({ Name = "動態安全錨點系統", Flag = "Toggle_DynAnchor", Default = false, Callback = function(Value) dynamicSafeAnchorEnabled = Value end })
+SurvivalSection:Textbox({ Name = "動態錨點友方玩家名稱", Flag = "Input_AnchorPlayer", Placeholder = "玩家名稱", Callback = function(Text) dynamicTargetPlayer = Text end })
+SurvivalSection:Toggle({ Name = "虛空拯救區域 (Safe Zone)", Flag = "Toggle_SafeZone", Default = false, Callback = function(Value) safeZoneEnabled = Value end })
+SurvivalSection:Slider({ Name = "Safe Zone 觸發高度 (Y)", Flag = "Slider_SafeZoneY", Min = -500, Max = 500, Default = -10, Decimals = 0, Callback = function(Value) safeZoneY = Value end })
+SurvivalSection:Toggle({ Name = "自動搜集醫療道具 (Autocollect)", Flag = "Toggle_AutoCollect", Default = false, Callback = function(Value) autocollectEnabled = Value end })
+SurvivalSection:Slider({ Name = "自動搜集半徑", Flag = "Slider_AutoCollectRad", Min = 10, Max = 100000, Default = 60, Decimals = 0, Callback = function(Value) autocollectRadius = Value end })
+
+-- == 頁面 2: 戰鬥與輔助 ==
+local CombatPage = Window:Page({ Name = "戰鬥與輔助", Columns = 2 })
+
+CombatPage:Section({ Name = "快速行動", Side = 1 }):Button():Add("⚡ 一鍵瞬移至最近敵人背後", function()
+    local enemy = getClosestHRP()
+    if enemy then
+        local behindPos = enemy.Position - enemy.CFrame.LookVector * 5
+        safeTeleport(behindPos)
+    else
+        Library:Notification("錯誤", "附近沒有敵人", 2)
+    end
+end)
+
+local ESPRenderSection = CombatPage:Section({ Name = "透視渲染與感知環境", Side = 1 })
+ESPRenderSection:Toggle({ Name = "玩家外觀透視 (ESP Box)", Flag = "Toggle_ESPBox", Default = false, Callback = function(Value) espBoxTracersEnabled = Value end })
+ESPRenderSection:Toggle({ Name = "視覺化巡邏路徑點 (Waypoint ESP)", Flag = "Toggle_ESPWapoint", Default = false, Callback = function(Value) waypointEspEnabled = Value end })
+ESPRenderSection:Toggle({ Name = "隔牆觀戰最近目標 (Target Spectate)", Flag = "Toggle_TargetSpec", Default = false, Callback = function(Value) targetSpectateEnabled = Value end })
+
+local AimSection = CombatPage:Section({ Name = "自瞄與判定擴充", Side = 2 })
+AimSection:Toggle({ Name = "鎖定最近敵人傳送 (Behind/Above)", Flag = "Toggle_ClosestEnemy", Default = false, Callback = function(Value) closestEnabled = Value end })
+AimSection:Dropdown({ Name = "鎖敵傳送相對方位", Flag = "Dropdown_EnemyPos", Items = {"Above", "Behind", "Under", "InFront"}, Default = "Behind", Callback = function(Value) enemyPositionMode = Value end })
+AimSection:Slider({ Name = "鎖敵傳送距離", Flag = "Slider_EnemyTPDist", Min = 1, Max = 100000, Default = 10, Decimals = 0, Callback = function(Value) enemyTeleportDistance = Value end })
+AimSection:Slider({ Name = "額外X偏移", Flag = "Slider_EnemyOffX", Min = -100000, Max = 100000, Default = 0, Decimals = 0, Callback = function(Value) enemyOffsetX = Value end })
+AimSection:Slider({ Name = "額外Y偏移", Flag = "Slider_EnemyOffY", Min = -100000, Max = 100000, Default = 0, Decimals = 0, Callback = function(Value) enemyOffsetY = Value end })
+AimSection:Slider({ Name = "額外Z偏移", Flag = "Slider_EnemyOffZ", Min = -100000, Max = 100000, Default = 0, Decimals = 0, Callback = function(Value) enemyOffsetZ = Value end })
+AimSection:Toggle({ Name = "強制自動轉向面朝敵人 (Auto-Facing)", Flag = "Toggle_AutoFace", Default = false, Callback = function(Value) autoFacingEnabled = Value end })
+AimSection:Toggle({ Name = "擴大敵人受擊判定區 (Hitbox)", Flag = "Toggle_Hitbox", Default = false, Callback = function(Value) hitboxExpanderEnabled = Value; if not Value then for _, p in ipairs(Players:GetPlayers()) do if p ~= player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then p.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1) end end end end })
+AimSection:Slider({ Name = "判定區邊長大小", Flag = "Slider_HitboxSize", Min = 2, Max = 100000, Default = 10, Decimals = 0, Callback = function(Value) hitboxSize = Value end })
+AimSection:Toggle({ Name = "高階防爆頭旋轉角度 (Anti-Aim)", Flag = "Toggle_AntiAim", Default = false, Callback = function(Value) antiAimEnabled = Value end })
+AimSection:Slider({ Name = "反瞄準旋轉速度", Flag = "Slider_AntiAimSpeed", Min = 100, Max = 100000, Default = 1500, Decimals = 0, Callback = function(Value) antiAimSpeed = Value end })
+AimSection:Toggle({ Name = "開啟客戶端假死/虛擬隱身", Flag = "Toggle_Invisibility", Default = false, Callback = function(Value) toggleInvisibility(Value) end })
+
+local UtilSection = CombatPage:Section({ Name = "戰略實用常規工具", Side = 1 })
+UtilSection:Button():Add("一鍵伺服器跳轉 / 防抓防死退出", function()
+    local x = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Desc&limit=100"))
+    for _, s in pairs(x.data) do
+        if s.playing < s.maxPlayers and s.id ~= game.JobId then
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, s.id, player)
+            break
+        end
+    end
+end)
+UtilSection:Button():Add("設定當前座標為家園點", function() if hrp then homePosition = hrp.Position end end)
+UtilSection:Toggle({ Name = "啟用自動返回家園點", Flag = "Toggle_ReturnHome", Default = false, Callback = function(Value) returnHomeEnabled = Value end })
+UtilSection:Slider({ Name = "返家檢查間隔 (秒)", Flag = "Slider_ReturnDelay", Min = 1, Max = 30, Default = 3.0, Decimals = 1, Callback = function(Value) homeReturnDelay = Value end })
+UtilSection:Button():Add("添加當前座標至巡邏點路徑 (上限5)", function()
+    if hrp then
+        if #teleportLoopPositions >= 5 then table.remove(teleportLoopPositions, 1) end
+        table.insert(teleportLoopPositions, hrp.Position)
+    end
+end)
+UtilSection:Button():Add("清空所有巡邏路徑點", function() teleportLoopPositions = {}; teleportLoopIndex = 1 end)
+UtilSection:Toggle({ Name = "開啟路徑點巡邏循環 (Teleport Loop)", Flag = "Toggle_TPLoop", Default = false, Callback = function(Value) teleportLoopEnabled = Value end })
+UtilSection:Slider({ Name = "巡邏循環間隔 (秒)", Flag = "Slider_TPLoopDelay", Min = 0.1, Max = 100000, Default = 1.5, Decimals = 1, Callback = function(Value) teleportLoopDelay = Value end })
+
+-- == 頁面 3: CSync Void ==
+local VoidPage = Window:Page({ Name = "CSync Void", Columns = 2 })
+
+local VoidMainSection = VoidPage:Section({ Name = "主控制", Side = 1 })
+local voidToggle = VoidMainSection:Toggle({
+    Name = "啟用 CSync Void (按鍵 " .. tostring(Void.settings.void_keybind) .. ")", Flag = "Toggle_VoidEnabled", Default = false,
+    Callback = function(Value)
+        Void.settings.enable_void = Value
+        if Value then startVoid() else stopVoid() end
+    end
+})
+
+VoidPage:Section({ Name = "參數設定", Side = 1 }):Slider({ Name = "切換速度 (Switch Speed)", Flag = "Slider_VoidSwitchSpeed", Min = 0.0001, Max = 10, Default = 0.05, Decimals = 4, Callback = function(Value) Void.settings.switchSpeed = Value end })
+VoidPage:Section({ Name = "深度乘數", Side = 2 }):Slider({ Name = "深度乘數 (1 = 約10億)", Flag = "Slider_VoidDepthMult", Min = 0.1, Max = 10, Default = 1, Decimals = 1, Callback = function(Value) Void.settings.depthMultiplier = Value end })
+
+local VoidVelSection = VoidPage:Section({ Name = "隨機速度 (每軸獨立)", Side = 1 })
+VoidVelSection:Slider({ Name = "隨機速度 X", Flag = "Slider_VoidRandVelX", Min = 0, Max = 1000000, Default = 0, Decimals = 0, Callback = function(Value) Void.settings.rand_vel_x = Value end })
+VoidVelSection:Slider({ Name = "隨機速度 Y", Flag = "Slider_VoidRandVelY", Min = 0, Max = 1000000, Default = 0, Decimals = 0, Callback = function(Value) Void.settings.rand_vel_y = Value end })
+VoidVelSection:Slider({ Name = "隨機速度 Z", Flag = "Slider_VoidRandVelZ", Min = 0, Max = 1000000, Default = 0, Decimals = 0, Callback = function(Value) Void.settings.rand_vel_z = Value end })
+
+local VoidJerkSection = VoidPage:Section({ Name = "抖動強度", Side = 2 })
+VoidJerkSection:Slider({ Name = "Jerk 強度", Flag = "Slider_VoidJerkIntensity", Min = 0, Max = 100, Default = 20, Decimals = 0, Callback = function(Value) Void.settings.jerk_intensity = Value end })
+VoidJerkSection:Slider({ Name = "隨機速度強度", Flag = "Slider_VoidRandIntensity", Min = 0, Max = 100, Default = 15, Decimals = 0, Callback = function(Value) Void.settings.random_vel_intensity = Value end })
+
+-- 智能脈衝
+local autoPulseVoidEnabled = false
+local autoPulseInitialDelay = 0
+local autoPulseVoidDuration = 5
+local autoPulseRealDuration = 5
+local autoPulseThread = nil
+
+local function runAutoPulseV2()
+    if autoPulseThread then return end
+    autoPulseThread = task.spawn(function()
+        if autoPulseInitialDelay > 0 then task.wait(autoPulseInitialDelay) end
+        while autoPulseVoidEnabled do
+            if not Void.settings.enable_void then startVoid(); Void.settings.enable_void = true; voidToggle:Set(true) end
+            task.wait(autoPulseVoidDuration)
+            if Void.settings.enable_void then stopVoid(); Void.settings.enable_void = false; voidToggle:Set(false) end
+            task.wait(autoPulseRealDuration)
+        end
+    end)
+end
+
+local function stopAutoPulseV2()
+    autoPulseVoidEnabled = false
+    if autoPulseThread then task.cancel(autoPulseThread); autoPulseThread = nil end
+end
+
+local PulseSection = VoidPage:Section({ Name = "CSync 智能脈衝 (Latent Pulse)", Side = 1 })
+PulseSection:Toggle({ Name = "啟用智能脈衝 (Auto Pulse)", Flag = "Toggle_AutoPulseVoid", Default = false, Callback = function(Value) autoPulseVoidEnabled = Value; if Value then runAutoPulseV2() else stopAutoPulseV2() end end })
+PulseSection:Slider({ Name = "初始延遲 (秒)", Flag = "Slider_PulseInitDelay", Min = 0, Max = 30, Default = 0, Decimals = 1, Callback = function(Value) autoPulseInitialDelay = Value end })
+PulseSection:Slider({ Name = "虛空停留時間 (秒)", Flag = "Slider_PulseVoidDur", Min = 1, Max = 300, Default = 5, Decimals = 0, Callback = function(Value) autoPulseVoidDuration = Value end })
+PulseSection:Slider({ Name = "現實停留時間 (秒)", Flag = "Slider_PulseRealDur", Min = 1, Max = 300, Default = 5, Decimals = 0, Callback = function(Value) autoPulseRealDuration = Value end })
+
+VoidPage:Section({ Name = "應急", Side = 2 }):Button():Add("緊急返回 (Emergency Return)", function()
+    safeReturn()
+    if Void.settings.enable_void then
+        Void.settings.enable_void = false
+        voidToggle:Set(false)
+    end
+end)
+
+-- == 頁面 4: Emote V3 增強 ==
+local EmotePage = Window:Page({ Name = "Emote V3 增強", Columns = 2 })
+
+local EmoteTargetSection = EmotePage:Section({ Name = "目標玩家", Side = 1 })
+local targetPlayerDropdown = EmoteTargetSection:Dropdown({
+    Name = "選擇目標玩家", Flag = "Dropdown_TargetPlayer", Items = {player.Name}, Default = player.Name,
+    Callback = function(Option)
+        local name = Option
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p.Name == name then targetPlayer = p; if isEmoteEnabled and currentEmoteConfig then stopCustomEmote(); task.wait(0.1); playCustomEmote(currentEmoteConfig.speed, currentEmoteConfig.style) end break end
+        end
+    end
+})
+task.spawn(function()
+    while true do
+        local names = {}
+        for _, p in ipairs(Players:GetPlayers()) do table.insert(names, p.Name) end
+        pcall(function() targetPlayerDropdown:SetOptions(names) end)
+        task.wait(3)
+    end
+end)
+
+local emoteDropdown = EmoteTargetSection:Dropdown({
+    Name = "播放表情", Flag = "Dropdown_Emote", Items = {}, Default = nil,
+    Callback = function(Option)
+        if isEmoteEnabled and packDropdown then
+            local packName = packDropdown:Get() -- 假设有Get方法，如果没有可以用变量
+            if emotePacks[packName] then
+                for _, e in ipairs(emotePacks[packName]) do
+                    if e.name == Option then stopCustomEmote(); task.wait(0.1); playCustomEmote(e.speed, e.style) break end
+                end
+            end
+        end
+    end
+})
+
+EmotePage:Section({ Name = "表情選擇", Side = 2 })
+local packNames = {}
+for n,_ in pairs(emotePacks) do table.insert(packNames, n) end
+local packDropdown = EmoteTargetSection:Dropdown({
+    Name = "表情包 (Pack)", Flag = "Dropdown_EmotePack", Items = packNames, Default = "Cosmic Chaos",
+    Callback = function(Option)
+        if emotePacks[Option] then
+            local names = {}
+            for _, e in ipairs(emotePacks[Option]) do table.insert(names, e.name) end
+            pcall(function() emoteDropdown:SetOptions(names) end)
+        end
+    end
+})
+local initialPack = "Cosmic Chaos"
+if emotePacks[initialPack] then
+    local initialEmotes = {}
+    for _, e in ipairs(emotePacks[initialPack]) do table.insert(initialEmotes, e.name) end
+    pcall(function() emoteDropdown:SetOptions(initialEmotes) end)
+end
+
+local isEmoteEnabled = false
+local emoteEnableToggle = EmotePage:Section({ Name = "表情控制", Side = 1 }):Toggle({
+    Name = "啟用表情動畫 (Enable Emote Animation)", Flag = "Toggle_EmoteEnabled", Default = false,
+    Callback = function(Value)
+        isEmoteEnabled = Value
+        if Value then
+            local packName = packDropdown:Get() or "Cosmic Chaos"
+            local emoteName = emoteDropdown:Get()
+            if emotePacks[packName] then
+                for _, e in ipairs(emotePacks[packName]) do
+                    if e.name == emoteName then stopCustomEmote(); task.wait(0.1); playCustomEmote(e.speed, e.style) break end
+                end
+            end
+        else stopCustomEmote() end
+    end
+})
+
+EmotePage:Section({ Name = "速度與控制", Side = 2 }):Slider({ Name = "速度倍率 (Speed Multiplier)", Flag = "Slider_EmoteSpeed", Min = 1, Max = 3000, Default = 1, Decimals = 0, Callback = function(Value) defaultSpeedFactor = Value end })
+EmotePage:Section({ Name = "停止表情", Side = 2 }):Button():Add("停止表情 (Stop Emote)", function()
+    stopCustomEmote()
+    if isEmoteEnabled then isEmoteEnabled = false; emoteEnableToggle:Set(false) end
+end)
+
+local EmoteModSection = EmotePage:Section({ Name = "特效模式 (Mods)", Side = 1 })
+EmoteModSection:Toggle({ Name = "Noodle 模式", Flag = "Toggle_Noodle", Default = false, Callback = function(Value) isNoodleMode = Value end })
+EmoteModSection:Toggle({ Name = "Neon Glitch 模式", Flag = "Toggle_Neon", Default = false, Callback = function(Value) isNeonGlitchMode = Value; if characterParts then for _, info in ipairs(characterParts.Pieces) do if info.fakePart then local mat = Value and Enum.Material.Neon or (customMatList[currentMatIndex].mat or info.originalMaterial); info.fakePart.Material = mat; if info.emitter then info.emitter.Enabled = Value or isGhostMode end; if not Value and not isRainbowMode then info.fakePart.Color = info.originalColor end end end end end })
+EmoteModSection:Toggle({ Name = "Paper 模式", Flag = "Toggle_Paper", Default = false, Callback = function(Value) isPaperMode = Value end })
+EmoteModSection:Toggle({ Name = "Jitter 抖動", Flag = "Toggle_Jitter", Default = false, Callback = function(Value) isJitterMode = Value end })
+EmoteModSection:Toggle({ Name = "Meatball 模式", Flag = "Toggle_Meatball", Default = false, Callback = function(Value) isMeatballMode = Value end })
+EmoteModSection:Toggle({ Name = "Ghost 幽靈", Flag = "Toggle_GhostMode", Default = false, Callback = function(Value) isGhostMode = Value; if characterParts then for _, info in ipairs(characterParts.Pieces) do if info.emitter then info.emitter.Enabled = Value or isNeonGlitchMode end end end end })
+EmoteModSection:Toggle({ Name = "Trails 拖尾", Flag = "Toggle_Trails", Default = false, Callback = function(Value) isTrailsMode = Value; if characterParts then for _, info in ipairs(characterParts.Pieces) do if info.trail then info.trail.Enabled = Value end end end end })
+EmoteModSection:Toggle({ Name = "Rainbow 彩虹", Flag = "Toggle_Rainbow", Default = false, Callback = function(Value) isRainbowMode = Value; if not Value and characterParts then for _, info in ipairs(characterParts.Pieces) do if info.fakePart then info.fakePart.Color = info.originalColor end end end end })
+EmoteModSection:Toggle({ Name = "Morph 變形", Flag = "Toggle_Morph", Default = false, Callback = function(Value) isMorphMode = Value end })
+EmoteModSection:Button():Add("切換材質 (Cycle Material)", function() currentMatIndex = (currentMatIndex % #customMatList) + 1; if characterParts then for _, info in ipairs(characterParts.Pieces) do if info.fakePart and not isNeonGlitchMode then info.fakePart.Material = customMatList[currentMatIndex].mat or info.originalMaterial end end end end)
+
+local EmoteToolSection = EmotePage:Section({ Name = "工具", Side = 2 })
+EmoteToolSection:Button():Add("重置所有表情設定 (Reset All)", function()
+    isNoodleMode=false; isNeonGlitchMode=false; isPaperMode=false; isJitterMode=false; isMeatballMode=false; isGhostMode=false; isTrailsMode=false; isRainbowMode=false; isMorphMode=false; currentMatIndex=1
+    defaultSpeedFactor=1; targetPlayer=player
+    -- 重置UI Toggle，通过调用Set方法（如果存在）
+    local toggles = {"Toggle_Noodle","Toggle_Neon","Toggle_Paper","Toggle_Jitter","Toggle_Meatball","Toggle_GhostMode","Toggle_Trails","Toggle_Rainbow","Toggle_Morph"}
+    for _,flag in ipairs(toggles) do pcall(function() Library.Flags[flag]:Set(false) end) end
+    pcall(function() Library.Flags["Slider_EmoteSpeed"]:Set(1) end)
+    pcall(function() targetPlayerDropdown:Set(player.Name) end)
+    stopCustomEmote()
+    if isEmoteEnabled then isEmoteEnabled=false; emoteEnableToggle:Set(false) end
+end)
+EmoteToolSection:Button():Add("打開 Avatar Changer", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/darkdexv2/universalavatarchanger/main/avatarchanger"))() end)
+
+-- 初始化設定頁
+Library:CreateSettingsPage(Window, Watermark, KeybindList)
+Library:CheckForAutoLoad()
+
+Watermark:SetVisible(false)
+KeybindList:SetVisible(false)
+
+Library:Notification("系統架構載入成功", "Kevin Private V3 & Emote & CSync Void 模組部署完畢！虛空深度已達10億。", 5)
+
+player.CharacterAdded:Connect(function() if targetPlayer == player then stopCustomEmote() end end)
+player.CharacterRemoving:Connect(function() if targetPlayer == player then stopCustomEmote() end end)
