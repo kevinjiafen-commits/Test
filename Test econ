@@ -1,0 +1,2750 @@
+local Env = getfenv();
+local y = {};
+local v1 = {...};
+local r1 = true;
+local r2 = string.gmatch;
+local function r3(...)
+    error("Tamper Detected!");
+    return; 
+end;
+local r4 = false;
+local v2 = pcall(function(...)
+    r4 = true;
+    return; 
+end) and r4;
+local r5 = math.random;
+local v3 = table.concat;
+local v4 = table;
+local function v5(...)
+    while true do
+        l1 = l2;
+        l2 = l1;
+        r3(); 
+    end;
+    return; 
+end;
+if v4 then
+    a = table.unpack;
+end;
+local r6 = v4 or unpack;
+local r7 = r5(3, 65);
+local v6 = {
+    pcall(function(...)
+        return "Pugnx4wk" / (4087361 - "Lx" ^ 13130645); 
+    end)
+};
+local v7 = v6[2];
+local r8 = tonumber(r2(tostring(v7), ":(%d*):")());
+for b = 1, r7 do
+    r9 = b;
+    r10 = math.random(1, 100);
+    r11 = r5(0, 255);
+    r12 = r5(1, r10);
+    r13 = r5(1, 2) == 1;
+    r14 = v7.gsub(v7, ":(%d*):", ":" .. tostring(r5(0, 10000)) .. ":");
+    G = {
+        pcall(function(...)
+            if r5(1, 2) == 1 or r9 == r7 then
+                r1 = r1 and r8 == tonumber(r2(tostring(({
+                    pcall(function(...)
+                        return "eB" / (123168 - "PQL" ^ 2668409); 
+                    end)
+                })[2]), ":(%d*):")());
+            end;
+            if r13 then
+                error(r14, 0);
+            end;
+            v1 = {};
+            for w = 1, r10 do
+                v1[w] = r5(0, 255); 
+            end;
+            v1[r12] = r11;
+            return r6(v1); 
+        end)
+    };
+    if r13 then
+        r1 = r1 and (pcall(function(...)
+            if r5(1, 2) == 1 or r9 == r7 then
+                r1 = r1 and r8 == tonumber(r2(tostring(({
+                    pcall(function(...)
+                        return "eB" / (123168 - "PQL" ^ 2668409); 
+                    end)
+                })[2]), ":(%d*):")());
+            end;
+            if r13 then
+                error(r14, 0);
+            end;
+            v1 = {};
+            for w = 1, r10 do
+                v1[w] = r5(0, 255); 
+            end;
+            v1[r12] = r11;
+            return r6(v1); 
+        end) == false and G[2] == r14);
+    end; 
+end;
+r1 = r1 and 0 == 0;
+if r1 then
+    r17 = math.floor;
+    q = 85;
+    v6 = {};
+    r18 = 0;
+    y[q] = 2;
+    r19 = {};
+    v4 = 0;
+    for j = 1, 256 do
+        v6[j] = j; 
+    end;
+    v7 = #v6 == 0;
+    j = table.remove(v6, math.random(1, #v6));
+    r19[j] = string.char(j - 1);
+    j = #v6;
+    if j == 0 then
+        r20 = {};
+        r23 = {};
+        r15 = setmetatable({}, {
+            ["__index"] = r23,
+            ["__metatable"] = W
+        });
+        r24 = "https://raw.githubusercontent.com/C0XNEcon/Econ3xC/refs/heads/main/";
+        w = game;
+        w.GetService(w, "UserInputService");
+        w = game;
+        r25 = w.GetService(w, "SoundService");
+        L = game;
+        r26 = L.GetService(L, "TweenService");
+        v5 = game;
+        r27 = v5.GetService(v5, "RunService");
+        a = game;
+        q = a.GetService(a, "CoreGui");
+        a = game;
+        a.GetService(a, "Players");
+        a = game;
+        r28 = a.GetService(a, "HttpService");
+        e = game;
+        v6 = e.GetService(e, "RbxAnalyticsService");
+        v6.GetClientId(v6);
+        v7 = v3;
+        j = gethui;
+        v6 = j and gethui();
+        v3 = v3;
+        if j then
+            r29 = j and gethui();
+            if not r29 then
+                r29 = Instance.new("Folder", a.GetService(a, "CoreGui"));
+                r29.Name = "HUI";
+            end;
+            r30 = true;
+            r31 = "EconRC";
+            r32 = {
+                ["key"] = r31 .. "/key.dat",
+                ["keynew"] = r31 .. "/key.txt",
+                ["skins"] = r31 .. "/misc/skins.txt",
+                ["settings"] = r31 .. "/misc/settings",
+                ["version"] = r31 .. "/misc/version.txt"
+            };
+            T = isfolder(r31);
+            r = v3;
+            if T then
+                v3 = v3;
+                G = isfile(r32.version) and tonumber(readfile(r32.version));
+            end;
+            v3 = v3;
+            r = false;
+            W = r27;
+            G = not W.IsStudio(W);
+            if G then
+                G = r31 .. "/misc/skins";
+                if isfile(G) then
+                    writefile(r31 .. "/misc/skins.txt", readfile(G));
+                    delfile(G);
+                end;
+                if not T then
+                    r33 = {};
+                    r33.file = function(arg1_2, arg2_2, ...)
+                        r34 = arg1_2;
+                        u = arg2_2;
+                        w = r31 .. "/" .. r34;
+                        V = writefile;
+                        F = u;
+                        if u then
+                            v3 = V;
+                            v3(r31 .. v2 .. L, u);
+                            return {
+                                ["folder"] = function(arg1_3, ...)
+                                    return r33.folder(arg1_3 .. "/" .. r34); 
+                                end,
+                                ["file"] = function(arg1_4, arg2_4, ...)
+                                    u = arg2_4;
+                                    v3 = r33.file;
+                                    if u then
+                                        v3 = v3;
+                                        return v3(arg1_4 .. "/" .. r34, u);
+                                    else
+                                        F = "";
+                                    end; 
+                                end
+                            };
+                        else
+                            F = "";
+                        end; 
+                    end;
+                    r33.folder = function(arg1_5, ...)
+                        r35 = arg1_5;
+                        makefolder(r31 .. "/" .. r35);
+                        return {
+                            ["folder"] = function(arg1_6, ...)
+                                return r33.folder(r35 .. "/" .. arg1_6); 
+                            end,
+                            ["file"] = function(arg1_7, arg2_7, ...)
+                                u = arg2_7;
+                                v3 = r33.file;
+                                if u then
+                                    v3 = v3;
+                                    return v3(r35 .. "/" .. arg1_7, u);
+                                else
+                                    F = "";
+                                end; 
+                            end
+                        }; 
+                    end;
+                    makefolder(r31);
+                    r33.folder("cfg");
+                    p = r33.folder("misc");
+                    if isfolder("cone") then
+                        warn("Cleanup old files");
+                        Y1 = listfiles;
+                        I1 = 13415879612519;
+                        m1 = Y1[3];
+                        l1 = Y1[2];
+                        for m1, Y1 in pairs(Y1(r15[r16(",\xf7\xd7\xf2\xee\x99", I1)])) do
+                            W = m1;
+                            r36 = Y1;
+                            E1 = r36;
+                            Q1 = E1.split(E1, "/");
+                            z1 = Q1[#Q1];
+                            I1 = {
+                                pcall(function(...)
+                                    return readfile(r36); 
+                                end)
+                            };
+                            if pcall(function(...)
+                                return readfile(r36); 
+                            end) then
+                                y[J].folder("cfg").file(z1.split(z1, ".")[1] .. ".txt", I1[2]);
+                            end; 
+                        end;
+                    end;
+                    p.file("settings");
+                    v3 = v3;
+                    p.file("skins.txt", isfile("EconContainer") and readfile("EconContainer"));
+                    p.file("cfg", isfile("EconConfig") and readfile("EconConfig"));
+                    v3 = v3;
+                    p.file("version.txt", tostring(1));
+                    r33.file("key.txt", isfile("key.dat") and readfile("key.dat"));
+                    v3 = v3;
+                    task.spawn(function(...)
+                        if isfolder("cone") then
+                            delfolder("cone");
+                        end;
+                        delfile("EconContainer");
+                        delfile("EconConfig");
+                        delfile("_econ_dat.dat");
+                        return; 
+                    end);
+                else
+                    if not isfile(r32.keynew) then
+                        if isfile(r32.key) then
+                            J = readfile(r32.key);
+                            if J then
+                                W = not J.find(J, string.char(0));
+                            end;
+                            v3 = v3;
+                            if J then
+                                writefile(r32.keynew, readfile(r32.key));
+                            else
+                                writefile(r32.keynew, "");
+                                getgenv().corrupt_key = true;
+                                r = true;
+                                warn("Last Econ key was corrupted and removed");
+                            end;
+                            delfile(r32.key);
+                        else
+                            writefile(r32.keynew, "");
+                        end;
+                    end;
+                end;
+            end;
+            if not isfile(r32.version) or 1 ~= (T or 0) then
+                writefile(r32.version, tostring(1));
+            end;
+            N = syn;
+            if N then
+                Z1 = syn.write_clipboard;
+            end;
+            v3 = v3;
+            J = v3;
+            v3 = 38;
+            r37 = setclipboard or N;
+            r38 = iswindowactive or isrbxactive;
+            E1 = fluxus;
+            if E1 then
+                m1 = fluxus.request;
+            end;
+            v3 = v3;
+            v3 = v3;
+            v3 = v3;
+            v3 = v3;
+            v3 = v3;
+            r39 = syn and syn.request or (E1 or (http and http.request or (http_request or request)));
+            G = {};
+            N = {
+                "40A8-4D5D-7BEE80723672-82E3F713-9294",
+                "361A-3CCD60517A53-63E3-BA24-EBD420E1",
+                "044B-306FFCC3-8ABA5FF2244F-9BB4-AB3D",
+                "1A6B-4402F6BA-4CD4-9CF6-C5E978768BA5",
+                "041B-1E5BEB80EA91-2EA4-3529C5CA-F4F2",
+                "2AC7-3154-3C76C09E62F7-B82B5E0C-CF2B",
+                "442D4F08-5E1BFDCC65E6-6744-6894-B8A8",
+                "1A1A41BC2F33-9D94-D2DF-D5BA-E985455A",
+                "3980-42B4-7472534D0E50-906A-C4050F72",
+                "07A4-2208-2C19-61EF0DB364AD-E518B1E9",
+                "2a669a07dc58-37fb036b-5703-a6b4-c49a",
+                "28C3454E-3CF6-6625F75FA045-F514-FA4A",
+                "5190CCF2-AFD0-DC6B-DE50E1CFC7E0-FDF4",
+                "15756FBCB7F7-346F-5839-5A14-94972311",
+                "5599F471-57E9-B819-CE04-FA775D41F86D",
+                "029B-2CFCC6E62B59-39735989-6899-6C34",
+                "1828FBE9-253A-6908-951DD3FD722F-A394"
+            };
+            Y1 = 86400 * 31;
+            E1 = {
+                ["031FAFB0-20981D91E121-49F4-7490-CBE8"] = {
+                    86400 * 7,
+                    1769245344
+                }
+            };
+            r40 = {
+                ["unlimited"] = "Unlimited",
+                ["free"] = "Key Access"
+            };
+            Q1 = {
+                ["mike"] = {
+                    ["reasons"] = {
+                        {
+                            ["reason"] = nil,
+                            ["content"] = "Fuck You Owen Ge Krijgt Het ni"
+                        }
+                    }
+                },
+                ["econ_bypass_key"] = {
+                    ["reasons"] = {
+                        {
+                            ["reason"] = "Bypassing",
+                            ["content"] = "Key bypassing is not allowed"
+                        }
+                    },
+                    ["no_appeal"] = true
+                }
+            };
+            r41 = Q1;
+            r42 = {
+                [5678562424] = Q1.mike,
+                [9920820296] = Q1.mike
+            };
+            R1 = r27;
+            v3 = v3;
+            r43 = R1.IsStudio(R1) and R1.Clone(R1) or v3.GetObjects(v3, "rbxassetid://75930751132314")[1];
+            r44 = r43.Main;
+            r45 = a.GetService(a, "Players").LocalPlayer;
+            r46 = {
+                {
+                    ["img"] = "rbxassetid://116162688464457",
+                    ["name"] = "Linkvertise",
+                    ["api"] = "371b5300-1cc6-433a-9b9b-f36f6e600943",
+                    ["service"] = "Econ|Key",
+                    ["provider"] = "Econ|key"
+                }
+            };
+            I1 = {
+                ["copied"] = "rbxassetid://101221936773497",
+                ["copy"] = "rbxassetid://125813563225480"
+            };
+            i1 = v3;
+            r48 = 10;
+            U1 = r27;
+            r49 = U1.IsStudio(U1) and 0;
+            B1 = r27;
+            d1 = B1.IsStudio(B1);
+            if d1 then
+                k1 = math.huge;
+            end;
+            v3 = v3;
+            r50 = d1;
+            Ve[33] = 24493003992205;
+            r51 = -10000000000;
+            r52 = {};
+            r53 = {};
+            Ve[2] = 30488847923061;
+            Ve[27] = 10744075752331;
+            Ve[43] = 24621419998409;
+            Ve[9] = 10295140029114;
+            r55 = r43._sfx;
+            Ve[30] = 29188528174359;
+            Ve[15] = 30230742988541;
+            r56 = r43._elements;
+            Ve[53] = 5564926396959;
+            Ve[4] = 32337490901714;
+            local function r57(arg1_8, ...)
+                v3 = r55;
+                v1 = arg1_8;
+                if v3.FindFirstChild(v3, v1) then
+                    v3 = r25;
+                    v3.PlayLocalSound(v3, r55[v1]);
+                end;
+                return; 
+            end;
+            r58 = false;
+            Ve[46] = 19667790881734;
+            local function r59(...)
+                r43.ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
+                r44.Parent = r43.Loading;
+                r43.Loading.Visible = true;
+                v3 = r26;
+                X = v3.Create(v3, r43.Loading, TweenInfo.new(1), {
+                    ["GroupColor3"] = Color3.new(.701961, .701961, .701961),
+                    ["GroupTransparency"] = .3,
+                    ["Position"] = UDim2.fromScale(0, .015)
+                });
+                X.Play(X);
+                r58 = true;
+                X = r44.Input.InputBox;
+                X.ReleaseFocus(X);
+                r43.Loading.Interactable = false;
+                return function(...)
+                    v3 = r26;
+                    X = v3.Create(v3, r43.Loading, TweenInfo.new(.6), {
+                        ["GroupColor3"] = Color3.new(1, 1, 1),
+                        ["GroupTransparency"] = 0,
+                        ["Position"] = UDim2.fromScale(0, 0)
+                    });
+                    X.Play(X);
+                    task.delay(.6, function(...)
+                        r58 = false;
+                        r43.Loading.Visible = false;
+                        r43.Loading.Interactable = true;
+                        r43.ZIndexBehavior = Enum.ZIndexBehavior.Global;
+                        r44.Parent = r43;
+                        return; 
+                    end);
+                    return; 
+                end; 
+            end;
+            Ve[54] = 27037705761070;
+            Ve[45] = 20840736400872;
+            local function r61(arg1_9, arg2_9, ...)
+                u = arg2_9;
+                V = r16;
+                v3 = r56.InputNotif;
+                r62 = v3.Clone(v3);
+                if r60 then
+                    v3 = r26;
+                    X = v3.Create(v3, r60, TweenInfo.new(.15), {
+                        ["AnchorPoint"] = Vector2.yAxis,
+                        ["Position"] = UDim2.fromScale(0, -0.25),
+                        ["TextTransparency"] = 1
+                    });
+                    X.Play(X);
+                    v3 = game.Debris;
+                    v3.AddItem(v3, r60, 2);
+                end;
+                if u then
+                    V = arg2_9;
+                    r62.TextColor3 = V;
+                end;
+                r62.Position = UDim2.fromScale(0, 0);
+                r62.AnchorPoint = Vector2.yAxis * 0.5;
+                r62.TextTransparency = 1;
+                V = arg1_9;
+                r62.Text = V;
+                r62.Parent = r44.Input;
+                r62.Visible = true;
+                r60 = r62;
+                F = r26;
+                V = F.Create(F, r62, TweenInfo.new(.15), {
+                    ["Position"] = UDim2.fromScale(0, -0.15),
+                    ["AnchorPoint"] = Vector2.yAxis,
+                    ["TextTransparency"] = 0
+                });
+                V.Play(V);
+                task.delay(2, function(...)
+                    if r62 and r60 == r62 then
+                        v3 = r26;
+                        X = v3.Create(v3, r62, TweenInfo.new(.15), {
+                            ["AnchorPoint"] = Vector2.yAxis,
+                            ["Position"] = UDim2.fromScale(0, -0.25),
+                            ["TextTransparency"] = 1
+                        });
+                        X.Play(X);
+                        v3 = game.Debris;
+                        v3.AddItem(v3, r62, 2);
+                    end;
+                    return; 
+                end);
+                return; 
+            end;
+            r63 = {};
+            Ve[7] = 18258557264182;
+            Ve[49] = 14703699679934;
+            Ve[34] = 24036369542072;
+            Ve[6] = 33525016607995;
+            Ve[1] = 34883075800947;
+            Ve[12] = 27133638013275;
+            Ve[38] = 21952132179950;
+            Ve[42] = 17654523928605;
+            Ve[50] = 34332993470067;
+            Ve[36] = 30881101985836;
+            Ve[58] = 17726091632702;
+            Ve[48] = 29638382368233;
+            Ve[16] = 16383597583821;
+            Ve[18] = 30220280887032;
+            Ve[28] = 9868250305011;
+            Ve[3] = 30681466255311;
+            Ve[13] = 8185975246563;
+            Ve[17] = 8797645967360;
+            Ve[24] = 12151875982874;
+            Ve[39] = 32635350416221;
+            Ve[14] = 3186212472267;
+            Ve[5] = 6388097977246;
+            Ve[32] = 6540456119269;
+            Ve[1] = "\xa7";
+            Ve[22] = 6416305032107;
+            Ve[10] = 31879001963004;
+            Ve[40] = 32672154090350;
+            Ve[2] = "\x96";
+            Ve[1] = r16(Ve[2], Ve[3]);
+            Ve[3] = "(";
+            Ve[1] = r16;
+            Ve[2] = Ve[1](Ve[3], Ve[4]);
+            Ve[4] = "#";
+            Ve[1] = r15;
+            Ve[2] = r16;
+            Ve[3] = Ve[2](Ve[4], Ve[5]);
+            Ve[8] = 1754248430384;
+            Ve[47] = 8031962762908;
+            Ve[20] = 22094838736944;
+            Ve[5] = "\xd1";
+            Ve[25] = 3943656867628;
+            Ve[2] = r15;
+            Ve[3] = r16;
+            Ve[4] = Ve[3](Ve[5], Ve[6]);
+            Ve[1] = Ve[2][Ve[4]];
+            Ve[6] = "\xd7";
+            Ve[3] = r15;
+            Ve[4] = r16;
+            Ve[5] = Ve[4](Ve[6], Ve[7]);
+            Ve[2] = Ve[3][Ve[5]];
+            Ve[4] = r15;
+            Ve[7] = "\x82";
+            Ve[5] = r16;
+            Ve[6] = Ve[5](Ve[7], Ve[8]);
+            Ve[3] = Ve[4][Ve[6]];
+            Ve[26] = 19576129758107;
+            Ve[5] = r15;
+            Ve[6] = r16;
+            Ve[8] = "u";
+            Ve[7] = Ve[6](Ve[8], Ve[9]);
+            Ve[4] = Ve[5][Ve[7]];
+            Ve[9] = "\x99";
+            Ve[6] = r15;
+            Ve[7] = r16;
+            Ve[37] = 22377014061236;
+            Ve[11] = 20203545601216;
+            Ve[8] = Ve[7](Ve[9], Ve[10]);
+            Ve[5] = Ve[6][Ve[8]];
+            Ve[7] = r15;
+            Ve[10] = "r";
+            Ve[8] = r16;
+            Ve[9] = Ve[8](Ve[10], Ve[11]);
+            Ve[6] = Ve[7][Ve[9]];
+            Ve[11] = "\x11";
+            Ve[8] = r15;
+            Ve[9] = r16;
+            Ve[10] = Ve[9](Ve[11], Ve[12]);
+            Ve[19] = 26301030707159;
+            Ve[56] = 9508583264587;
+            Ve[7] = Ve[8][Ve[10]];
+            Ve[21] = 15310812322777;
+            Ve[12] = "\x8a";
+            Ve[29] = 6841752423537;
+            Ve[9] = r15;
+            Ve[23] = 10488856744724;
+            Ve[10] = r16;
+            Ve[11] = Ve[10](Ve[12], Ve[13]);
+            Ve[13] = "\x13";
+            Ve[8] = Ve[9][Ve[11]];
+            Ve[10] = r15;
+            Ve[11] = r16;
+            Ve[12] = Ve[11](Ve[13], Ve[14]);
+            Ve[9] = Ve[10][Ve[12]];
+            Ve[11] = r15;
+            Ve[14] = "\xac";
+            Ve[12] = r16;
+            Ve[13] = Ve[12](Ve[14], Ve[15]);
+            Ve[15] = "s";
+            Ve[10] = Ve[11][Ve[13]];
+            Ve[12] = r15;
+            Ve[13] = r16;
+            Ve[14] = Ve[13](Ve[15], Ve[16]);
+            Ve[11] = Ve[12][Ve[14]];
+            Ve[16] = "\x84";
+            Ve[13] = r15;
+            Ve[14] = r16;
+            Ve[15] = Ve[14](Ve[16], Ve[17]);
+            Ve[12] = Ve[13][Ve[15]];
+            Ve[31] = 28539275391977;
+            Ve[17] = "\x86";
+            Ve[14] = r15;
+            Ve[15] = r16;
+            Ve[16] = Ve[15](Ve[17], Ve[18]);
+            Ve[18] = "\xba";
+            Ve[13] = Ve[14][Ve[16]];
+            Ve[15] = r15;
+            Ve[16] = r16;
+            Ve[17] = Ve[16](Ve[18], Ve[19]);
+            Ve[14] = Ve[15][Ve[17]];
+            Ve[16] = r15;
+            Ve[19] = "?";
+            Ve[17] = r16;
+            Ve[18] = Ve[17](Ve[19], Ve[20]);
+            Ve[15] = Ve[16][Ve[18]];
+            Ve[20] = "R";
+            Ve[35] = 3693574915767;
+            Ve[51] = 16548848999962;
+            Ve[17] = r15;
+            Ve[18] = r16;
+            Ve[19] = Ve[18](Ve[20], Ve[21]);
+            Ve[21] = "+";
+            Ve[16] = Ve[17][Ve[19]];
+            Ve[18] = r15;
+            Ve[19] = r16;
+            Ve[20] = Ve[19](Ve[21], Ve[22]);
+            Ve[22] = "#";
+            Ve[17] = Ve[18][Ve[20]];
+            Ve[19] = r15;
+            Ve[20] = r16;
+            Ve[21] = Ve[20](Ve[22], Ve[23]);
+            Ve[18] = Ve[19][Ve[21]];
+            Ve[23] = "\xc0";
+            Ve[20] = r15;
+            Ve[21] = r16;
+            Ve[22] = Ve[21](Ve[23], Ve[24]);
+            Ve[19] = Ve[20][Ve[22]];
+            Ve[41] = 18646762037739;
+            Ve[21] = r15;
+            Ve[24] = "q";
+            Ve[22] = r16;
+            Ve[23] = Ve[22](Ve[24], Ve[25]);
+            Ve[20] = Ve[21][Ve[23]];
+            Ve[22] = r15;
+            Ve[23] = r16;
+            Ve[25] = "\xda";
+            Ve[24] = Ve[23](Ve[25], Ve[26]);
+            Ve[26] = "\xca";
+            Ve[21] = Ve[22][Ve[24]];
+            Ve[23] = r15;
+            Ve[24] = r16;
+            Ve[25] = Ve[24](Ve[26], Ve[27]);
+            Ve[22] = Ve[23][Ve[25]];
+            Ve[24] = r15;
+            Ve[25] = r16;
+            Ve[27] = "\xec";
+            Ve[26] = Ve[25](Ve[27], Ve[28]);
+            Ve[59] = 19376833569599;
+            Ve[60] = 18271215837500;
+            Ve[23] = Ve[24][Ve[26]];
+            Ve[28] = "\xfd";
+            Ve[25] = r15;
+            Ve[26] = r16;
+            Ve[27] = Ve[26](Ve[28], Ve[29]);
+            Ve[24] = Ve[25][Ve[27]];
+            Ve[26] = r15;
+            Ve[29] = "L";
+            Ve[27] = r16;
+            Ve[28] = Ve[27](Ve[29], Ve[30]);
+            Ve[25] = Ve[26][Ve[28]];
+            Ve[30] = "\xb4";
+            Ve[27] = r15;
+            Ve[28] = r16;
+            Ve[29] = Ve[28](Ve[30], Ve[31]);
+            Ve[26] = Ve[27][Ve[29]];
+            Ve[28] = r15;
+            Ve[29] = r16;
+            Ve[31] = "\x80";
+            Ve[30] = Ve[29](Ve[31], Ve[32]);
+            Ve[27] = Ve[28][Ve[30]];
+            Ve[29] = r15;
+            Ve[32] = "#";
+            Ve[30] = r16;
+            Ve[31] = Ve[30](Ve[32], Ve[33]);
+            Ve[33] = "\x85";
+            Ve[28] = Ve[29][Ve[31]];
+            Ve[30] = r15;
+            Ve[44] = 26832737284302;
+            Ve[31] = r16;
+            Ve[32] = Ve[31](Ve[33], Ve[34]);
+            Ve[29] = Ve[30][Ve[32]];
+            Ve[34] = "\x08";
+            Ve[31] = r15;
+            Ve[32] = r16;
+            Ve[33] = Ve[32](Ve[34], Ve[35]);
+            Ve[30] = Ve[31][Ve[33]];
+            Ve[35] = "\xb4";
+            Ve[32] = r15;
+            Ve[33] = r16;
+            Ve[34] = Ve[33](Ve[35], Ve[36]);
+            Ve[31] = Ve[32][Ve[34]];
+            Ve[36] = "r";
+            Ve[33] = r15;
+            Ve[34] = r16;
+            Ve[35] = Ve[34](Ve[36], Ve[37]);
+            Ve[32] = Ve[33][Ve[35]];
+            Ve[34] = r15;
+            Ve[35] = r16;
+            Ve[37] = "=";
+            Ve[36] = Ve[35](Ve[37], Ve[38]);
+            Ve[52] = 30014512002712;
+            Ve[33] = Ve[34][Ve[36]];
+            Ve[35] = r15;
+            Ve[38] = "\xa7";
+            Ve[36] = r16;
+            Ve[37] = Ve[36](Ve[38], Ve[39]);
+            Ve[39] = "~";
+            Ve[34] = Ve[35][Ve[37]];
+            Ve[36] = r15;
+            Ve[37] = r16;
+            Ve[38] = Ve[37](Ve[39], Ve[40]);
+            Ve[35] = Ve[36][Ve[38]];
+            Ve[37] = r15;
+            Ve[38] = r16;
+            Ve[40] = "\x11";
+            Ve[39] = Ve[38](Ve[40], Ve[41]);
+            Ve[36] = Ve[37][Ve[39]];
+            Ve[38] = r15;
+            Ve[39] = r16;
+            Ve[41] = "\xd8";
+            Ve[40] = Ve[39](Ve[41], Ve[42]);
+            Ve[37] = Ve[38][Ve[40]];
+            Ve[42] = "\xa8";
+            Ve[39] = r15;
+            Ve[40] = r16;
+            Ve[41] = Ve[40](Ve[42], Ve[43]);
+            Ve[38] = Ve[39][Ve[41]];
+            Ve[40] = r15;
+            Ve[43] = "\x8b";
+            Ve[41] = r16;
+            Ve[42] = Ve[41](Ve[43], Ve[44]);
+            Ve[39] = Ve[40][Ve[42]];
+            Ve[41] = r15;
+            Ve[44] = "\xa0";
+            Ve[42] = r16;
+            Ve[43] = Ve[42](Ve[44], Ve[45]);
+            Ve[45] = "\xf7";
+            Ve[40] = Ve[41][Ve[43]];
+            Ve[42] = r15;
+            Ve[43] = r16;
+            Ve[44] = Ve[43](Ve[45], Ve[46]);
+            Ve[55] = 6982015880371;
+            Ve[46] = "K";
+            Ve[41] = Ve[42][Ve[44]];
+            Ve[43] = r15;
+            Ve[44] = r16;
+            Ve[45] = Ve[44](Ve[46], Ve[47]);
+            Ve[42] = Ve[43][Ve[45]];
+            Ve[44] = r15;
+            Ve[47] = "g";
+            Ve[45] = r16;
+            Ve[46] = Ve[45](Ve[47], Ve[48]);
+            Ve[43] = Ve[44][Ve[46]];
+            Ve[45] = r15;
+            Ve[46] = r16;
+            Ve[48] = "6";
+            Ve[47] = Ve[46](Ve[48], Ve[49]);
+            Ve[44] = Ve[45][Ve[47]];
+            Ve[46] = r15;
+            Ve[49] = "\n";
+            Ve[47] = r16;
+            Ve[48] = Ve[47](Ve[49], Ve[50]);
+            Ve[50] = "\xc0";
+            Ve[45] = Ve[46][Ve[48]];
+            Ve[47] = r15;
+            Ve[48] = r16;
+            Ve[49] = Ve[48](Ve[50], Ve[51]);
+            Ve[51] = "\xa2";
+            Ve[46] = Ve[47][Ve[49]];
+            Ve[48] = r15;
+            Ve[49] = r16;
+            Ve[50] = Ve[49](Ve[51], Ve[52]);
+            Ve[47] = Ve[48][Ve[50]];
+            Ve[49] = r15;
+            Ve[50] = r16;
+            Ve[52] = "\xe6";
+            Ve[51] = Ve[50](Ve[52], Ve[53]);
+            Ve[53] = "y";
+            Ve[48] = Ve[49][Ve[51]];
+            Ve[50] = r15;
+            Ve[51] = r16;
+            Ve[52] = Ve[51](Ve[53], Ve[54]);
+            Ve[49] = Ve[50][Ve[52]];
+            Ve[54] = "\xae";
+            Ve[51] = r15;
+            Ve[52] = r16;
+            Ve[53] = Ve[52](Ve[54], Ve[55]);
+            Ve[55] = "\x15";
+            Ve[57] = 11429463413962;
+            Ve[50] = Ve[51][Ve[53]];
+            Ve[52] = r15;
+            Ve[53] = r16;
+            Ve[54] = Ve[53](Ve[55], Ve[56]);
+            Ve[56] = "[";
+            Ve[51] = Ve[52][Ve[54]];
+            Ve[53] = r15;
+            Ve[54] = r16;
+            Ve[55] = Ve[54](Ve[56], Ve[57]);
+            Ve[57] = "\xa1";
+            Ve[52] = Ve[53][Ve[55]];
+            Ve[61] = 11730247701846;
+            Ve[54] = r15;
+            Ve[55] = r16;
+            Ve[56] = Ve[55](Ve[57], Ve[58]);
+            Ve[58] = "\xf2";
+            Ve[53] = Ve[54][Ve[56]];
+            Ve[55] = r15;
+            Ve[56] = r16;
+            Ve[57] = Ve[56](Ve[58], Ve[59]);
+            Ve[54] = Ve[55][Ve[57]];
+            Ve[56] = r15;
+            Ve[59] = "\xbe";
+            Ve[57] = r16;
+            Ve[58] = Ve[57](Ve[59], Ve[60]);
+            Ve[55] = Ve[56][Ve[58]];
+            Ve[57] = r15;
+            Ve[58] = r16;
+            Ve[60] = "]";
+            Ve[59] = Ve[58](Ve[60], Ve[61]);
+            Ve[56] = Ve[57][Ve[59]];
+            r64 = {
+                [0] = "0",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "a",
+                "b",
+                "c",
+                "d",
+                "e",
+                "f",
+                "g",
+                "h",
+                "i",
+                "j",
+                "k",
+                "l",
+                "m",
+                "n",
+                "o",
+                "p",
+                "q",
+                "r",
+                "s",
+                r15[r16("\x9e", Ve[1])],
+                r15[r16(Ve[1], Ve[2])],
+                r15[Ve[1]],
+                r15[Ve[2]],
+                Ve[1][Ve[3]],
+                Ve[1],
+                Ve[2],
+                Ve[3],
+                Ve[4],
+                Ve[5],
+                Ve[6],
+                Ve[7],
+                Ve[8],
+                Ve[9],
+                Ve[10],
+                Ve[11],
+                Ve[12],
+                Ve[13],
+                Ve[14],
+                Ve[15],
+                Ve[16],
+                Ve[17],
+                Ve[18],
+                Ve[19],
+                Ve[20],
+                Ve[21],
+                Ve[22],
+                Ve[23],
+                Ve[24],
+                Ve[25],
+                Ve[26],
+                Ve[27],
+                Ve[28],
+                Ve[29],
+                Ve[30],
+                Ve[31],
+                Ve[32],
+                Ve[33],
+                Ve[34],
+                Ve[35],
+                Ve[36],
+                Ve[37],
+                Ve[38],
+                Ve[39],
+                Ve[40],
+                Ve[41],
+                Ve[42],
+                Ve[43],
+                Ve[44],
+                Ve[45],
+                Ve[46],
+                Ve[47],
+                Ve[48],
+                Ve[49],
+                Ve[50],
+                Ve[51],
+                Ve[52],
+                Ve[53],
+                Ve[54],
+                Ve[55],
+                Ve[56]
+            };
+            r65 = {
+                ["0"] = 0
+            };
+            s1 = r64;
+            O1 = 12731736856360[1];
+            j1 = 12731736856360[2];
+            for b1, s1 in ipairs(s1) do
+                r65[s1] = b1; 
+            end;
+            r66 = #r64 + 1;
+            r63.Encode = function(arg1_10, ...)
+                v1 = tonumber(arg1_10);
+                if v1 == 0 then
+                    return "0";
+                end;
+                v3 = v1 < 1;
+                while v1 > 0 do
+                    r15[r16("", v2)] and "-" = (r15[r16("", v2)] and "-") .. r64[X % r66];
+                    math.floor(X / r66); 
+                end;
+                return "" and "-"; 
+            end;
+            r63.Decode = function(arg1_11, ...)
+                w = 1;
+                v1 = arg1_11;
+                v2 = {
+                    v1.gmatch(v1, ".")
+                };
+                F = v1.gmatch(v1, ".")(v2[2], v2[3]);
+                while F do
+                    L = V(v2, v2[3]);
+                    if L == "-" then
+                        w = -1;
+                    else
+                        0 = 0 + r65[L] * 1;
+                        1 = 1 * r66;
+                    end; 
+                end;
+                return 0; 
+            end;
+            r67 = 33;
+            local function r68(arg1_12, ...)
+                v1 = arg1_12;
+                if v1 > 255 or v1 < 0 then
+                    writefile("EconRC/BUG_REPORT_TO_ECON_6.log", "Econ tried setting a character above 255, report this to Econ");
+                    warn("<< Econ Char >> 255 < [" .. v1 .. "]");
+                    v3 = r45;
+                    v3.Kick(v3, "REPORT THIS BUG TO ECON | ERR 6");
+                    return error("Return Char " .. v1, 2);
+                end;
+                return string.char(v1); 
+            end;
+            local function r69(arg1_13, ...)
+                v1 = arg1_13;
+                v3 = {
+                    v1.byte(v1, 1, -1)
+                };
+                V = #v3 > 1;
+                if V then
+                    w = utf8.codepoint(v1);
+                end;
+                v3 = v3;
+                if V then
+                    return V;
+                else
+                    X = v1.byte(v1);
+                end; 
+            end;
+            local function r70(arg1_14, ...)
+                v1 = arg1_14;
+                if not v1 then
+                    v3 = r45;
+                    v3.Kick(v3, "REPORT THIS BUG TO ECON | ERR 1");
+                    error("[1] REPORT TO ECON", 2);
+                end;
+                u = {};
+                w = v1.split(v1, "");
+                v2 = r16;
+                table.sort(w, function(arg1_15, arg2_15, ...)
+                    u = arg2_15;
+                    v1 = arg1_15;
+                    return v1.byte(v1) + 25 < u.byte(u) - 60; 
+                end);
+                V = v2[3];
+                F = v2[2];
+                for V, v5 in pairs(w) do
+                    L = V;
+                    if not table.find(u, v5) then
+                        table.insert({}, v5);
+                    end; 
+                end;
+                F = "";
+                if not v1 then
+                    v3 = r45;
+                    v3.Kick(v3, "REPORT THIS BUG TO ECON | ERR 2");
+                    error("[2] REPORT TO ECON", 2);
+                end;
+                e = r16("", 11783132386670);
+                a = r15[e];
+                V = a[1];
+                v2 = a[2];
+                for L, a in ipairs(v1.split(v1, a)) do
+                    v5 = L;
+                    "" = "" .. r68(table.find(u, a) + r67); 
+                end;
+                F = F.reverse(F) .. r68(r67);
+                L = a[2];
+                v5 = a[3];
+                for v5, a in ipairs(u) do
+                    V = v5;
+                    v3 = v3 .. r68(r69(a) + r67 + 1); 
+                end;
+                for L = 1, #F do
+                    e = "%03d";
+                    r15[r16("", v4)] = r15[r16("", v4)] .. e.format(e, F.byte(F, L)); 
+                end;
+                return ""; 
+            end;
+            local function r71(arg1_16, ...)
+                v1 = arg1_16;
+                if not v1.find(v1, "!") then
+                    w = #v1 / 3;
+                    v3 = math.round(w) ~= w;
+                    if v3 then
+                        v3 = r45;
+                        v3.Kick(v3, "REPORT THIS BUG TO ECON | ERR 7 | Key not divisible by 3");
+                    end;
+                    for V = 1, w do
+                        a = (V - 1) * 3 + 1;
+                        "" = "" .. string.char(tonumber(v1.sub(v1, a, a + 2))); 
+                    end;
+                    v1 = "";
+                end;
+                u = {};
+                w = "";
+                v1 = v1.reverse(v1);
+                if not v1 then
+                    V = r45;
+                    V.Kick(V, "REPORT THIS BUG TO ECON | ERR 3");
+                    error("[3] REPORT TO ECON", 2);
+                end;
+                V = v1.split(v1, r68(r67));
+                v2 = V[1];
+                L = v2.reverse(v2);
+                if not L then
+                    v2 = r45;
+                    v2.Kick(v2, "REPORT THIS BUG TO ECON | ERR 4");
+                    error("[4] REPORT TO ECON", 2);
+                end;
+                e = "";
+                v4 = {
+                    L.split(L, e)
+                };
+                q = e[3];
+                for q, v4 in e[1], ipairs(m(v4)) do
+                    v2 = q;
+                    C = {
+                        pcall(r68, r69(v4) - r67 - 1)
+                    };
+                    v7 = C[2];
+                    if not pcall(r68, r69(v4) - r67 - 1) then
+                        warn("<< Obfuscation: 377 > failed to convert " .. v4 .. " to char as " .. v7);
+                        error("Deobfuscation stopped due to error", 2);
+                    end;
+                    table.insert(u, v7); 
+                end;
+                w = V[2];
+                if not w then
+                    a = r45;
+                    a.Kick(a, "REPORT THIS BUG TO ECON | ERR 5");
+                    error("[5] REPORT TO ECON", 2);
+                end;
+                v7 = "";
+                v6 = {
+                    w.split(w, v7)
+                };
+                v4 = v7[2];
+                q = v7[1];
+                for e, v6 in ipairs(m(v6)) do
+                    a = e;
+                    v7 = r69(v6) - r67;
+                    if not u[v7] then
+                        warn("<< Obfuscation >> save index not found: " .. v7);
+                        return;
+                    else
+                        "" = "" .. ({})[r69(v6) - r67];
+                    end; 
+                end;
+                return ""; 
+            end;
+            local function r72(...)
+                v3 = game;
+                X = v3.GetService(v3, "RbxAnalyticsService");
+                v1 = X.GetClientId(X);
+                v1 = v1.reverse(v1);
+                if not v1 then
+                    error("[6] REPORT TO ECON", 2);
+                end;
+                u = v1.split(v1, "-");
+                w = "";
+                L = r16;
+                table.sort(u, function(arg1_17, arg2_17, ...)
+                    return arg1_17 < arg2_17; 
+                end);
+                v2 = L[3];
+                V = L[2];
+                for v2, v5 in pairs(u) do
+                    L = v2;
+                    "" = "" .. v5 .. "-"; 
+                end;
+                w = w.sub(w, 1, #w - 1);
+                V = w.sub(w, 1, #w - 1);
+                v1 = w;
+                return v1; 
+            end;
+            local function r73(arg1_18, arg2_18, ...)
+                X = game;
+                v1 = arg1_18;
+                u = arg2_18;
+                w = X.GetService(X, "Players").LocalPlayer;
+                v3 = game;
+                X = v3.GetService(v3, "RbxAnalyticsService");
+                v5 = r16("\xe6:\xd4\xe5\xe5\x18", 25972205711166);
+                v3 = r63[r15[v5]];
+                V = v1;
+                v2 = v3;
+                if v1 then
+                    v3 = v2;
+                    V = v3(v1);
+                    N = 12414882322069;
+                    local function v2(arg1_19, arg2_19, ...)
+                        v1 = arg1_19;
+                        u = arg2_19;
+                        X = v1.sub(v1, 1, u);
+                        return X.reverse(X) .. v1.sub(v1, u + 1, -1); 
+                    end;
+                    local function L(arg1_20, arg2_20, ...)
+                        u = arg2_20;
+                        v1 = arg1_20;
+                        X = v1.sub(v1, 1, u);
+                        return X.reverse(X) .. v1.sub(v1, u + 1, -1); 
+                    end;
+                    v5 = v2(V.reverse(V), 4);
+                    v3 = r70;
+                    M1 = r72();
+                    J = v3;
+                    p = J;
+                    if u then
+                        N = u.gsub(u, "econ%-", "");
+                        Z1 = N.reverse(N);
+                    end;
+                    v3 = p;
+                    v3 = J;
+                    return v3(v5 .. "," .. "mKx" .. X.GetClientId(X) .. "," .. v2(V, 3) .. "," .. v5.reverse(v5) .. "," .. M1.reverse(M1) .. r15[r16("II\x0c\x0f", N)] .. (u or "n"));
+                else
+                    os.time();
+                end; 
+            end;
+            local function k1(arg1_21, ...)
+                v1 = r71(arg1_21);
+                if not v1 then
+                    error("[7] REPORT TO ECON", 2);
+                end;
+                w = v1.split(v1, ",");
+                V = r72();
+                v2 = w[2];
+                q = (function(arg1_22, arg2_22, ...)
+                    v1 = arg1_22;
+                    u = arg2_22;
+                    X = v1.sub(v1, 1, u);
+                    return X.reverse(X) .. v1.sub(v1, u + 1, -1); 
+                end)(w[1], 4);
+                v6 = w[5];
+                v7 = v6.sub(v6, #(V.reverse(V) .. "2rKl") + 1, -1);
+                return {
+                    ["id"] = v2.sub(v2, 4, -1),
+                    ["time"] = r63.Decode(q.reverse(q)),
+                    ["all"] = w,
+                    ["key"] = "econ-" .. v7.reverse(v7)
+                }; 
+            end;
+            r1 = game;
+            r74 = tonumber(r1.HttpGet(r1, r24 .. "LetsTakeItAway"));
+            local function r75(arg1_23, arg2_23, arg3_23, arg4_23, ...)
+                v1 = arg1_23;
+                X = v1;
+                w = arg3_23;
+                if v1 then
+                    v2 = readfile(r32.keynew) ~= "";
+                    v3 = readfile(r32.keynew) == v1;
+                    writefile(r32.keynew, v1);
+                    while not false do
+                        L = true;
+                        v6 = r15;
+                        if readfile(r32.keynew) == v1 then
+                            X = r43;
+                            q = true;
+                            v5 = "Parent";
+                            v6 = r27;
+                            v4 = v6.IsStudio(v6);
+                            a = v4 and r45.PlayerGui;
+                            v3 = true;
+                            if v4 then
+                                r43.Parent = v4 and r45.PlayerGui;
+                                getgenv();
+                                q = true;
+                                X = "ECON_SUBSCRIPTION";
+                                v4 = arg3_23 == r40.free and v1.time;
+                                v3 = true;
+                                a = v4;
+                                if v4 then
+                                    getgenv().ECON_SUBSCRIPTION = v4;
+                                    v3 = true;
+                                    v6 = r16(" \x18\xddGh\xd63\xc9\xf7\xfa\x96-!", 22478549526755);
+                                    if not getgenv()[r15[v6]] then
+                                        getgenv().ECON_DO_UI_SHOWING = true;
+                                    end;
+                                    local function r76(...)
+                                        v3 = task.spawn;
+                                        V = getgenv()["econ.Main"];
+                                        if V then
+                                            v3 = v3;
+                                            v3(loadstring(V));
+                                            return;
+                                        else
+                                            V = game;
+                                            w = V.HttpGet(V, r24 .. "Econ");
+                                        end; 
+                                    end;
+                                    e = {
+                                        pcall(function(...)
+                                            return readfile(r32.settings); 
+                                        end)
+                                    };
+                                    a = pcall(function(...)
+                                        return readfile(r32.settings); 
+                                    end);
+                                    q = e[2];
+                                    v4 = v3;
+                                    if q then
+                                        v3 = v3;
+                                        v6 = not (readfile(r32.keynew) ~= "");
+                                        v4 = v6;
+                                        e = v3;
+                                        q = q;
+                                        if v6 then
+                                            v3 = e;
+                                            if v6 then
+                                                task.spawn(function(...)
+                                                    getgenv()._econ_domenuopennotif = true;
+                                                    task.wait(.7);
+                                                    r77 = r43.Prepare;
+                                                    u = r77.Options;
+                                                    r43.Loading.GroupTransparency = .3;
+                                                    r43.Loading.Position = UDim2.fromScale(0, .015);
+                                                    r43.ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
+                                                    r43.Loading.Interactable = false;
+                                                    r43.Loading.Visible = true;
+                                                    r77.Parent = r43.Loading;
+                                                    r77.Visible = true;
+                                                    local function r78(arg1_24, arg2_24, ...)
+                                                        v1 = arg1_24;
+                                                        u = arg2_24;
+                                                        w = u <= 0;
+                                                        v3 = y[v1];
+                                                        if w then
+                                                            return w and v1;
+                                                        else
+                                                            X = math.round(v1 / u) * u;
+                                                        end; 
+                                                    end;
+                                                    local function F(arg1_25, arg2_25, arg3_25, arg4_25, ...)
+                                                        r79 = arg1_25;
+                                                        r80 = arg2_25;
+                                                        r81 = arg3_25;
+                                                        r82 = arg4_25;
+                                                        r83 = tonumber(r79.Text);
+                                                        v3 = r79.FocusLost;
+                                                        v3.Connect(v3, function(...)
+                                                            v3 = math.clamp;
+                                                            F = math.clamp;
+                                                            r83 = v3(r78(tonumber(r79.Text) or 1, r82), r80, r81);
+                                                            r79.Text = r83;
+                                                            return; 
+                                                        end);
+                                                        return function(...)
+                                                            return r83; 
+                                                        end; 
+                                                    end;
+                                                    r84 = F(u.sens.main, .05, 4, .05);
+                                                    r85 = F(u.ads.main, .05, 2, .05);
+                                                    v3 = r26;
+                                                    X = v3.Create(v3, r43.Loading, TweenInfo.new(.3), {
+                                                        ["GroupTransparency"] = 0,
+                                                        ["Position"] = UDim2.fromScale(0, 0)
+                                                    });
+                                                    X.Play(X);
+                                                    task.delay(.3, function(...)
+                                                        r43.Loading.Interactable = true;
+                                                        r77.Parent = r43;
+                                                        r43.Loading.Visible = false;
+                                                        r43.ZIndexBehavior = Enum.ZIndexBehavior.Global;
+                                                        v3 = r77.Ok.MouseButton1Click;
+                                                        v3.Once(v3, function(...)
+                                                            getgenv().econ_sens = r84();
+                                                            getgenv().econ_sens_ads = r85();
+                                                            r77.Parent = r43.Loading;
+                                                            r43.Loading.Interactable = false;
+                                                            r43.Loading.Visible = true;
+                                                            r43.ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
+                                                            v3 = r26;
+                                                            X = v3.Create(v3, r43.Loading, TweenInfo.new(.3), {
+                                                                ["GroupTransparency"] = 1,
+                                                                ["Position"] = UDim2.fromScale(0, .015)
+                                                            });
+                                                            X.Play(X);
+                                                            task.delay(1, function(...)
+                                                                v3 = y[81];
+                                                                v3.Destroy(v3);
+                                                                return; 
+                                                            end);
+                                                            r76();
+                                                            return; 
+                                                        end);
+                                                        return; 
+                                                    end);
+                                                    return; 
+                                                end);
+                                                break;
+                                            else
+                                                r76();
+                                            end;
+                                            return true;
+                                        else
+                                            v4 = q.find(q, "{");
+                                        end;
+                                    else
+                                        X = "{}";
+                                    end;
+                                else
+                                    a = arg3_23;
+                                end;
+                            else
+                                a = y[v7];
+                            end;
+                        end; 
+                    end;
+                    task.wait(1);
+                else
+                    X = r73(arg2_23, arg4_23);
+                end; 
+            end;
+            local function n1(arg1_26, ...)
+                v1 = arg1_26;
+                w = game;
+                u = w.GetService(w, "Players").LocalPlayer or ;
+                w = v1.all;
+                if #w ~= 5 then
+                    warn("KEY BYPASSED [0]");
+                    return;
+                end;
+                X = w[2];
+                if X.sub(X, 1, 3) ~= "mKx" then
+                    warn("KEY BYPASSED [A]");
+                    return;
+                end;
+                e = "\xbc\n\xc9\x87";
+                if (function(arg1_27, arg2_27, ...)
+                    v1 = arg1_27;
+                    u = arg2_27;
+                    X = v1.sub(v1, 1, u);
+                    return X.reverse(X) .. v1.sub(v1, u + 1, -1); 
+                end)(w[3], 3) ~= r63.Encode(v1[r15[r16(e, 19189633327847)]]) then
+                    warn("KEY BYPASSED [B]");
+                    return;
+                end;
+                V = w[1];
+                if w[4] ~= V.reverse(V) then
+                    warn("KEY BYPASSED [D]");
+                    return;
+                end;
+                V = r72();
+                V = V.reverse(V) .. "2rKl";
+                v3 = w[5];
+                v2 = v3.sub(v3, #V + 1, -1);
+                X = w[5];
+                if X.sub(X, 1, #V) ~= V then
+                    warn("KEY BYPASSED [E]");
+                    return;
+                end;
+                if #v2 < 15 and (v2 ~= "" and v2 ~= "n") then
+                    warn("KEY BYPASSED [F]");
+                    return;
+                end;
+                if r74 > 48 then
+                    warn("KEY BYPASSED [G]");
+                    return;
+                end;
+                if v1 then
+                    v4 = game;
+                    e = v4.GetService(v4, "RbxAnalyticsService");
+                    X = v1.id == e.GetClientId(e) and os.time() - v1.time <= 3600 * r74;
+                    v3 = r74 > L;
+                end;
+                return v1; 
+            end;
+            local function r86(arg1_28, ...)
+                v1 = arg1_28;
+                v2 = "\x85[\x889\x8b''";
+                r87 = r43[r15[r16(v2, 19850501186587)]];
+                X = v1;
+                if v1 then
+                    v3 = r43;
+                    w = v1;
+                    V = v3;
+                    X = "Parent";
+                    v5 = y[v5];
+                    v2 = v5.IsStudio(v5);
+                    F = v2 and r45.PlayerGui;
+                    v3 = v3;
+                    if v2 then
+                        v3 = v3;
+                        v3.Parent = v2 and r45.PlayerGui;
+                        r43.Enabled = true;
+                        r87.Size = UDim2.fromOffset(380, 180);
+                        r87.BackgroundTransparency = 1;
+                        r87.Title.TextTransparency = 1;
+                        r87.Ok.BackgroundTransparency = 1;
+                        r87.Ok.TextTransparency = 1;
+                        r87.Shadow.Image.ImageTransparency = 1;
+                        r87.Appeal.TextTransparency = 1;
+                        r87.Link.TextTransparency = 1;
+                        r87.List.Transparency = 1;
+                        r87.Visible = true;
+                        r57("error");
+                        L = "reasons";
+                        v2 = v1[L];
+                        F = L[2];
+                        V = L[3];
+                        for V, v5 in pairs(X) do
+                            L = V;
+                            if v5.content then
+                                v3 = r56.blockreason;
+                                a = v3.Clone(v3);
+                                a.Content.Text = v5.content;
+                                a.Title.Text = v5.reason or "General";
+                                a.Parent = r87.List;
+                            end; 
+                        end;
+                        L = r87.List;
+                        v5 = {
+                            L.GetChildren(L)
+                        };
+                        v2 = L[3];
+                        for v2, v5 in L[1], pairs(m(v5)) do
+                            v6 = v5.GetChildren;
+                            L = v2;
+                            v3 = pairs;
+                            v4 = v6[3];
+                            for v4, v6 in v6[1], v3(v6(v5)) do
+                                e = v4;
+                                r88 = v6;
+                                v3 = r88;
+                                if v3.IsA(v3, "TextLabel") then
+                                    r88.TextTransparency = 1;
+                                    task.delay(.05, function(...)
+                                        v3 = r26;
+                                        X = v3.Create(v3, r88, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                                            ["TextTransparency"] = 0
+                                        });
+                                        X.Play(X);
+                                        return; 
+                                    end);
+                                end; 
+                            end;
+                            if v5.IsA(v5, "Frame") then
+                                v5.Visible = true;
+                            end; 
+                        end;
+                        v3 = r26;
+                        F = v3.Create(v3, r87, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                            ["Transparency"] = .15,
+                            ["Size"] = UDim2.fromOffset(425, 250)
+                        });
+                        F.Play(F);
+                        v3 = r26;
+                        F = v3.Create(v3, r87.Shadow.Image, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                            ["ImageTransparency"] = 0.5
+                        });
+                        F.Play(F);
+                        task.wait(.05);
+                        v3 = r26;
+                        F = v3.Create(v3, r87.Title, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                            ["TextTransparency"] = 0
+                        });
+                        F.Play(F);
+                        v3 = r26;
+                        F = v3.Create(v3, r87.Ok, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                            ["Transparency"] = 0,
+                            ["TextTransparency"] = 0
+                        });
+                        F.Play(F);
+                        v3 = r26;
+                        F = v3.Create(v3, r87.Appeal, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                            ["TextTransparency"] = .9
+                        });
+                        F.Play(F);
+                        v3 = r26;
+                        F = v3.Create(v3, r87.Link, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                            ["TextTransparency"] = .8
+                        });
+                        F.Play(F);
+                        v3 = r26;
+                        F = v3.Create(v3, r87.List, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                            ["Transparency"] = .1
+                        });
+                        F.Play(F);
+                        r89 = r87.Link;
+                        v3 = not v1.no_appeal;
+                        if v3 then
+                            v3 = r89.MouseEnter;
+                            v3.Connect(v3, function(...)
+                                r89.Text = "<u>Discord</u>";
+                                return; 
+                            end);
+                            v3 = r89.MouseLeave;
+                            v3.Connect(v3, function(...)
+                                r89.Text = "Discord";
+                                return; 
+                            end);
+                            v3 = r89.MouseButton1Click;
+                            v3.Connect(v3, function(...)
+                                v1 = "KrVC64n3kK";
+                                if r37 then
+                                    r37(v1);
+                                end;
+                                if r39 then
+                                    q = r28;
+                                    b = r28;
+                                    r39({
+                                        ["Url"] = "http://127.0.0.1:6463/rpc?v=1",
+                                        ["Method"] = "POST",
+                                        ["Headers"] = {
+                                            ["Content-Type"] = "application/json",
+                                            ["Origin"] = "https://discord.com"
+                                        },
+                                        ["Body"] = q.JSONEncode(q, {
+                                            ["cmd"] = "INVITE_BROWSER",
+                                            ["nonce"] = b.GenerateGUID(b, false),
+                                            ["args"] = {
+                                                ["code"] = v1
+                                            }
+                                        })
+                                    });
+                                end;
+                                return; 
+                            end);
+                        else
+                            r89.Visible = false;
+                            r87.Appeal.Text = "This ban cannot be appealed";
+                        end;
+                        v3 = r87.Ok.MouseButton1Down;
+                        v3.Once(v3, function(...)
+                            w = r87.List;
+                            v1 = w[2];
+                            w = w[1];
+                            for u, V in pairs(w.GetChildren(w)) do
+                                F = u;
+                                q = V.GetChildren;
+                                v2 = q[1];
+                                L = q[2];
+                                for v5, q in pairs(q(V)) do
+                                    a = v5;
+                                    v4 = "TextLabel";
+                                    if q.IsA(q, v4) then
+                                        v3 = r26;
+                                        v4 = v3.Create(v3, q, TweenInfo.new(.4, Enum.EasingStyle.Exponential), {
+                                            ["TextTransparency"] = 1
+                                        });
+                                        v4.Play(v4);
+                                    end; 
+                                end; 
+                            end;
+                            r57("click");
+                            v3 = r26;
+                            v1 = v3.Create(v3, r87, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                                ["BackgroundTransparency"] = 1,
+                                ["Size"] = UDim2.fromOffset(395, 120)
+                            });
+                            v1.Play(v1);
+                            v3 = r26;
+                            v1 = v3.Create(v3, r87.Shadow.Image, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                                ["ImageTransparency"] = 1
+                            });
+                            v1.Play(v1);
+                            v3 = r26;
+                            v1 = v3.Create(v3, r87.Title, TweenInfo.new(.4, Enum.EasingStyle.Exponential), {
+                                ["TextTransparency"] = 1
+                            });
+                            v1.Play(v1);
+                            v3 = r26;
+                            v1 = v3.Create(v3, r87.Ok, TweenInfo.new(.4, Enum.EasingStyle.Exponential), {
+                                ["BackgroundTransparency"] = 1,
+                                ["TextTransparency"] = 1
+                            });
+                            v1.Play(v1);
+                            v3 = r26;
+                            v1 = v3.Create(v3, r87.Appeal, TweenInfo.new(.4, Enum.EasingStyle.Exponential), {
+                                ["TextTransparency"] = 1
+                            });
+                            v1.Play(v1);
+                            v3 = r26;
+                            v1 = v3.Create(v3, r87.Link, TweenInfo.new(.4, Enum.EasingStyle.Exponential), {
+                                ["TextTransparency"] = 1
+                            });
+                            v1.Play(v1);
+                            v3 = r26;
+                            v1 = v3.Create(v3, r87.List, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                                ["Transparency"] = 1
+                            });
+                            v1.Play(v1);
+                            task.wait(.6);
+                            v3 = r43;
+                            v3.Destroy(v3);
+                            return; 
+                        end);
+                        return;
+                    else
+                        F = y[v7];
+                    end;
+                else
+                    X = r42[r45.UserId];
+                end; 
+            end;
+            local function r90(...)
+                r91 = r43.Bypassed;
+                r91.Size = UDim2.fromOffset(395, 85);
+                r91.BackgroundTransparency = 1;
+                r91.Title.TextTransparency = 1;
+                r91.Ok.BackgroundTransparency = 1;
+                r91.Ok.TextTransparency = 1;
+                r91.Shadow.Image.ImageTransparency = 1;
+                r91.Visible = true;
+                r57("error");
+                F = r91.List;
+                u = F[2];
+                F = F[1];
+                for w, v2 in pairs(F.GetChildren(F)) do
+                    v3 = pairs;
+                    v4 = v2.GetChildren;
+                    a = v4[3];
+                    V = w;
+                    for a, v4 in v4[1], v3(v4(v2)) do
+                        q = a;
+                        r92 = v4;
+                        v3 = r92;
+                        if v3.IsA(v3, "TextLabel") then
+                            r92.TextTransparency = 1;
+                            task.delay(.05, function(...)
+                                v3 = r26;
+                                X = v3.Create(v3, r92, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                                    ["TextTransparency"] = 0
+                                });
+                                X.Play(X);
+                                return; 
+                            end);
+                        end; 
+                    end; 
+                end;
+                v3 = r26;
+                u = v3.Create(v3, r91, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                    ["BackgroundTransparency"] = 0,
+                    ["Size"] = UDim2.fromOffset(425, 100)
+                });
+                u.Play(u);
+                v3 = r26;
+                u = v3.Create(v3, r91.Shadow.Image, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                    ["ImageTransparency"] = 0.5
+                });
+                u.Play(u);
+                task.wait(.05);
+                v3 = r26;
+                u = v3.Create(v3, r91.Title, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                    ["TextTransparency"] = 0
+                });
+                u.Play(u);
+                v3 = r26;
+                u = v3.Create(v3, r91.Ok, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                    ["BackgroundTransparency"] = 0,
+                    ["TextTransparency"] = 0
+                });
+                u.Play(u);
+                v3 = r91.Ok.MouseButton1Down;
+                v3.Once(v3, function(...)
+                    w = r91.List;
+                    u = w[3];
+                    w = w[1];
+                    for u, V in w, pairs(w.GetChildren(w)) do
+                        F = u;
+                        q = V.GetChildren;
+                        L = q[2];
+                        v5 = q[3];
+                        for v5, q in pairs(q(V)) do
+                            a = v5;
+                            v4 = "TextLabel";
+                            if q.IsA(q, v4) then
+                                v3 = r26;
+                                v4 = v3.Create(v3, q, TweenInfo.new(.4, Enum.EasingStyle.Exponential), {
+                                    ["TextTransparency"] = 1
+                                });
+                                v4.Play(v4);
+                            end; 
+                        end; 
+                    end;
+                    r57("click");
+                    v3 = r26;
+                    v1 = v3.Create(v3, r91, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                        ["BackgroundTransparency"] = 1,
+                        ["Size"] = UDim2.fromOffset(395, 120)
+                    });
+                    v1.Play(v1);
+                    v3 = r26;
+                    v1 = v3.Create(v3, r91.Shadow.Image, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                        ["ImageTransparency"] = 1
+                    });
+                    v1.Play(v1);
+                    v3 = r26;
+                    v1 = v3.Create(v3, r91.Title, TweenInfo.new(.4, Enum.EasingStyle.Exponential), {
+                        ["TextTransparency"] = 1
+                    });
+                    v1.Play(v1);
+                    v3 = r26;
+                    v1 = v3.Create(v3, r91.Ok, TweenInfo.new(.4, Enum.EasingStyle.Exponential), {
+                        ["BackgroundTransparency"] = 1,
+                        ["TextTransparency"] = 1
+                    });
+                    v1.Play(v1);
+                    task.wait(.6);
+                    v3 = r43;
+                    v3.Destroy(v3);
+                    return; 
+                end);
+                return; 
+            end;
+            local function r93(arg1_29, arg2_29, ...)
+                u = arg2_29;
+                v1 = arg1_29;
+                F = r26;
+                V = v1.FindFirstChild(v1, "Button");
+                w = V;
+                if V then
+                    X = v3.Create(v3, w, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                        ["BackgroundTransparency"] = u
+                    });
+                    X.Play(X);
+                    v3 = r26;
+                    X = v3.Create(v3, v1.UIStroke, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                        ["Transparency"] = u
+                    });
+                    X.Play(X);
+                    X = "InputBox";
+                    if v1.FindFirstChild(v1, X) then
+                        v3 = r26;
+                        X = v3.Create(v3, arg1_29.InputBox, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                            ["TextTransparency"] = arg2_29
+                        });
+                        X.Play(X);
+                    end;
+                    X = "Copy";
+                    if v1.FindFirstChild(v1, X) then
+                        v3 = r26;
+                        X = v3.Create(v3, arg1_29.Copy, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                            ["ImageTransparency"] = arg2_29
+                        });
+                        X.Play(X);
+                    end;
+                    return;
+                else
+                    w = arg1_29;
+                end; 
+            end;
+            local function r94(...)
+                v3 = r54;
+                v3.Disconnect(v3);
+                w = r52;
+                u = 81[3];
+                w = 81[1];
+                for u, V in w, pairs(w) do
+                    V.Disconnect(V); 
+                end;
+                if r60 then
+                    v3 = r26;
+                    v1 = v3.Create(v3, r60, TweenInfo.new(.15), {
+                        ["AnchorPoint"] = Vector2.yAxis,
+                        ["Position"] = UDim2.fromScale(0, -0.25),
+                        ["TextTransparency"] = 1
+                    });
+                    v1.Play(v1);
+                end;
+                v1 = r26;
+                u = v1.Create(v1, r44, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                    ["BackgroundTransparency"] = 1,
+                    ["Size"] = UDim2.fromOffset(467, 175)
+                });
+                u.Play(u);
+                v1 = r26;
+                u = v1.Create(v1, r44.Logo, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                    ["ImageTransparency"] = 1
+                });
+                u.Play(u);
+                v1 = r26;
+                u = v1.Create(v1, r44.Shadow.Image, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                    ["ImageTransparency"] = 1
+                });
+                u.Play(u);
+                v1 = r26;
+                u = v1.Create(v1, r44.Title, TweenInfo.new(.4, Enum.EasingStyle.Exponential), {
+                    ["TextTransparency"] = 1
+                });
+                u.Play(u);
+                v1 = r26;
+                u = v1.Create(v1, r44.Subtitle, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                    ["TextTransparency"] = 1
+                });
+                u.Play(u);
+                v1 = r26;
+                u = v1.Create(v1, r44.Logo.UIStroke, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                    ["Transparency"] = 1
+                });
+                u.Play(u);
+                v1 = r26;
+                u = v1.Create(v1, r44.EconID.ID, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                    ["TextTransparency"] = 1
+                });
+                u.Play(u);
+                v1 = r26;
+                u = v1.Create(v1, r44.EconID.Get, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                    ["TextTransparency"] = 1
+                });
+                u.Play(u);
+                v1 = r26;
+                u = v1.Create(v1, r44.Frame, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                    ["ImageTransparency"] = 1
+                });
+                u.Play(u);
+                v1 = r26;
+                u = v1.Create(v1, r44.manual, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                    ["BackgroundTransparency"] = 1
+                });
+                u.Play(u);
+                v1 = r26;
+                u = v1.Create(v1, r44.manual, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                    ["TextTransparency"] = 1
+                });
+                u.Play(u);
+                if r47 then
+                    v1 = r26;
+                    u = v1.Create(v1, r47.button.Copy, TweenInfo.new(.3), {
+                        ["ImageTransparency"] = 0
+                    });
+                    u.Play(u);
+                    v1 = r26;
+                    u = v1.Create(v1, r47.button.Selected, TweenInfo.new(.3), {
+                        ["Transparency"] = 1
+                    });
+                    u.Play(u);
+                    v1 = r26;
+                    u = v1.Create(v1, r47.button.Selected.ImageLabel, TweenInfo.new(.3), {
+                        ["ImageTransparency"] = 1
+                    });
+                    u.Play(u);
+                end;
+                r93(r44.Input, 1);
+                V = r44.Services;
+                w = V[2];
+                F = V[3];
+                for F, V in pairs(V.GetChildren(V)) do
+                    v1 = F;
+                    if V.IsA(V, "Frame") then
+                        r93(V, 1);
+                    end; 
+                end;
+                v1 = r26;
+                u = v1.Create(v1, r44.Hide, TweenInfo.new(.4, Enum.EasingStyle.Exponential), {
+                    ["ImageTransparency"] = 1
+                });
+                u.Play(u);
+                return; 
+            end;
+            r96 = "";
+            local function r97(arg1_30, arg2_30, ...)
+                r98 = arg1_30;
+                r99 = arg2_30;
+                r100 = 0;
+                r99.button = r98;
+                r53[r98.Name] = {};
+                F = r98.Button.MouseButton1Down;
+                r52[r98.Name] = F.Connect(F, function(...)
+                    if r58 then
+                        return;
+                    end;
+                    if not r30 then
+                        return;
+                    end;
+                    r100 = r100 + 1;
+                    if not r49 then
+                        u = r27.Stepped;
+                        r52.backgroundStep = u.Connect(u, function(...)
+                            if r38 then
+                                v1 = r38();
+                            end;
+                            v3 = not nil;
+                            if v3 then
+                                r50 = os.clock();
+                                if not r49 then
+                                    r49 = os.clock();
+                                end;
+                            end;
+                            if r49 and r50 - r49 > r48 then
+                                v3 = r52.backgroundStep;
+                                v3.Disconnect(v3);
+                            end;
+                            return; 
+                        end);
+                    end;
+                    v1 = r100;
+                    r98.Button.UIGradient.Offset = Vector2.xAxis * 1.3;
+                    X = r26;
+                    u = X.Create(X, r98.Button.UIGradient, TweenInfo.new(0.25), {
+                        ["Offset"] = Vector2.xAxis * -1.3
+                    });
+                    u.Play(u);
+                    r57("click");
+                    v2 = r53;
+                    F = v2[3];
+                    w = v2[2];
+                    for F, v2 in pairs(v2[r98.Name]) do
+                        V = F;
+                        v2.Cancel(v2); 
+                    end;
+                    table.clear(r53[r98.Name]);
+                    r47 = y[u];
+                    u = tick() - r51;
+                    if u < 5 then
+                        r61("Wait " .. math.ceil(5 - u) .. "s");
+                        v3 = 1;
+                        if r96 and r37 then
+                            r37(r96);
+                        end;
+                        return;
+                    end;
+                    r51 = tick();
+                    r95.provider = y[u].provider;
+                    r95.service = y[u].service;
+                    v2 = r59();
+                    q = {
+                        pcall(function(...)
+                            return r95.get_key_link(); 
+                        end)
+                    };
+                    v5 = q[2];
+                    L = pcall(function(...)
+                        return r95.get_key_link(); 
+                    end);
+                    if not v5 or not L then
+                        r61("An error occurred: " .. v5);
+                        warn("<< Econ JunkieKeySystem Error >> " .. v5);
+                        v2();
+                        return;
+                    end;
+                    v2();
+                    r96 = v5;
+                    r44.manual.Text = v5;
+                    v4 = true;
+                    r44.manual.Visible = v4;
+                    if L then
+                        v4 = r37;
+                        a = v4 and v5;
+                        v3 = 1;
+                    end;
+                    v3 = 1;
+                    if L then
+                        r61("Copied URL", Color3.new(.541176, .917647, .435294));
+                        r37(v5);
+                    else
+                        r61("An error occurred");
+                    end;
+                    return; 
+                end);
+                return; 
+            end;
+            local function r101(arg1_31, arg2_31, ...)
+                v1 = arg1_31;
+                u = arg2_31;
+                w = v1.FindFirstChild(v1, "Button");
+                X = w;
+                if w then
+                    w = arg2_31;
+                    X.BackgroundTransparency = w;
+                    v1.UIStroke.Transparency = u;
+                    if v1.FindFirstChild(v1, "InputBox") then
+                        arg1_31.InputBox.TextTransparency = arg2_31;
+                    end;
+                    if v1.FindFirstChild(v1, "Copy") then
+                        arg1_31.Copy.ImageTransparency = arg2_31;
+                    end;
+                    return;
+                else
+                    X = arg1_31;
+                end; 
+            end;
+            local function r102(...)
+                v3 = r43;
+                V = r27;
+                u = v3;
+                v2 = V.IsStudio(V);
+                F = v3;
+                if v2 then
+                    w = r45.PlayerGui;
+                end;
+                v3 = F;
+                v3 = r15;
+                v3.Parent = v2 or r29;
+                r44.Shadow.Image.ImageTransparency = 1;
+                r44.Subtitle.TextTransparency = 1;
+                r44.BackgroundTransparency = 1;
+                r44.Title.TextTransparency = 1;
+                r44.Hide.ImageTransparency = 1;
+                r44.Logo.ImageTransparency = 1;
+                r44.Logo.UIStroke.Transparency = 1;
+                r44.Frame.ImageTransparency = 1;
+                r44.Size = UDim2.fromOffset(467, 190);
+                r44.Visible = true;
+                r44.EconID.ID.TextTransparency = 1;
+                r44.EconID.Get.TextTransparency = 1;
+                r43.Loading.SelectionImageObject = nil;
+                r43.Enabled = true;
+                r101(r44.Input, 1);
+                r103 = r44.EconID.ID;
+                v3 = r103.MouseEnter;
+                v3.Connect(v3, function(...)
+                    r103.Text = "<u>Econ ID</u>";
+                    return; 
+                end);
+                v3 = r103.MouseLeave;
+                v3.Connect(v3, function(...)
+                    r103.Text = "Econ ID";
+                    return; 
+                end);
+                v3 = r103.MouseButton1Click;
+                v3.Connect(v3, function(...)
+                    if r37 then
+                        r37(r72());
+                    end;
+                    return; 
+                end);
+                v3 = r26;
+                X = v3.Create(v3, r44, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                    ["BackgroundTransparency"] = .15,
+                    ["Size"] = UDim2.new(0, 500, 0, 205)
+                });
+                X.Play(X);
+                v3 = r26;
+                X = v3.Create(v3, r44.Logo, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                    ["ImageTransparency"] = 0
+                });
+                X.Play(X);
+                v3 = r26;
+                X = v3.Create(v3, r44.Logo.UIStroke, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                    ["Transparency"] = .3
+                });
+                X.Play(X);
+                v3 = r26;
+                X = v3.Create(v3, r44.Frame, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                    ["ImageTransparency"] = .6
+                });
+                X.Play(X);
+                v3 = r26;
+                X = v3.Create(v3, r44.Shadow.Image, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                    ["ImageTransparency"] = 0.5
+                });
+                X.Play(X);
+                task.wait(.05);
+                v3 = r26;
+                X = v3.Create(v3, r44.Title, TweenInfo.new(.4, Enum.EasingStyle.Exponential), {
+                    ["TextTransparency"] = 0
+                });
+                X.Play(X);
+                v3 = r26;
+                X = v3.Create(v3, r44.Subtitle, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                    ["TextTransparency"] = 0
+                });
+                X.Play(X);
+                v3 = r26;
+                X = v3.Create(v3, r44.EconID.ID, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                    ["TextTransparency"] = .8
+                });
+                X.Play(X);
+                v3 = r26;
+                X = v3.Create(v3, r44.EconID.Get, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                    ["TextTransparency"] = .9
+                });
+                X.Play(X);
+                task.wait(.05);
+                V = r15;
+                r93(r44.Input, 0);
+                F = r46;
+                w = V[3];
+                F = V[1];
+                for w, v2 in F, pairs(F) do
+                    V = w;
+                    v3 = r56.service;
+                    L = v3.Clone(v3);
+                    L.Copy.Image = v2.img;
+                    L.Parent = r44.Services;
+                    r101(L, 1);
+                    L.Visible = true;
+                    r93(L, 0);
+                    r97(L, v2); 
+                end;
+                task.wait(.2);
+                v3 = r26;
+                u = v3.Create(v3, r44.Hide, TweenInfo.new(.4, Enum.EasingStyle.Exponential), {
+                    ["ImageTransparency"] = .3
+                });
+                u.Play(u);
+                return; 
+            end;
+            v3 = v3;
+            if r42[r45.UserId] or ({})[v6.GetClientId(v6)] then
+                r86();
+                return;
+            end;
+            if isfile("security_lock") then
+                r86(r41.econ_bypass_key);
+                return;
+            end;
+            r1 = E1[r45.UserId] or E1[r72()];
+            v3 = v3;
+            if r1 then
+                Ve[3] = "f\x1a7\xab";
+                Ve[4] = 1381016224387;
+                Ve[1] = r16;
+                Ve[2] = Ve[1](Ve[3], Ve[4]);
+                Xe = os[r15[Ve[2]]]() - r1[2] <= r1[1];
+            end;
+            v3 = v3;
+            Qe = r1 or (table[r15[r16(Ve[1], Ve[2])]](G, r45[r15[Ve[2]]]) or table[r15[r16(Ve[1], Ve[2])]](N, r72()));
+            v3 = v3;
+            if Qe then
+                Ve[1] = "\xe9\xdb\xe3L";
+                Ve[2] = 11181479433302;
+                Ve[2] = 9073138700417;
+                Ve[1] = "\xda\xeb\x08\xdb\xc6ugq\"";
+                r75(nil, os[r15[r16(Ve[1], Ve[2])]]() + 604800, r40[r15[r16(Ve[1], Ve[2])]]);
+            end;
+            v3 = v3;
+            if Qe then
+                return;
+            end;
+            if isfile(r32.keynew) then
+                Qe = readfile(r32.keynew);
+                Ye = Qe.byte(Qe) ~= 32;
+                Se = "";
+                ye = Qe ~= Se;
+                if ye then
+                    ze = Qe.byte(Qe) ~= 32;
+                end;
+                if ye then
+                    r104 = (function(arg1_32, ...)
+                        v1 = y[f1](arg1_32);
+                        if not v1 then
+                            error("[7] REPORT TO ECON", 2);
+                        end;
+                        w = v1.split(v1, ",");
+                        V = y[c1]();
+                        v2 = w[2];
+                        q = (function(arg1_33, arg2_33, ...)
+                            v1 = arg1_33;
+                            u = arg2_33;
+                            X = v1.sub(v1, 1, u);
+                            return X.reverse(X) .. v1.sub(v1, u + 1, -1); 
+                        end)(w[1], 4);
+                        v6 = w[5];
+                        v7 = v6.sub(v6, #(V.reverse(V) .. "2rKl") + 1, -1);
+                        return {
+                            ["id"] = v2.sub(v2, 4, -1),
+                            ["time"] = y[a1].Decode(q.reverse(q)),
+                            ["all"] = w,
+                            ["key"] = "econ-" .. v7.reverse(v7)
+                        }; 
+                    end)(Qe);
+                    Se = (function(arg1_34, ...)
+                        v1 = arg1_34;
+                        w = game;
+                        u = w.GetService(w, "Players").LocalPlayer or ;
+                        w = v1.all;
+                        if #w ~= 5 then
+                            warn("KEY BYPASSED [0]");
+                            return;
+                        end;
+                        X = w[2];
+                        if X.sub(X, 1, 3) ~= "mKx" then
+                            warn("KEY BYPASSED [A]");
+                            return;
+                        end;
+                        e = "\xbc\n\xc9\x87";
+                        if (function(arg1_35, arg2_35, ...)
+                            v1 = arg1_35;
+                            u = arg2_35;
+                            X = v1.sub(v1, 1, u);
+                            return X.reverse(X) .. v1.sub(v1, u + 1, -1); 
+                        end)(w[3], 3) ~= y[a1].Encode(v1[r15[r16(e, 19189633327847)]]) then
+                            warn("KEY BYPASSED [B]");
+                            return;
+                        end;
+                        V = w[1];
+                        if w[4] ~= V.reverse(V) then
+                            warn("KEY BYPASSED [D]");
+                            return;
+                        end;
+                        V = y[c1]();
+                        V = V.reverse(V) .. "2rKl";
+                        v3 = w[5];
+                        v2 = v3.sub(v3, #V + 1, -1);
+                        X = w[5];
+                        if X.sub(X, 1, #V) ~= V then
+                            warn("KEY BYPASSED [E]");
+                            return;
+                        end;
+                        if #v2 < 15 and (v2 ~= "" and v2 ~= "n") then
+                            warn("KEY BYPASSED [F]");
+                            return;
+                        end;
+                        if y[T1] > 48 then
+                            warn("KEY BYPASSED [G]");
+                            return;
+                        end;
+                        if v1 then
+                            v4 = game;
+                            e = v4.GetService(v4, "RbxAnalyticsService");
+                            X = v1.id == e.GetClientId(e) and os.time() - v1.time <= 3600 * y[T1];
+                            v3 = y[T1] > L;
+                        end;
+                        return v1; 
+                    end)(r104);
+                    if Se then
+                        Ve[1] = r15;
+                        Ve[5] = 22452262529239;
+                        Ve[4] = "\xca\xb1\x85\xa3";
+                        Ve[2] = r16;
+                        Ve[3] = Ve[2](Ve[4], Ve[5]);
+                        Xe = r75(readfile(y[v].keynew), nil, r40[Ve[1][Ve[3]]]);
+                    end;
+                    v3 = Xe;
+                    if Se then
+                        return;
+                    end;
+                end;
+                if Ye then
+                    Ve[2] = r15;
+                    Ve[6] = 23173286832678;
+                    Ve[5] = "\xf3E\x15Q\xd9\xc5\x8a$<\xe9kU\xde";
+                    Ve[3] = r16;
+                    Ve[4] = Ve[3](Ve[5], Ve[6]);
+                    Ve[1] = Ve[2][Ve[4]];
+                    Fe = Ve[1];
+                end;
+                v3 = v3;
+                task.delay(0.5, r61, Ye or r15[Ve[2]]);
+                v3 = v3;
+            end;
+            local function Xe(...)
+                r105 = r59();
+                r108 = false;
+                task.spawn(function(...)
+                    r106 = pcall(function(...)
+                        v3 = game;
+                        return v3.HttpGet(v3, "https://jnkie.com/sdk/library.lua"); 
+                    end);
+                    r107 = w[2];
+                    if r108 then
+                        return;
+                    end;
+                    r108 = true;
+                    F = not r106;
+                    u = F;
+                    w = true;
+                    if F then
+                        v3 = v3;
+                        if F then
+                            warn("<< Econ >> JunkieKeySystem is currently down");
+                            warn(r107);
+                            r43.Bypassed.Title.Text = "JD \xe2\x80\x94 " .. tostring(r107);
+                            r90();
+                            r94();
+                            return;
+                        end;
+                        v2 = {
+                            pcall(function(...)
+                                return loadstring(y[80])(); 
+                            end)
+                        };
+                        F = v2[2];
+                        v3 = v3;
+                        if typeof(F) == "string" or not pcall(function(...)
+                            return loadstring(y[80])(); 
+                        end) then
+                            warn("<< Econ >> JunkieKeySystem is currently down");
+                            warn(r107);
+                            r43.Bypassed.Title.Text = "JD \xe2\x80\x94 " .. tostring(r107);
+                            r90();
+                            r94();
+                            return;
+                        end;
+                        F.identifier = "7959";
+                        r95 = F;
+                        r105();
+                        return;
+                    else
+                        v3 = true;
+                        u = not r107 or #r107 < 100;
+                    end; 
+                end);
+                task.delay(15, function(...)
+                    if r108 then
+                        return;
+                    end;
+                    r108 = true;
+                    warn("<< Econ >> JunkieKeySystem took too long");
+                    warn(r107);
+                    r43.Bypassed.Title.Text = "JD \xe2\x80\x94 Response taking too long";
+                    r90();
+                    r94();
+                    return; 
+                end);
+                return; 
+            end;
+            task.spawn(Xe);
+            if false then
+                ue = r27;
+                we = ue.IsStudio(ue);
+                if we then
+                    Ve[4] = 32516822596389;
+                    Ve[3] = "\xd3x\xa2\x8e\xe1\x0c\xc6=\xb3";
+                    Ve[1] = r16;
+                    Ve[2] = Ve[1](Ve[3], Ve[4]);
+                    Se = r45[r15[Ve[2]]];
+                end;
+                v3 = v3;
+                v3 = v3;
+                r43.Parent = we or r29;
+                Ve[6] = "\xb8\xdd~`,p\xa9\xc8\xd0\x81n";
+                r109 = r43.Unsupported;
+                Ve[1] = 3267732342257;
+                Ye = r42[r45[r15[r16("\xeb\x07\x1e\x86{+", Ve[1])]]];
+                Ve[3] = 21550054139699;
+                Ve[2] = 430352400584;
+                Ve[1] = "\xb0\x01\xed\x18\xc3dj7~1";
+                Ve[1] = 3215942288857;
+                r109.Size = UDim2[r15[r16(Ve[1], Ve[2])]](380, 70);
+                r109.BackgroundTransparency = 1;
+                Ve[8] = 13726674147575;
+                r109.Title.TextTransparency = 1;
+                Ve[7] = 26347405438956;
+                r109.Ok.BackgroundTransparency = 1;
+                r109.Ok.TextTransparency = 1;
+                r109[r15[r16("Y\x14\xfb\x008|", Ve[1])]].Image.ImageTransparency = 1;
+                Ve[2] = "z\xeft";
+                r109.Launch.TextTransparency = 1;
+                r109.Visible = true;
+                r57("error");
+                Xe = r26;
+                Ve[1] = r16(Ve[2], Ve[3]);
+                Ve[2] = "Enum";
+                Ve[1] = Env[Ve[2]];
+                Ve[3] = r15;
+                Ve[4] = r16;
+                Ve[5] = Ve[4](Ve[6], Ve[7]);
+                Ve[2] = Ve[3][Ve[5]];
+                Ve[2] = r15;
+                Ve[6] = 29662431884788;
+                Ve[3] = r16;
+                Ve[5] = "\x96\xec\xfd?\x19\xdf\xdc;H]\xeb";
+                Ve[4] = Ve[3](Ve[5], Ve[6]);
+                Ve[1] = Ve[2][Ve[4]];
+                Ve[3] = 13984786684272;
+                Ve[2] = "\xc5\xceF\xdf\xc2\xabV\x96V\xf5i\xdd";
+                Ve[1] = r16(Ve[2], Ve[3]);
+                Ve[7] = "\xcd\xd8(\xd7ZU\xa4\x89]\x99";
+                Ve[1] = r15;
+                Ve[4] = "e?t\xf8";
+                Ve[5] = 4578823669844;
+                Ve[2] = r16;
+                Ve[3] = Ve[2](Ve[4], Ve[5]);
+                Ve[3] = "UDim2";
+                Ve[2] = Env[Ve[3]];
+                Ve[4] = r15;
+                Ve[5] = r16;
+                Ve[6] = Ve[5](Ve[7], Ve[8]);
+                Ve[3] = Ve[4][Ve[6]];
+                Ve[6] = "T+\x0e\xd2\xfc\xa5BT[W\x96";
+                Ve[4] = 100;
+                Ve[1] = Ve[2][Ve[3]];
+                Ve[3] = 425;
+                Ve[2] = Ve[1](Ve[3], Ve[4]);
+                Ve[2] = "/\xc4\xebor\xf4";
+                ye = Xe.Create(Xe, r109, TweenInfo[r15[Ve[1]]](.6, Ve[1][Ve[2]][Ve[1]]), {
+                    [r15[Ve[1]]] = .15,
+                    [Ve[1][Ve[3]]] = Ve[2]
+                });
+                ye.Play(ye);
+                Ve[3] = 28311869780863;
+                Xe = r26;
+                Ve[1] = r16(Ve[2], Ve[3]);
+                Ve[3] = 7902054485599;
+                Ve[1] = "\xc7\xbc\xc7\x11\x1e";
+                Ve[2] = 19375630246718;
+                Ve[2] = "r5\xdb";
+                Ve[1] = r16(Ve[2], Ve[3]);
+                Ve[2] = "Enum";
+                Ve[1] = Env[Ve[2]];
+                Ve[3] = r15;
+                Ve[7] = 16571181571620;
+                Ve[4] = r16;
+                Ve[5] = Ve[4](Ve[6], Ve[7]);
+                Ve[6] = 3185254352331;
+                Ve[2] = Ve[3][Ve[5]];
+                Ve[2] = r15;
+                Ve[3] = r16;
+                Ve[5] = "\x98lA\x9c\xbe\xfc\xa8L[\x9a\xd0";
+                Ve[4] = Ve[3](Ve[5], Ve[6]);
+                Ve[1] = Ve[2][Ve[4]];
+                Ve[3] = 13258914273310;
+                Ve[7] = 10728412779395;
+                Ve[2] = "R\xc4\xfe\x0b\xab\xfb\x9d`I\xd1\x0c1\xf8\x84\xa1\xd6\xf1";
+                Ve[1] = r16(Ve[2], Ve[3]);
+                ye = Xe.Create(Xe, r109[r15[Ve[1]]][r15[r16(Ve[1], Ve[2])]], TweenInfo[r15[Ve[1]]](.6, Ve[1][Ve[2]][Ve[1]]), {
+                    [r15[Ve[1]]] = 0.5
+                });
+                Ve[2] = 16347716328892;
+                ye.Play(ye);
+                Ve[1] = "\xaaH\xa2\xdc\x18";
+                Ve[6] = "\xc9+\xd4$\x05f\x8c1D\xf4\x80";
+                Ve[3] = 16526646631951;
+                task.wait(.05);
+                Xe = r26;
+                Ve[2] = "O\x817";
+                Ve[1] = r16(Ve[2], Ve[3]);
+                Ve[2] = "Enum";
+                Ve[1] = Env[Ve[2]];
+                Ve[3] = r15;
+                Ve[4] = r16;
+                Ve[5] = Ve[4](Ve[6], Ve[7]);
+                Ve[2] = Ve[3][Ve[5]];
+                Ve[5] = "6\x1b\xca\xce!\x84\x95\x9a\xb9Z\x96";
+                Ve[6] = 16778068729476;
+                Ve[2] = r15;
+                Ve[3] = r16;
+                Ve[4] = Ve[3](Ve[5], Ve[6]);
+                Ve[1] = Ve[2][Ve[4]];
+                Ve[3] = 560425844996;
+                Ve[2] = "\xab\xf2\x0c\x9a{\xf7\x81\xd1\xe2\x11\xed\xdcL\x9e\xf8M";
+                Ve[1] = r16(Ve[2], Ve[3]);
+                Ve[1] = "\xa9%";
+                Ve[2] = 30726480312292;
+                ye = Xe.Create(Xe, r109[r15[r16(Ve[1], Ve[2])]], TweenInfo[r15[Ve[1]]](.6, Ve[1][Ve[2]][Ve[1]]), {
+                    [r15[Ve[1]]] = 0
+                });
+                ye.Play(ye);
+                Xe = r26;
+                Ve[3] = 34711822122787;
+                Ve[6] = "'V3\xdf0\xe2\x88\xba\xb13\x98";
+                Ve[2] = "\x86\xa4a";
+                Ve[7] = 2520811865237;
+                Ve[1] = r16(Ve[2], Ve[3]);
+                Ve[2] = "Enum";
+                Ve[1] = Env[Ve[2]];
+                Ve[3] = r15;
+                Ve[4] = r16;
+                Ve[5] = Ve[4](Ve[6], Ve[7]);
+                Ve[2] = Ve[3][Ve[5]];
+                Ve[6] = 27092541436231;
+                Ve[2] = r15;
+                Ve[5] = "Du\x08\xf7\x01\x8cU(X\xe63";
+                Ve[3] = r16;
+                Ve[4] = Ve[3](Ve[5], Ve[6]);
+                Ve[1] = Ve[2][Ve[4]];
+                Ve[7] = 19505531872122;
+                Ve[5] = 7498730048931;
+                Ve[2] = "K6\xd1\xe9\xab\r}\xfe\xd5\x8c\x10\x81";
+                Ve[3] = 19399675454281;
+                Ve[1] = r16(Ve[2], Ve[3]);
+                Ve[4] = "\x9c\x1a\xb5z&\x0e\xb9\x9e\xa5f\x9b\xddi\xa2\xc4s";
+                Ve[1] = r15;
+                Ve[2] = r16;
+                Ve[3] = Ve[2](Ve[4], Ve[5]);
+                Ve[1] = 0;
+                ye = Xe.Create(Xe, r109[r15[r16(Ve[1], Ve[2])]], TweenInfo[r15[Ve[1]]](.6, Ve[1][Ve[2]][Ve[1]]), {
+                    [r15[Ve[1]]] = 0,
+                    [Ve[1][Ve[3]]] = Ve[1]
+                });
+                Ve[1] = "h\r\x8d\xe0p\xa5";
+                ye.Play(ye);
+                Xe = r26;
+                Ve[2] = 30308483725089;
+                Ve[6] = "\xdb2]\xb6\xeap\x9a~\xa0\xbb ";
+                Ve[2] = "\xb9\xfa~";
+                Ve[3] = 18080736076003;
+                Ve[1] = r16(Ve[2], Ve[3]);
+                Ve[2] = "Enum";
+                Ve[1] = Env[Ve[2]];
+                Ve[3] = r15;
+                Ve[4] = r16;
+                Ve[5] = Ve[4](Ve[6], Ve[7]);
+                Ve[2] = Ve[3][Ve[5]];
+                Ve[6] = 14348017457689;
+                Ve[5] = "\xb3:\r\xe0O\xf1\xc2\xcd]\x8a\xaf";
+                Ve[2] = r15;
+                Ve[3] = r16;
+                Ve[4] = Ve[3](Ve[5], Ve[6]);
+                Ve[1] = Ve[2][Ve[4]];
+                Ve[3] = 26773754376371;
+                Ve[2] = "\x83K\xb8\x02hI\x1a\np\xd7G\xf1\xe8f\xcf\xcb";
+                Ve[1] = r16(Ve[2], Ve[3]);
+                Ve[1] = 12819518904145;
+                ye = Xe.Create(Xe, r109[r15[r16(Ve[1], Ve[2])]], TweenInfo[r15[Ve[1]]](.6, Ve[1][Ve[2]][Ve[1]]), {
+                    [r15[Ve[1]]] = .9
+                });
+                ye.Play(ye);
+                Ve[3] = 4189358311326;
+                r110 = r109.Launch;
+                Ve[2] = 26083052515185;
+                Ve[1] = 7297578683718;
+                Xe = r110[r15[r16("tz\xca\x0f\x84$\xa3\x0f\xd8_", Ve[1])]];
+                Xe.Connect(Xe, function(...)
+                    r110.Text = "<u>Launch anyway</u>";
+                    return; 
+                end);
+                Xe = r110[r15[r16("kFE\xceEW\xd6\xb2\xd5y", Ve[1])]];
+                Xe.Connect(Xe, function(...)
+                    r110.Text = "Launch anyway";
+                    return; 
+                end);
+                local function r111(...)
+                    r57("click");
+                    v3 = r26;
+                    X = v3.Create(v3, r109, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                        ["BackgroundTransparency"] = 1,
+                        ["Size"] = UDim2.fromOffset(395, 80)
+                    });
+                    X.Play(X);
+                    v3 = r26;
+                    X = v3.Create(v3, r109.Shadow.Image, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+                        ["ImageTransparency"] = 1
+                    });
+                    X.Play(X);
+                    v3 = r26;
+                    X = v3.Create(v3, r109.Title, TweenInfo.new(.4, Enum.EasingStyle.Exponential), {
+                        ["TextTransparency"] = 1
+                    });
+                    X.Play(X);
+                    v3 = r26;
+                    X = v3.Create(v3, r109.Ok, TweenInfo.new(.4, Enum.EasingStyle.Exponential), {
+                        ["BackgroundTransparency"] = 1,
+                        ["TextTransparency"] = 1
+                    });
+                    X.Play(X);
+                    v3 = r26;
+                    X = v3.Create(v3, r109.Launch, TweenInfo.new(.4, Enum.EasingStyle.Exponential), {
+                        ["TextTransparency"] = 1
+                    });
+                    X.Play(X);
+                    return; 
+                end;
+                Ve[1] = "\x9c\xd4\x06z\x01\xf3\xf8\xa76\nGt_\xeb\x0b(S";
+                Xe = r110[r15[r16(Ve[1], Ve[2])]];
+                Xe.Once(Xe, function(...)
+                    r111();
+                    r102();
+                    return; 
+                end);
+                Ve[2] = "\xffC";
+                Ve[1] = r16(Ve[2], Ve[3]);
+                Ve[2] = 29149960074502;
+                Ve[1] = "%pp\xcc\xbb\x99\x82\x0b\x17e\xb3\xe3HwUL";
+                Xe = r109[r15[Ve[1]]][r15[r16(Ve[1], Ve[2])]];
+                Xe.Once(Xe, r111);
+            else
+                r102();
+            end;
+            Ye = r44.Input.InputBox.FocusLost;
+            r54 = Ye.Connect(Ye, function(arg1_36, ...)
+                if #r44.Input.InputBox.Text == 0 or not arg1_36 then
+                    return;
+                end;
+                if r58 then
+                    return;
+                end;
+                a = 747145249115;
+                v5 = 18235868848427;
+                r112 = r44.Input[r15[r16("\xb7\xad\x05\xecJJ\xe1\xef", a)]][r15[r16("\x99\\U\xf3", v5)]];
+                L = {
+                    pcall(function(...)
+                        return r95.check_key(r112); 
+                    end)
+                };
+                V = L[2];
+                v2 = pcall(function(...)
+                    return r95.check_key(r112); 
+                end);
+                if not V or (not V.valid or not v2) then
+                    a = r46;
+                    a = 28331093799816[1];
+                    v5 = 28331093799816[3];
+                    for v5, v4 in a, pairs(a) do
+                        q = v5;
+                        C = r47;
+                        j = C;
+                        if C then
+                            j = r47.name;
+                        end;
+                        v3 = v3;
+                        v3 = v3;
+                        if v4.name ~= (j or "...") then
+                            r95.provider = v4.provider;
+                            r95.service = v4.service;
+                            j = {
+                                pcall(function(...)
+                                    return r95.check_key(r112); 
+                                end)
+                            };
+                            v2 = pcall(function(...)
+                                return r95.check_key(r112); 
+                            end);
+                            V = j[2];
+                            if V then
+                                v7 = V.valid;
+                            end;
+                            if V then
+                                
+                            else
+                                
+                            end;
+                        end; 
+                    end;
+                end;
+                r59()();
+                if v2 then
+                    L = typeof(V) == "table" and V.valid;
+                    u();
+                end;
+                if v2 then
+                    if r104 and r104.key == r112 then
+                        r94();
+                        task.delay(.3, function(...)
+                            r86(r41.econ_bypass_key);
+                            return; 
+                        end);
+                        writefile("security_lock", "");
+                        return;
+                    end;
+                    r30 = false;
+                    task.spawn(r75, nil, nil, r40.free, r112);
+                    r94();
+                    task.wait(.51);
+                    r44.Visible = false;
+                else
+                    r57("error");
+                    r61("Invalid key");
+                    r44.Input.InputBox.Text = "";
+                    L = r26;
+                    v5 = L.Create(L, r44, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                        ["Size"] = UDim2.new(0, 467, 0, 175)
+                    });
+                    v5.Play(v5);
+                    L = r26;
+                    v5 = L.Create(L, r44, TweenInfo.new(.4, Enum.EasingStyle.Elastic), {
+                        ["Position"] = UDim2.new(.495, 0, 0.5, 0)
+                    });
+                    v5.Play(v5);
+                    task.wait(.1);
+                    L = r26;
+                    v5 = L.Create(L, r44, TweenInfo.new(.4, Enum.EasingStyle.Elastic), {
+                        ["Position"] = UDim2.new(.505, 0, 0.5, 0)
+                    });
+                    v5.Play(v5);
+                    task.wait(.1);
+                    L = r26;
+                    v5 = L.Create(L, r44, TweenInfo.new(.4, Enum.EasingStyle.Exponential), {
+                        ["Position"] = UDim2.new(0.5, 0, 0.5, 0)
+                    });
+                    v5.Play(v5);
+                    L = r26;
+                    v5 = L.Create(L, r44, TweenInfo.new(.6, Enum.EasingStyle.Exponential), {
+                        ["Size"] = UDim2.new(0, 500, 0, 205)
+                    });
+                    v5.Play(v5);
+                end;
+                return; 
+            end);
+            Ye = r44.Hide.MouseButton1Click;
+            Ye.Once(Ye, function(...)
+                r94();
+                task.wait(.51);
+                v3 = r43;
+                v3.Destroy(v3);
+                return; 
+            end);
+            return;
+        else
+            v6 = q.FindFirstChild(q, "HUI");
+        end;
+    end;
+end;
+return (function(...)
+    while true do
+        l1 = l2;
+        l2 = l1;
+        r3(); 
+    end;
+    return; 
+end)();
