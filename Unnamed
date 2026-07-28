@@ -1,0 +1,532 @@
+--// Unnamed.Lua Enhanced with Rayfield UI (All Sliders Max ~5000)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HRP = Character:WaitForChild("HumanoidRootPart")
+local Humanoid = Character:WaitForChild("Humanoid")
+
+-- State Variables
+local orbActive, slingActive, noclipActive, espActive = false, false, false, false
+local voidActive, voidSpamActive, spoofActive, rigidGrabActive = false, false, false, false
+local flyActive = false
+
+-- Settings & Parameters (Defaults)
+local orbitDistance, orbitSpeed, orbitHeight = 10, 0.18, 4
+local orbitOscillation = true
+local voidSpamRandomize, voidSpamWipeVelocity, voidSpamTickRate = true, true, 0.03
+local slingTarget = Vector3.new(9000, 9000, 9000)
+
+-- Connections & Data
+local connections = {}
+local angle = 0
+local projectiles, espHighlights = {}, {}
+
+-- Fly Objects
+local flyBodyVelocity, flyBodyGyro
+local flySpeed = 50
+
+-- Helper Functions
+local function safeDisconnect(connName)
+    if connections[connName] then
+        connections[connName]:Disconnect()
+        connections[connName] = nil
+    end
+end
+
+local function getClosestPlayer()
+    local closest, dist = nil, math.huge
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            if LocalPlayer.Team == nil or LocalPlayer.Team ~= p.Team then
+                local d = (HRP.Position - p.Character.HumanoidRootPart.Position).Magnitude
+                if d < dist then
+                    dist = d
+                    closest = p
+                end
+            end
+        end
+    end
+    return closest
+end
+
+-- Orbit Logic
+local function startOrbit()
+    if orbActive then return end
+    orbActive = true
+    connections.orbConn = RunService.Heartbeat:Connect(function()
+        if not HRP then return end
+        local target = getClosestPlayer()
+        if target and target.Character then
+            local targetHRP = target.Character:FindFirstChild("HumanoidRootPart")
+            if targetHRP then
+                angle = angle + orbitSpeed
+                local currentHeight = orbitOscillation and (orbitHeight + math.sin(tick() * 3) * 2) or orbitHeight
+                local offset = Vector3.new(math.cos(angle) * orbitDistance, currentHeight, math.sin(angle) * orbitDistance)
+                HRP.CFrame = CFrame.new(targetHRP.Position + offset, targetHRP.Position)
+            end
+        end
+    end)
+end
+
+local function stopOrbit()
+    orbActive = false
+    safeDisconnect("orbConn")
+end
+
+-- Spoof / Void Logic
+local function toggleDesync(state)
+    spoofActive = state
+    if state then
+        connections.spoofConn = RunService.Heartbeat:Connect(function()
+            if HRP then
+                HRP.Velocity = Vector3.new(4000, 4000, 4000)
+                task.defer(function()
+                    if HRP then HRP.Velocity = Vector3.zero end
+                end)
+            end
+        end)
+    else
+        safeDisconnect("spoofConn")
+        if HRP then HRP.Velocity = Vector3.zero end
+    end
+end
+
+local function toggleStaticVoid(state)
+    voidActive = state
+    if state then
+        connections.voidConn = RunService.Heartbeat:Connect(function()
+            if HRP then
+                HRP.CFrame = CFrame.new(HRP.Position.X + 2e15, 999999, HRP.Position.Z + 2e15)
+            end
+        end)
+    else
+        safeDisconnect("voidConn")
+    end
+end
+
+local function toggleVoidSpam(state)
+    voidSpamActive = state
+    if state then
+        task.spawn(function()
+            while voidSpamActive do
+                if HRP then
+                    local rx = voidSpamRandomize and math.random(-9000, 9000) or 0
+                    local rz = voidSpamRandomize and math.random(-9000, 9000) or 0
+                    HRP.CFrame = CFrame.new(HRP.Position.X + 1e14 + rx, 99999, HRP.Position.Z + 1e14 + rz)
+                    if voidSpamWipeVelocity then
+                        HRP.AssemblyLinearVelocity = Vector3.zero
+                        HRP.AssemblyAngularVelocity = Vector3.zero
+                    end
+                end
+                task.wait(voidSpamTickRate)
+            end
+        end)
+    end
+end
+
+-- Sling Logic
+local function toggleSling(state)
+    slingActive = state
+    if state then
+        connections.childAddedConn = workspace.ChildAdded:Connect(function(o)
+            if o:IsA("BasePart") then
+                if o.Name == "CoreProjectile" then
+                    projectiles[o] = true
+                elseif o.Name == "Part" then
+                    task.defer(function()
+                        if o.Parent and o.AssemblyLinearVelocity.Magnitude > 50 then
+                            projectiles[o] = true
+                        end
+                    end)
+                end
+            end
+        end)
+        connections.childRemovedConn = workspace.ChildRemoved:Connect(function(o)
+            projectiles[o] = nil
+        end)
+        connections.slingConn = RunService.Heartbeat:Connect(function()
+            pcall(function()
+                for _, p in pairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and p.Character then
+                        local h = p.Character:FindFirstChild("HumanoidRootPart")
+                        if h then
+                            h.CFrame = slingTarget
+                            h.AssemblyLinearVelocity = Vector3.zero
+                            h.AssemblyAngularVelocity = Vector3.zero
+                        end
+                    end
+                end
+                for _, o in pairs(workspace:GetChildren()) do
+                    if o.Name == "CoreProjectile" and o:IsA("BasePart") then
+                        o.CFrame = slingTarget
+                        o.AssemblyLinearVelocity = Vector3.zero
+                    end
+                end
+                for p in pairs(projectiles) do
+                    if p and p.Parent then
+                        p.CFrame = slingTarget
+                        p.AssemblyLinearVelocity = Vector3.zero
+                    else
+                        projectiles[p] = nil
+                    end
+                end
+            end)
+        end)
+    else
+        safeDisconnect("slingConn")
+        safeDisconnect("childAddedConn")
+        safeDisconnect("childRemovedConn")
+        projectiles = {}
+    end
+end
+
+local function toggleRigidGrab(state)
+    rigidGrabActive = state
+    if state then
+        connections.rigidConn = RunService.Heartbeat:Connect(function()
+            local target = getClosestPlayer()
+            if target and target.Character and HRP then
+                local targetHRP = target.Character:FindFirstChild("HumanoidRootPart")
+                if targetHRP then
+                    targetHRP.CFrame = HRP.CFrame * CFrame.new(0, 0, -4)
+                    targetHRP.AssemblyLinearVelocity = Vector3.zero
+                end
+            end
+        end)
+    else
+        safeDisconnect("rigidConn")
+    end
+end
+
+-- NoClip Logic
+local function toggleNoclip(state)
+    noclipActive = state
+    if state then
+        connections.noclipConn = RunService.Stepped:Connect(function()
+            if Character then
+                for _, part in pairs(Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+    else
+        safeDisconnect("noclipConn")
+    end
+end
+
+-- ESP Logic
+local function toggleESP(state)
+    espActive = state
+    if state then
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character and not p.Character:FindFirstChild("U_ESP") then
+                local hl = Instance.new("Highlight")
+                hl.Name = "U_ESP"
+                hl.Adornee = p.Character
+                hl.FillColor = Color3.fromRGB(180, 40, 40)
+                hl.OutlineColor = Color3.fromRGB(225, 225, 225)
+                hl.Parent = p.Character
+                espHighlights[p] = hl
+            end
+        end
+    else
+        for _, hl in pairs(espHighlights) do
+            if hl then hl:Destroy() end
+        end
+        espHighlights = {}
+    end
+end
+
+-- Fly Logic
+local function startFly()
+    if flyActive then return end
+    flyActive = true
+    flyBodyVelocity = Instance.new("BodyVelocity")
+    flyBodyVelocity.MaxForce = Vector3.new(1, 1, 1) * 1e5
+    flyBodyVelocity.Velocity = Vector3.zero
+    flyBodyVelocity.Parent = HRP
+
+    flyBodyGyro = Instance.new("BodyGyro")
+    flyBodyGyro.MaxTorque = Vector3.new(1, 1, 1) * 1e5
+    flyBodyGyro.CFrame = HRP.CFrame
+    flyBodyGyro.Parent = HRP
+
+    connections.flyConn = RunService.Heartbeat:Connect(function()
+        if not HRP or not flyBodyVelocity or not flyBodyGyro then return end
+        local moveDir = Vector3.zero
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir += HRP.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir -= HRP.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir -= HRP.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir += HRP.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.E) then moveDir += Vector3.new(0, 1, 0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Q) then moveDir -= Vector3.new(0, 1, 0) end
+        flyBodyVelocity.Velocity = moveDir * flySpeed
+        flyBodyGyro.CFrame = CFrame.lookAt(HRP.Position, HRP.Position + HRP.CFrame.LookVector)
+    end)
+end
+
+local function stopFly()
+    flyActive = false
+    safeDisconnect("flyConn")
+    if flyBodyVelocity then flyBodyVelocity:Destroy() end
+    if flyBodyGyro then flyBodyGyro:Destroy() end
+    flyBodyVelocity, flyBodyGyro = nil, nil
+end
+
+-- Character Update on Respawn
+LocalPlayer.CharacterAdded:Connect(function(c)
+    Character = c
+    HRP = c:WaitForChild("HumanoidRootPart")
+    Humanoid = c:WaitForChild("Humanoid")
+    if noclipActive then
+        safeDisconnect("noclipConn")
+        toggleNoclip(true)
+    end
+    if flyActive then
+        stopFly()
+        startFly()
+    end
+end)
+
+-- Load Rayfield
+local Rayfield
+pcall(function()
+    Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+end)
+if not Rayfield then
+    warn("Rayfield failed to load. Using fallback console messages.")
+    return
+end
+
+local Window = Rayfield:CreateWindow({
+    Name = "Unnamed Lua",
+    LoadingTitle = "Unnamed Lua Enhanced",
+    LoadingSubtitle = "by Script",
+    ConfigurationSaving = {
+        Enabled = false
+    },
+    Discord = {
+        Enabled = false
+    },
+    KeySystem = false
+})
+
+-- Tabs
+local OrbitTab = Window:CreateTab("Orbit")
+local SpoofTab = Window:CreateTab("Spoof & Void")
+local SlingTab = Window:CreateTab("Sling")
+local VisualsTab = Window:CreateTab("Visuals")
+local CharTab = Window:CreateTab("Character")
+
+-- Orbit Tab (Ranges adjusted to 5000)
+OrbitTab:CreateToggle({
+    Name = "Orbit Enabled",
+    CurrentValue = false,
+    Callback = function(Value)
+        if Value then
+            startOrbit()
+        else
+            stopOrbit()
+        end
+    end,
+})
+
+OrbitTab:CreateSlider({
+    Name = "Radius",
+    Range = {1, 5000},
+    Increment = 1,
+    CurrentValue = 10,
+    Callback = function(Value)
+        orbitDistance = Value
+    end,
+})
+
+OrbitTab:CreateSlider({
+    Name = "Speed",
+    Range = {0.02, 5000},
+    Increment = 0.02,
+    CurrentValue = 0.18,
+    Callback = function(Value)
+        orbitSpeed = Value
+    end,
+})
+
+OrbitTab:CreateSlider({
+    Name = "Height",
+    Range = {-5000, 5000},
+    Increment = 1,
+    CurrentValue = 4,
+    Callback = function(Value)
+        orbitHeight = Value
+    end,
+})
+
+OrbitTab:CreateToggle({
+    Name = "Sine Oscillation",
+    CurrentValue = true,
+    Callback = function(Value)
+        orbitOscillation = Value
+    end,
+})
+
+-- Spoof & Void Tab
+SpoofTab:CreateToggle({
+    Name = "Desync",
+    CurrentValue = false,
+    Callback = toggleDesync,
+})
+
+SpoofTab:CreateToggle({
+    Name = "Static Void",
+    CurrentValue = false,
+    Callback = toggleStaticVoid,
+})
+
+SpoofTab:CreateToggle({
+    Name = "Void Spam",
+    CurrentValue = false,
+    Callback = toggleVoidSpam,
+})
+
+SpoofTab:CreateToggle({
+    Name = "Randomize Vector",
+    CurrentValue = true,
+    Callback = function(Value)
+        voidSpamRandomize = Value
+    end,
+})
+
+SpoofTab:CreateToggle({
+    Name = "Wipe Velocity",
+    CurrentValue = true,
+    Callback = function(Value)
+        voidSpamWipeVelocity = Value
+    end,
+})
+
+SpoofTab:CreateSlider({
+    Name = "Tick Delay",
+    Range = {0.01, 5000},          -- Now goes up to 5000 (be careful, large values freeze the loop)
+    Increment = 0.01,
+    CurrentValue = 0.03,
+    Callback = function(Value)
+        voidSpamTickRate = Value
+    end,
+})
+
+-- Sling Tab
+SlingTab:CreateToggle({
+    Name = "Sling Enabled",
+    CurrentValue = false,
+    Callback = toggleSling,
+})
+
+SlingTab:CreateToggle({
+    Name = "Rigid Grab",
+    CurrentValue = false,
+    Callback = toggleRigidGrab,
+})
+
+SlingTab:CreateSlider({
+    Name = "Target X",
+    Range = {-5000, 5000},
+    Increment = 100,
+    CurrentValue = 9000,            -- will be clamped to 5000 automatically
+    Callback = function(Value)
+        slingTarget = Vector3.new(Value, slingTarget.Y, slingTarget.Z)
+    end,
+})
+
+SlingTab:CreateSlider({
+    Name = "Target Y",
+    Range = {-5000, 5000},
+    Increment = 100,
+    CurrentValue = 9000,
+    Callback = function(Value)
+        slingTarget = Vector3.new(slingTarget.X, Value, slingTarget.Z)
+    end,
+})
+
+SlingTab:CreateSlider({
+    Name = "Target Z",
+    Range = {-5000, 5000},
+    Increment = 100,
+    CurrentValue = 9000,
+    Callback = function(Value)
+        slingTarget = Vector3.new(slingTarget.X, slingTarget.Y, Value)
+    end,
+})
+
+-- Visuals Tab
+VisualsTab:CreateToggle({
+    Name = "NoClip",
+    CurrentValue = false,
+    Callback = toggleNoclip,
+})
+
+VisualsTab:CreateToggle({
+    Name = "ESP",
+    CurrentValue = false,
+    Callback = toggleESP,
+})
+
+VisualsTab:CreateToggle({
+    Name = "Fly",
+    CurrentValue = false,
+    Callback = function(Value)
+        if Value then startFly() else stopFly() end
+    end,
+})
+
+VisualsTab:CreateSlider({
+    Name = "Fly Speed",
+    Range = {1, 5000},
+    Increment = 1,
+    CurrentValue = 50,
+    Callback = function(Value)
+        flySpeed = Value
+    end,
+})
+
+-- Character Tab (WalkSpeed, JumpPower)
+CharTab:CreateSlider({
+    Name = "WalkSpeed",
+    Range = {1, 5000},
+    Increment = 1,
+    CurrentValue = 16,
+    Callback = function(Value)
+        if Humanoid then
+            Humanoid.WalkSpeed = Value
+        end
+    end,
+})
+
+CharTab:CreateSlider({
+    Name = "JumpPower",
+    Range = {1, 5000},
+    Increment = 1,
+    CurrentValue = 50,
+    Callback = function(Value)
+        if Humanoid then
+            Humanoid.JumpPower = Value
+        end
+    end,
+})
+
+CharTab:CreateSlider({
+    Name = "HipHeight",
+    Range = {0, 5000},
+    Increment = 0.1,
+    CurrentValue = 0,
+    Callback = function(Value)
+        if Humanoid then
+            Humanoid.HipHeight = Value
+        end
+    end,
+})
