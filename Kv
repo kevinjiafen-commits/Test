@@ -1,0 +1,309 @@
+-- ============================================================
+-- 精简反作弊绕过脚本 (稳定版)
+-- 功能：无UI，保留核心绕过，移除高风险模块
+-- ============================================================
+
+local function notify(title, text, duration)
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = title,
+            Text = text,
+            Duration = duration or 5
+        })
+    end)
+end
+
+local function safeCall(func, ...)
+    local ok, ret = pcall(func, ...)
+    if not ok then
+        print("[SafeCall] Error:", ret)
+    end
+    return ok, ret
+end
+
+local function getExisting(name)
+    return getgenv()[name] or _G[name] or rawget(getfenv(), name)
+end
+
+-- ========== 模块 1: Metamethod 基础劫持 ==========
+local function bypassMetaMethods()
+    print("[Metamethod] Start...")
+    local checks = {
+        "checkcaller", "getcallingscript", "getfenv", "setfenv",
+        "getreg", "getgc", "getconnections", "hookfunction", "newcclosure",
+        "is_synapse", "is_scriptware", "is_krnl", "is_proto", "is_delta"
+    }
+    local found = {}
+    for _, c in ipairs(checks) do
+        if getExisting(c) then found[#found+1] = c end
+    end
+    -- 安全替换 hookfunction
+    if type(hookfunction) == "function" then
+        local oldHook = hookfunction
+        hookfunction = function(f, r)
+            return oldHook(f, function(...)
+                local args = {...}
+                for i, v in ipairs(args) do
+                    if type(v) == "table" and (v.__type or v.__index) then
+                        args[i] = nil
+                    end
+                end
+                return r(unpack(args))
+            end)
+        end
+    end
+    -- 谨慎解锁只读环境（仅当函数存在）
+    if setreadonly then
+        safeCall(setreadonly, getrenv(), false)
+        safeCall(setreadonly, getreg(), false)
+        safeCall(setreadonly, getgc(), false)
+    end
+    print("[Metamethod] Bypassed " .. #found .. " checks")
+    notify("Metamethod", "Bypassed " .. #found .. " checks", 3)
+end
+
+-- ========== 模块 2: 远程欺骗（仅针对名称匹配的远程） ==========
+local function bypassHandshakes()
+    print("[Handshake] Start...")
+    local remotes = game:GetService("ReplicatedStorage"):GetDescendants()
+    local count = 0
+    local function fakeResponse()
+        return true, {
+            status = "valid",
+            token = "bypass_" .. math.random(1000,9999),
+            timestamp = os.time(),
+            checksum = "ok"
+        }
+    end
+    for _, remote in ipairs(remotes) do
+        if (remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction")) and type(hookfunction) == "function" then
+            local name = remote.Name:lower()
+            if name:find("handshake") or name:find("validate") or name:find("verify") or
+               name:find("auth") or name:find("challenge") or name:find("ping") then
+                count = count + 1
+                if remote:IsA("RemoteEvent") then
+                    safeCall(hookfunction, remote.FireServer, function(self, ...)
+                        return fakeResponse()
+                    end)
+                elseif remote:IsA("RemoteFunction") then
+                    safeCall(hookfunction, remote.InvokeServer, function(self, ...)
+                        return fakeResponse()
+                    end)
+                end
+            end
+        end
+    end
+    print("[Handshake] Bypassed " .. count .. " remote checks")
+    notify("Handshake", "Bypassed " .. count .. " remotes", 3)
+end
+
+-- ========== 模块 3: Hook 检测清除（仅处理已知函数） ==========
+local function bypassHookChecks()
+    print("[HookCheck] Start...")
+    local hooksBypassed = 0
+    if type(detour_function) == "function" then
+        detour_function = function(...) return true end
+        hooksBypassed = hooksBypassed + 1
+    end
+    if type(hookfunction) == "function" then
+        -- 只处理 _G 中的钩子函数
+        for k, v in pairs(_G) do
+            if type(v) == "function" and string.find(tostring(k), "hook") then
+                _G[k] = nil
+                hooksBypassed = hooksBypassed + 1
+            end
+        end
+    end
+    if type(getconnections) == "function" then
+        local events = {
+            game:GetService("ScriptContext").Error,
+            game:GetService("LogService").MessageOut,
+        }
+        for _, ev in ipairs(events) do
+            local cons = getconnections(ev)
+            if cons then
+                for _, c in ipairs(cons) do
+                    safeCall(c.Disable, c)
+                    hooksBypassed = hooksBypassed + 1
+                end
+            end
+        end
+    end
+    print("[HookCheck] Bypassed " .. hooksBypassed .. " hooks")
+    notify("HookCheck", "Bypassed " .. hooksBypassed .. " hooks", 3)
+end
+
+-- ========== 模块 4: 关键函数恢复 ==========
+local function bypassDetours()
+    print("[Detour] Start...")
+    local detoursBypassed = 0
+    local critical = {
+        "Instance.new", "getfenv", "setfenv", "getreg", "getgc", "checkcaller",
+        "getrenv", "loadstring", "require", "print", "warn", "error",
+        "pcall", "xpcall", "wait", "tick", "time"
+    }
+    for _, funcName in ipairs(critical) do
+        safeCall(function()
+            local original = getExisting(funcName)
+            if original then
+                _G[funcName] = original
+                detoursBypassed = detoursBypassed + 1
+            end
+        end)
+    end
+    print("[Detour] Restored " .. detoursBypassed .. " functions")
+    notify("Detour", "Restored " .. detoursBypassed .. " functions", 3)
+end
+
+-- ========== 模块 5: VM 检测欺骗 ==========
+local function bypassVMChecks()
+    print("[VM] Start...")
+    local vmBypasses = 0
+    if debug then
+        debug.info = function() return "C" end
+        debug.traceback = function() return "" end
+        debug.getinfo = function() return { what = "C" } end
+        debug.getupvalues = function() return {} end
+        debug.setupvalue = function() return end
+        vmBypasses = vmBypasses + 5
+    end
+    if type(getcallingscript) == "function" then
+        getcallingscript = function() return nil end
+        vmBypasses = vmBypasses + 1
+    end
+    print("[VM] Applied " .. vmBypasses .. " bypasses")
+    notify("VM", "Applied " .. vmBypasses .. " bypasses", 3)
+end
+
+-- ========== 模块 6: 签名与标识清除 ==========
+local function bypassSignatures()
+    print("[Signature] Start...")
+    local signaturesBypassed = 0
+    local tablesToClean = { "_G", "shared", "getgenv", "getrenv", "game", "workspace" }
+    for _, tblName in ipairs(tablesToClean) do
+        local target = getExisting(tblName) or _G[tblName]
+        if type(target) == "table" then
+            for k, v in pairs(target) do
+                if type(k) == "string" then
+                    if k:find("signature") or k:find("checksum") or k:find("hash") or
+                       k:find("anticheat") or k:find("detect") or k:find("fingerprint") then
+                        target[k] = nil
+                        signaturesBypassed = signaturesBypassed + 1
+                    end
+                end
+            end
+        end
+    end
+    print("[Signature] Cleared " .. signaturesBypassed .. " signatures")
+    notify("Signature", "Cleared " .. signaturesBypassed .. " signatures", 3)
+end
+
+-- ========== 模块 7: 反调试强化 ==========
+local function bypassAntiDebug()
+    print("[AntiDebug] Start...")
+    local count = 0
+    if type(getconnections) == "function" then
+        local events = {
+            game:GetService("ScriptContext").Breakpoint,
+            game:GetService("RunService").Heartbeat,
+        }
+        for _, ev in ipairs(events) do
+            local cons = getconnections(ev)
+            if cons then
+                for _, c in ipairs(cons) do
+                    safeCall(c.Disable, c)
+                    count = count + 1
+                end
+            end
+        end
+    end
+    if debug then
+        debug.traceback = function() return "" end
+        debug.getinfo = function() return {} end
+        count = count + 2
+    end
+    print("[AntiDebug] Disabled " .. count .. " debug points")
+    notify("AntiDebug", "Disabled " .. count .. " debug points", 3)
+end
+
+-- ========== 模块 8: 环境指纹伪造 ==========
+local function bypassFakeEnv()
+    print("[FakeEnv] Start...")
+    local count = 0
+    local fakeVars = {
+        syn = { identity = "synapse_x", version = "v2.0.0", signature = "legit" },
+        krnl = { version = "1.0.0", build = "stable" },
+        scriptware = { version = "3.0", api = "v2" },
+        delta = { token = "legit", platform = "windows" },
+    }
+    for k, v in pairs(fakeVars) do
+        if not getExisting(k) then
+            getgenv()[k] = v
+            count = count + 1
+        end
+    end
+    print("[FakeEnv] Created " .. count .. " fake entries")
+    notify("FakeEnv", "Created " .. count .. " fake entries", 3)
+end
+
+-- ========== 模块 9: 执行器检测规避 ==========
+local function bypassExecutorChecks()
+    print("[Executor] Start...")
+    local count = 0
+    local sensitive = {"synapse", "krnl", "scriptware", "delta", "protosmasher", "sentry"}
+    for _, name in ipairs(sensitive) do
+        if _G[name] then
+            _G[name] = nil
+            count = count + 1
+        end
+    end
+    for _, funcName in ipairs({"is_synapse", "is_scriptware", "is_krnl", "is_delta"}) do
+        if type(getExisting(funcName)) == "function" then
+            _G[funcName] = function() return false end
+            count = count + 1
+        end
+    end
+    print("[Executor] Removed " .. count .. " fingerprints")
+    notify("Executor", "Removed " .. count .. " fingerprints", 3)
+end
+
+-- ========== 模块 10: 错误屏蔽 ==========
+local function bypassErrorHandler()
+    print("[ErrorHandler] Start...")
+    local count = 0
+    if type(xpcall) == "function" then
+        local oldXpcall = xpcall
+        xpcall = function(f, err)
+            return oldXpcall(f, function(e) return end)
+        end
+        count = count + 1
+    end
+    local oldError = error
+    error = function(msg, level) return end
+    count = count + 1
+    print("[ErrorHandler] Applied " .. count .. " shields")
+    notify("ErrorHandler", "Applied " .. count .. " shields", 3)
+end
+
+-- ========== 主执行流程 ==========
+print("=== Anti-Cheat Bypass (Stable) Started ===")
+task.spawn(function()
+    local modules = {
+        bypassMetaMethods,
+        bypassHandshakes,
+        bypassHookChecks,
+        bypassDetours,
+        bypassVMChecks,
+        bypassSignatures,
+        bypassAntiDebug,
+        bypassFakeEnv,
+        bypassExecutorChecks,
+        bypassErrorHandler
+    }
+    for _, func in ipairs(modules) do
+        safeCall(func)
+        task.wait(0.3) -- 让出控制权，防止卡顿
+    end
+    print("=== All bypass methods applied successfully ===")
+    notify("✅ 绕过完成", "已应用 10 项核心反作弊规避技术", 10)
+end)
