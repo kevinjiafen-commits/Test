@@ -1,0 +1,261 @@
+-- 去除所有UI，仅保留功能逻辑，脚本加载后自动执行全部绕过
+
+-- 辅助：发送通知（保留）
+local function notify(title, text, duration)
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = title,
+            Text = text,
+            Duration = duration or 5
+        })
+    end)
+end
+
+-- 1. Metamethod Bypass
+local function bypassMetaMethods()
+    print("[Metamethod] Scanning for metamethod checks...")
+    local checks = {
+        "checkcaller", "getcallingscript", "getfenv", "setfenv",
+        "getreg", "getgc", "getconnections", "hookfunction", "newcclosure"
+    }
+    local foundChecks = {}
+    for _, check in ipairs(checks) do
+        if getgenv()[check] or _G[check] then
+            table.insert(foundChecks, check)
+        end
+    end
+    if hookfunction then
+        local originalHook = hookfunction
+        hookfunction = function(func, replacement)
+            return originalHook(func, function(...)
+                return replacement(...)
+            end)
+        end
+    end
+    if setreadonly then
+        setreadonly(getrenv(), false)
+    end
+    if make_writeable then
+        make_writeable(getreg())
+    end
+    print("[Metamethod] Bypassed " .. #foundChecks .. " checks")
+    notify("Metamethod Bypass", "Bypassed " .. #foundChecks .. " checks", 3)
+end
+
+-- 2. Handshake Bypass
+local function bypassHandshakes()
+    print("[Handshake] Bypassing server handshakes...")
+    local remotes = game:GetService("ReplicatedStorage"):GetDescendants()
+    local handshakeRemotes = {}
+    for _, remote in ipairs(remotes) do
+        if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
+            local name = remote.Name:lower()
+            if name:find("handshake") or name:find("validate") or name:find("verify") then
+                table.insert(handshakeRemotes, remote.Name)
+                if remote:IsA("RemoteEvent") then
+                    remote.FireServer = function(self, ...) return true end
+                elseif remote:IsA("RemoteFunction") then
+                    remote.InvokeServer = function(self, ...) return true end
+                end
+            end
+        end
+    end
+    print("[Handshake] Bypassed " .. #handshakeRemotes .. " remotes")
+    notify("Handshake Bypass", "Bypassed " .. #handshakeRemotes .. " handshake remotes", 3)
+end
+
+-- 3. Hook Check Bypass
+local function bypassHookChecks()
+    print("[HookCheck] Bypassing hook detection...")
+    local hooksBypassed = 0
+    if detour_function then
+        detour_function = function(...) return true end
+        hooksBypassed = hooksBypassed + 1
+    end
+    if hookfunction then
+        for _, func in pairs(getreg()) do
+            if type(func) == "function" then
+                pcall(function() hookfunction(func, func) end)
+                hooksBypassed = hooksBypassed + 1
+            end
+        end
+    end
+    if getconnections then
+        for _, connection in ipairs(getconnections(game:GetService("ScriptContext").Error)) do
+            connection:Disable()
+            hooksBypassed = hooksBypassed + 1
+        end
+    end
+    print("[HookCheck] Bypassed " .. hooksBypassed .. " hooks")
+    notify("Hook Check Bypass", "Bypassed " .. hooksBypassed .. " hook checks", 3)
+end
+
+-- 4. Detour Bypass
+local function bypassDetours()
+    print("[Detour] Bypassing function detours...")
+    local detoursBypassed = 0
+    local criticalFunctions = {
+        "Instance.new", "getfenv", "setfenv", "getreg", "getgc", "checkcaller"
+    }
+    for _, funcName in ipairs(criticalFunctions) do
+        pcall(function()
+            local original = _G[funcName] or getgenv()[funcName]
+            if original then
+                _G[funcName] = original
+                detoursBypassed = detoursBypassed + 1
+            end
+        end)
+    end
+    if getrenv then
+        local env = getrenv()
+        for name, func in pairs(env) do
+            if type(func) == "function" and not string.find(name, "__") then
+                pcall(function() env[name] = func end)
+                detoursBypassed = detoursBypassed + 1
+            end
+        end
+    end
+    print("[Detour] Restored " .. detoursBypassed .. " functions")
+    notify("Detour Bypass", "Restored " .. detoursBypassed .. " detoured functions", 3)
+end
+
+-- 5. Memory Bypass
+local function bypassMemoryChecks()
+    print("[Memory] Bypassing memory scans...")
+    local memoryPatches = 0
+    if setreadonly then
+        pcall(function() setreadonly(getrenv(), false) end)
+        pcall(function() setreadonly(getreg(), false) end)
+        pcall(function() setreadonly(getgc(), false) end)
+        memoryPatches = memoryPatches + 3
+    end
+    for _, script in ipairs(getscripts()) do
+        if script and script:IsA("LocalScript") then
+            pcall(function()
+                script.Enabled = true
+                memoryPatches = memoryPatches + 1
+            end)
+        end
+    end
+    if getgc then
+        for _, obj in ipairs(getgc()) do
+            if type(obj) == "table" and rawget(obj, "__acsignature") then
+                rawset(obj, "__acsignature", nil)
+                memoryPatches = memoryPatches + 1
+            end
+        end
+    end
+    print("[Memory] Applied " .. memoryPatches .. " patches")
+    notify("Memory Bypass", "Applied " .. memoryPatches .. " memory patches", 3)
+end
+
+-- 6. VM Check Bypass
+local function bypassVMChecks()
+    print("[VM] Bypassing VM detection...")
+    local vmBypasses = 0
+    if debug then
+        debug.info = function() return "C" end
+        debug.traceback = function() return "" end
+        vmBypasses = vmBypasses + 2
+    end
+    if getcallingscript then
+        getcallingscript = function() return nil end
+        vmBypasses = vmBypasses + 1
+    end
+    if getfenv then
+        for i = 1, 10 do
+            pcall(function()
+                local env = getfenv(i)
+                if env and env.script then
+                    env.script = nil
+                    vmBypasses = vmBypasses + 1
+                end
+            end)
+        end
+    end
+    print("[VM] Applied " .. vmBypasses .. " bypasses")
+    notify("VM Check Bypass", "Applied " .. vmBypasses .. " VM detection bypasses", 3)
+end
+
+-- 7. Signature Bypass
+local function bypassSignatures()
+    print("[Signature] Bypassing signature scans...")
+    local signaturesBypassed = 0
+    local signatureTables = { "_G", "shared", "getgenv", "getrenv" }
+    for _, tableName in ipairs(signatureTables) do
+        local target = _G[tableName] or getgenv()[tableName]
+        if target and type(target) == "table" then
+            for key, value in pairs(target) do
+                local str = tostring(key)
+                if str:find("signature") or str:find("checksum") or str:find("hash") then
+                    target[key] = nil
+                    signaturesBypassed = signaturesBypassed + 1
+                end
+            end
+        end
+    end
+    if getscripts then
+        for _, script in ipairs(getscripts()) do
+            if script and script:IsA("LocalScript") then
+                pcall(function()
+                    script.Name = game:GetService("HttpService"):GenerateGUID(false)
+                    signaturesBypassed = signaturesBypassed + 1
+                end)
+            end
+        end
+    end
+    print("[Signature] Cleared " .. signaturesBypassed .. " signatures")
+    notify("Signature Bypass", "Cleared " .. signaturesBypassed .. " signatures", 3)
+end
+
+-- 8. Integrity Check Bypass
+local function bypassIntegrityChecks()
+    print("[Integrity] Bypassing integrity checks...")
+    local integrityBypasses = 0
+    if getconnections then
+        for _, connection in ipairs(getconnections(game:GetService("ScriptContext").ScriptAdded)) do
+            connection:Disable()
+            integrityBypasses = integrityBypasses + 1
+        end
+        for _, connection in ipairs(getconnections(game:GetService("ScriptContext").ScriptRemoved)) do
+            connection:Disable()
+            integrityBypasses = integrityBypasses + 1
+        end
+    end
+    local modules = game:GetService("ReplicatedStorage"):GetDescendants()
+    for _, module in ipairs(modules) do
+        if module:IsA("ModuleScript") then
+            local name = module.Name:lower()
+            if name:find("integrity") or name:find("security") or name:find("anti") then
+                pcall(function()
+                    module:Destroy()
+                    integrityBypasses = integrityBypasses + 1
+                end)
+            end
+        end
+    end
+    print("[Integrity] Applied " .. integrityBypasses .. " bypasses")
+    notify("Integrity Check Bypass", "Applied " .. integrityBypasses .. " integrity bypasses", 3)
+end
+
+-- 自动执行全部绕过（顺序与原 AutoBypass 按钮一致）
+print("=== Anti Cheat Bypass Started ===")
+task.spawn(function()
+    bypassMetaMethods()
+    task.wait(1)
+    bypassHandshakes()
+    task.wait(1)
+    bypassHookChecks()
+    task.wait(1)
+    bypassDetours()
+    task.wait(1)
+    bypassMemoryChecks()
+    task.wait(1)
+    bypassVMChecks()
+    task.wait(1)
+    bypassSignatures()
+    task.wait(1)
+    bypassIntegrityChecks()
+    print("=== All bypass methods applied successfully ===")
+    notify("Auto Bypass Complete", "All anti cheat bypass methods have been applied", 8)
+end)
