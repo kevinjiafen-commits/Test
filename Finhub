@@ -1,0 +1,635 @@
+-- // FinHub (Void + Orbit + Fist + Riot + Scythe + Wallbang) - FIST & ROIT can be ON together
+repeat task.wait() until game:IsLoaded()
+
+local Players = game:GetService('Players')
+local RunService = game:GetService('RunService')
+local TweenService = game:GetService('TweenService')
+local VirtualInput = game:GetService('VirtualInputManager')
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HRP = Character:WaitForChild('HumanoidRootPart')
+
+-- ============= COOLDOWN PATCH (melee + scythe dash) =============
+local function patchMeleeCooldowns()
+    local modules = ReplicatedStorage:FindFirstChild("Modules")
+    local itemLib = modules and modules:FindFirstChild("ItemLibrary")
+    if not itemLib then return end
+
+    local success, library = pcall(require, itemLib)
+    if not (success and type(library) == "table") then return end
+
+    local items = library.Items or library.Weapons or library.Melee or library.Utilities
+    if type(items) ~= "table" then return end
+
+    local meleeCooldowns = {
+        "Cooldown", "AttackCooldown", "UseDelay", "SpinCooldown",
+        "HeavyAttackCooldown", "AbilityCooldown", "FireCooldown"
+    }
+
+    for name, item in pairs(items) do
+        if type(item) == "table" then
+            local itemName = item.Name or name
+            local isMelee = (item.Type == "Melee" or item.Category == "Melee" or (item.Damage and not item.AmmoType))
+            if isMelee then
+                for _, field in ipairs(meleeCooldowns) do
+                    if item[field] ~= nil then item[field] = 0 end
+                end
+            end
+            if string.lower(itemName) == "scythe" then
+                if item.DashCooldown ~= nil then item.DashCooldown = 0
+                elseif item.AbilityCooldown ~= nil then item.AbilityCooldown = 0 end
+                print("[FinHub] Scythe dash cooldown removed.")
+            end
+        end
+    end
+    print("[FinHub] Melee cooldowns patched (including scythe).")
+end
+task.spawn(patchMeleeCooldowns)
+
+-- ============= WALLBANG =============
+local wallbangActive = false
+local wallbangObject = nil
+
+do
+    local _wallbangFunc = function()
+        local __a1b2c3 = setmetatable({}, {
+            __index = function(__d4e5f6, __g7h8i9)
+                local __j0k1l2, __m3n4o5 = pcall(function()
+                    return game:GetService(__g7h8i9)
+                end)
+                if __m3n4o5 then return cloneref(__m3n4o5) end
+                return nil
+            end
+        })
+
+        local __p6q7r8 = getgenv()
+        if __p6q7r8.__s9t0u1 then __p6q7r8.__s9t0u1:Shutdown() end
+
+        local __v2w3x4 = __a1b2c3.Players
+        local __y5z6a7 = __a1b2c3.RunService
+        local __b8c9d0 = __a1b2c3.ReplicatedStorage
+        local __e1f2g3 = __a1b2c3.Workspace
+        local __k7l8m9 = __v2w3x4.LocalPlayer
+        local __q3r4s5 = __k7l8m9.PlayerScripts
+        local __t6u7v8 = require(__q3r4s5.Modules.ItemTypes.Gun)
+        local __w9x0y1 = require(__b8c9d0.Modules.Utility)
+
+        local __z2a3b4 = setmetatable({}, {
+            __index = function(_, __c5d6e7)
+                local __f8g9h0 = __k7l8m9.Character
+                if not __f8g9h0 then return nil end
+                if __c5d6e7 == "__root" then
+                    return __f8g9h0:FindFirstChild("HumanoidRootPart")
+                elseif __c5d6e7 == "__head" then
+                    return __f8g9h0:FindFirstChild("Head")
+                end
+                return nil
+            end
+        })
+
+        __p6q7r8.__s9t0u1 = {}
+
+        do
+            local __i1j2k3 = __p6q7r8.__s9t0u1
+
+            function __i1j2k3:__init()
+                self.__active = true
+                self.__target = nil
+                self.__desync = false
+                self.__conn1 = nil
+                self.__conn2 = nil
+                self.__task1 = nil
+                self.__oldfunc = nil
+                self:__setup()
+            end
+
+            function __i1j2k3:__setup()
+                self.__conn1 = __y5z6a7.Heartbeat:Connect(function()
+                    if not self.__active then return end
+                    self.__target = self:__find()
+                end)
+
+                local __l4m5n6 = __t6u7v8.StartShooting
+                self.__oldfunc = __l4m5n6
+                __t6u7v8.StartShooting = function(__o7p8q9, ...)
+                    local __r0s1t2 = {__l4m5n6(__o7p8q9, ...)}
+                    if not __o7p8q9.ClientFighter or not __o7p8q9.ClientFighter.IsLocalPlayer then
+                        return unpack(__r0s1t2)
+                    end
+                    local __u3v4w5 = __r0s1t2[3]
+                    if not __u3v4w5 or typeof(__u3v4w5) ~= "table" then
+                        return unpack(__r0s1t2)
+                    end
+                    __r0s1t2[4] = true
+                    local __x6y7z8 = self.__target
+                    if not self.__active or not __x6y7z8 or not __x6y7z8.Character then
+                        return unpack(__r0s1t2)
+                    end
+                    if not self.__desync or self.__curr ~= __x6y7z8 then
+                        self:__desync_start(__x6y7z8)
+                        task.wait(0.1)
+                    end
+                    if self.__task1 then
+                        task.cancel(self.__task1)
+                        self.__task1 = nil
+                    end
+                    local __a9b0c1 = __x6y7z8.Character:FindFirstChild("Head")
+                    if not __a9b0c1 then return unpack(__r0s1t2) end
+                    local __d2e3f4 = __a9b0c1.Position
+                    local __g5h6i7 = __a9b0c1.CFrame
+                    local __j8k9l0 = __d2e3f4 - Vector3.new(0, 5, 0)
+                    local __m1n2o3 = CFrame.lookAt(__j8k9l0, __d2e3f4)
+                    local __p4q5r6 = __g5h6i7:ToObjectSpace(CFrame.new(__d2e3f4 + Vector3.new(math.random(), math.random(), math.random())))
+                    __u3v4w5[utf8.char(0)] = __w9x0y1:EncodeCFrame(CFrame.new(__j8k9l0, __d2e3f4) * CFrame.Angles(__m1n2o3:ToOrientation()))
+                    __u3v4w5[utf8.char(1)] = __w9x0y1:EncodeCFrame(CFrame.new(__d2e3f4) * CFrame.Angles(__m1n2o3:ToOrientation()))
+                    __u3v4w5[utf8.char(2)] = __a9b0c1
+                    __u3v4w5[utf8.char(3)] = __w9x0y1:EncodeCFrame(__p4q5r6)
+                    self.__task1 = task.delay(0.15, function() self:__desync_stop() end)
+                    return unpack(__r0s1t2)
+                end
+            end
+
+            function __i1j2k3:__find()
+                local myChar = __k7l8m9.Character
+                if not myChar then return nil end
+                local myRoot = myChar:FindFirstChild("HumanoidRootPart")
+                if not myRoot then return nil end
+                local closest = nil
+                local closestDist = math.huge
+                local MAX_DISTANCE = 200
+                for _, player in next, __v2w3x4:GetPlayers() do
+                    if player == __k7l8m9 then continue end
+                    if player:GetAttribute("TeamID") == __k7l8m9:GetAttribute("TeamID") then continue end
+                    local char = player.Character
+                    if not char then continue end
+                    local root = char:FindFirstChild("HumanoidRootPart")
+                    local head = char:FindFirstChild("Head")
+                    local hum = char:FindFirstChildWhichIsA("Humanoid")
+                    if not (root and head and hum and hum.Health > 0) then continue end
+                    local dist = (myRoot.Position - root.Position).Magnitude
+                    if dist > MAX_DISTANCE then continue end
+                    if dist < closestDist then
+                        closestDist = dist
+                        closest = player
+                    end
+                end
+                return closest
+            end
+
+            function __i1j2k3:__desync_start(__c3d4e5)
+                if self.__conn2 then self.__conn2:Disconnect() end
+                self.__desync = true
+                self.__curr = __c3d4e5
+                self.__conn2 = __y5z6a7.Heartbeat:Connect(function()
+                    if not self.__desync then return end
+                    local __f6g7h8 = __z2a3b4.__root
+                    if not __f6g7h8 then return end
+                    local __i9j0k1 = __c3d4e5.Character and __c3d4e5.Character:FindFirstChild("HumanoidRootPart")
+                    if not __i9j0k1 then
+                        self:__desync_stop()
+                        return
+                    end
+                    local __l2m3n4 = __f6g7h8.CFrame
+                    local __o5p6q7 = __f6g7h8.Velocity
+                    local __r8s9t0 = __f6g7h8.RotVelocity
+                    __f6g7h8.CFrame = __i9j0k1.CFrame * CFrame.new(0, -5, 0)
+                    __y5z6a7:BindToRenderStep("__restore", 101, function()
+                        __f6g7h8.CFrame = __l2m3n4
+                        __f6g7h8.Velocity = __o5p6q7
+                        __f6g7h8.RotVelocity = __r8s9t0
+                        __y5z6a7:UnbindFromRenderStep("__restore")
+                    end)
+                end)
+            end
+
+            function __i1j2k3:__desync_stop()
+                self.__desync = false
+                self.__curr = nil
+                if self.__conn2 then
+                    self.__conn2:Disconnect()
+                    self.__conn2 = nil
+                end
+            end
+
+            function __i1j2k3:Shutdown()
+                self.__active = false
+                if self.__conn1 then self.__conn1:Disconnect() end
+                if self.__conn2 then self.__conn2:Disconnect() end
+                if self.__task1 then task.cancel(self.__task1) end
+                if self.__oldfunc then
+                    __t6u7v8.StartShooting = self.__oldfunc
+                end
+            end
+
+            return __i1j2k3
+        end
+    end
+
+    function startWallbang()
+        if wallbangObject then return end
+        local obj = _wallbangFunc()
+        obj:__init()
+        wallbangObject = obj
+        wallbangActive = true
+        print("[FinHub] Wallbang enabled.")
+    end
+
+    function stopWallbang()
+        if wallbangObject then
+            wallbangObject:Shutdown()
+            wallbangObject = nil
+            wallbangActive = false
+            print("[FinHub] Wallbang disabled.")
+        end
+    end
+end
+
+-- ============= GUI =============
+local gui = Instance.new("ScreenGui")
+gui.Name = "FinHub"
+gui.ResetOnSpawn = false
+gui.DisplayOrder = 999999999
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+pcall(function() gui.Parent = game:GetService("CoreGui") end)
+if not gui.Parent then gui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 240, 0, 140)
+main.Position = UDim2.new(0.5, -120, -0.2, 0)
+main.BackgroundColor3 = Color3.fromRGB(18,18,22)
+main.BackgroundTransparency = 0.15
+main.BorderSizePixel = 0
+main.Active = true
+main.Draggable = true
+main.Parent = gui
+Instance.new("UICorner", main).CornerRadius = UDim.new(0,10)
+
+local topLine = Instance.new("Frame", main)
+topLine.Size = UDim2.new(1,0,0,2)
+local rgbOn = false
+task.spawn(function()
+    local h = 0
+    while true do
+        if rgbOn then
+            h = (h + 0.005) % 1
+            topLine.BackgroundColor3 = Color3.fromHSV(h,1,1)
+        else
+            topLine.BackgroundColor3 = Color3.fromRGB(0,180,255)
+        end
+        task.wait()
+    end
+end)
+
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1,0,0,20)
+title.Position = UDim2.new(0,0,0,2)
+title.Text = "FinHub"
+title.Font = Enum.Font.Arcade
+title.TextSize = 14
+title.TextColor3 = Color3.fromRGB(230,230,230)
+title.BackgroundTransparency = 1
+title.TextXAlignment = Enum.TextXAlignment.Center
+
+local ytext = Instance.new("TextLabel", main)
+ytext.Size = UDim2.new(1,0,0,20)
+ytext.Position = UDim2.new(0,0,0,22)
+ytext.Text = "Y: 0"
+ytext.Font = Enum.Font.GothamBlack
+ytext.TextSize = 13
+ytext.TextColor3 = Color3.fromRGB(0,255,180)
+ytext.BackgroundTransparency = 1
+ytext.TextXAlignment = Enum.TextXAlignment.Center
+
+local statusDot = Instance.new("Frame", main)
+statusDot.Size = UDim2.new(0,8,0,8)
+statusDot.Position = UDim2.new(0.85,0,0.91,0)
+statusDot.BackgroundColor3 = Color3.fromRGB(150,0,0)
+Instance.new("UICorner", statusDot).CornerRadius = UDim.new(1,0)
+
+-- ROW 1: VOID + ORBIT
+local voidBtn = Instance.new("TextButton", main)
+voidBtn.Size = UDim2.new(0,70,0,22)
+voidBtn.Position = UDim2.new(0.05,0,0.40,0)
+voidBtn.Text = "VOID OFF"
+voidBtn.Font = Enum.Font.Code
+voidBtn.TextSize = 12
+voidBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+voidBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", voidBtn).CornerRadius = UDim.new(0,8)
+
+local orbBtn = Instance.new("TextButton", main)
+orbBtn.Size = UDim2.new(0,70,0,22)
+orbBtn.Position = UDim2.new(0.65,0,0.40,0)
+orbBtn.Text = "ORBIT OFF"
+orbBtn.Font = Enum.Font.Code
+orbBtn.TextSize = 12
+orbBtn.BackgroundColor3 = Color3.fromRGB(35,35,55)
+orbBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", orbBtn).CornerRadius = UDim.new(0,8)
+
+-- ROW 2: FIST + ROIT (now independent)
+local fistBtn = Instance.new("TextButton", main)
+fistBtn.Size = UDim2.new(0,70,0,22)
+fistBtn.Position = UDim2.new(0.05,0,0.65,0)
+fistBtn.Text = "FIST OFF"
+fistBtn.Font = Enum.Font.Code
+fistBtn.TextSize = 12
+fistBtn.BackgroundColor3 = Color3.fromRGB(50,30,30)
+fistBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", fistBtn).CornerRadius = UDim.new(0,8)
+
+local roitBtn = Instance.new("TextButton", main)
+roitBtn.Size = UDim2.new(0,70,0,22)
+roitBtn.Position = UDim2.new(0.65,0,0.65,0)
+roitBtn.Text = "ROIT OFF"
+roitBtn.Font = Enum.Font.Code
+roitBtn.TextSize = 12
+roitBtn.BackgroundColor3 = Color3.fromRGB(30,30,50)
+roitBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", roitBtn).CornerRadius = UDim.new(0,8)
+
+-- ROW 3: SCYTHE + WALLBANG
+local scytheBtn = Instance.new("TextButton", main)
+scytheBtn.Size = UDim2.new(0,70,0,22)
+scytheBtn.Position = UDim2.new(0.05,0,0.90,0)
+scytheBtn.Text = "SCYTHE OFF"
+scytheBtn.Font = Enum.Font.Code
+scytheBtn.TextSize = 12
+scytheBtn.BackgroundColor3 = Color3.fromRGB(50,50,30)
+scytheBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", scytheBtn).CornerRadius = UDim.new(0,8)
+
+local wallbangBtn = Instance.new("TextButton", main)
+wallbangBtn.Size = UDim2.new(0,70,0,22)
+wallbangBtn.Position = UDim2.new(0.65,0,0.90,0)
+wallbangBtn.Text = "WALLBANG OFF"
+wallbangBtn.Font = Enum.Font.Code
+wallbangBtn.TextSize = 12
+wallbangBtn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+wallbangBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", wallbangBtn).CornerRadius = UDim.new(0,8)
+
+-- ENTER ANIMATION
+main.BackgroundTransparency = 1
+task.spawn(function()
+    task.wait(0.3)
+    TweenService:Create(main, TweenInfo.new(0.5), {
+        Position = UDim2.new(0.5,-120,0.05,0),
+        BackgroundTransparency = 0.15
+    }):Play()
+end)
+
+-- ============= LOGIC =============
+local voidActive = false
+local orbActive = false
+local fistActive = false
+local roitActive = false
+local scytheActive = false
+
+local lastPos = nil
+local flip = true
+local orbAngle = 0
+
+local VOID_POS_NEG = CFrame.new(0, -321730912732103712003733333177387219676767, 0)
+local VOID_POS_POS = CFrame.new(0,  39126371928633123561237812537, 0)
+
+local function getHRP() return HRP end
+
+-- Y counter
+task.spawn(function()
+    while true do
+        local hrp = getHRP()
+        if hrp then ytext.Text = "Y: " .. math.floor(hrp.Position.Y) end
+        task.wait(0.12)
+    end
+end)
+
+local function getClosestEnemy()
+    local closest = nil
+    local minDist = math.huge
+    local char = LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return nil end
+    local root = char.HumanoidRootPart
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+            local dist = (root.Position - p.Character.HumanoidRootPart.Position).Magnitude
+            if dist < minDist then
+                minDist = dist
+                closest = p.Character
+            end
+        end
+    end
+    return closest
+end
+
+local function resetAllPartsVelocity()
+    local char = LocalPlayer.Character
+    if not char then return end
+    for _, part in ipairs(char:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.Velocity = Vector3.new(0, 0, 0)
+        end
+    end
+end
+
+-- FIST loop
+local fistConnection = nil
+local function startFist()
+    if fistConnection then fistConnection:Disconnect() end
+    -- Patch cooldowns (includes scythe) when FIST turns on
+    task.spawn(patchMeleeCooldowns)
+    fistConnection = RunService.Stepped:Connect(function()
+        if not fistActive then return end
+        local char = LocalPlayer.Character
+        if not char then return end
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if not root then return end
+        resetAllPartsVelocity()
+        local enemy = getClosestEnemy()
+        if enemy and enemy:FindFirstChild("HumanoidRootPart") then
+            local enemyRoot = enemy.HumanoidRootPart
+            local tickTime = tick() * 4010
+            local offsetX = math.cos(tickTime) * 0.1
+            local offsetZ = math.sin(tickTime) * 0.1
+            root.CFrame = enemyRoot.CFrame * CFrame.new(offsetX, 0, offsetZ)
+        end
+    end)
+end
+
+-- ROIT loop
+local roitConnection = nil
+local function startRoit()
+    if roitConnection then roitConnection:Disconnect() end
+    roitConnection = RunService.Stepped:Connect(function()
+        if not roitActive then return end
+        local char = LocalPlayer.Character
+        if not char then return end
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if not root then return end
+        resetAllPartsVelocity()
+        local enemy = getClosestEnemy()
+        if enemy and enemy:FindFirstChild("HumanoidRootPart") then
+            local enemyRoot = enemy.HumanoidRootPart
+            local randomOffset = Vector3.new(math.random(-5, 5), math.random(0, 5), math.random(-5, 5))
+            root.CFrame = enemyRoot.CFrame + randomOffset
+        end
+    end)
+end
+
+-- FIST button (no mutual exclusion)
+fistBtn.MouseButton1Click:Connect(function()
+    fistActive = not fistActive
+    if fistActive then
+        fistBtn.BackgroundColor3 = Color3.fromRGB(135, 206, 250)
+        fistBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+        fistBtn.Text = "FIST ON"
+        startFist()
+    else
+        fistBtn.BackgroundColor3 = Color3.fromRGB(50,30,30)
+        fistBtn.TextColor3 = Color3.new(1,1,1)
+        fistBtn.Text = "FIST OFF"
+        if fistConnection then fistConnection:Disconnect() fistConnection = nil end
+    end
+end)
+
+-- ROIT button (no mutual exclusion)
+roitBtn.MouseButton1Click:Connect(function()
+    roitActive = not roitActive
+    if roitActive then
+        roitBtn.BackgroundColor3 = Color3.fromRGB(135, 206, 250)
+        roitBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+        roitBtn.Text = "ROIT ON"
+        startRoit()
+    else
+        roitBtn.BackgroundColor3 = Color3.fromRGB(30,30,50)
+        roitBtn.TextColor3 = Color3.new(1,1,1)
+        roitBtn.Text = "ROIT OFF"
+        if roitConnection then roitConnection:Disconnect() roitConnection = nil end
+    end
+end)
+
+-- SCYTHE button
+scytheBtn.MouseButton1Click:Connect(function()
+    scytheActive = not scytheActive
+    if scytheActive then
+        scytheBtn.Text = "SCYTHE ON"
+        scytheBtn.BackgroundColor3 = Color3.fromRGB(135, 206, 250)
+        scytheBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+        task.spawn(patchMeleeCooldowns)
+    else
+        scytheBtn.Text = "SCYTHE OFF"
+        scytheBtn.BackgroundColor3 = Color3.fromRGB(50,50,30)
+        scytheBtn.TextColor3 = Color3.new(1,1,1)
+    end
+end)
+
+-- WALLBANG button
+wallbangBtn.MouseButton1Click:Connect(function()
+    wallbangActive = not wallbangActive
+    if wallbangActive then
+        wallbangBtn.Text = "WALLBANG ON"
+        wallbangBtn.BackgroundColor3 = Color3.fromRGB(100, 180, 255)
+        wallbangBtn.TextColor3 = Color3.fromRGB(0,0,0)
+        startWallbang()
+    else
+        wallbangBtn.Text = "WALLBANG OFF"
+        wallbangBtn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+        wallbangBtn.TextColor3 = Color3.new(1,1,1)
+        stopWallbang()
+    end
+end)
+
+-- VOID button
+voidBtn.MouseButton1Click:Connect(function()
+    local hrp = getHRP()
+    voidActive = not voidActive
+    if voidActive then
+        voidBtn.Text = "VOID ON"
+        voidBtn.BackgroundColor3 = Color3.fromRGB(0,180,100)
+        statusDot.BackgroundColor3 = Color3.fromRGB(0,255,120)
+        rgbOn = true
+        lastPos = hrp.CFrame
+        task.spawn(function()
+            while voidActive do
+                local hrp = getHRP()
+                if hrp then
+                    if flip then
+                        hrp.CFrame = VOID_POS_NEG
+                    else
+                        hrp.CFrame = VOID_POS_POS
+                    end
+                    flip = not flip
+                    hrp.AssemblyLinearVelocity = Vector3.zero
+                    hrp.AssemblyAngularVelocity = Vector3.zero
+                end
+                task.wait(0.12)
+            end
+        end)
+    else
+        voidBtn.Text = "VOID OFF"
+        voidBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+        statusDot.BackgroundColor3 = Color3.fromRGB(150,0,0)
+        rgbOn = false
+        local hrp = getHRP()
+        if hrp then
+            hrp.AssemblyLinearVelocity = Vector3.zero
+            hrp.AssemblyAngularVelocity = Vector3.zero
+            if lastPos then hrp.CFrame = lastPos else hrp.CFrame = CFrame.new(0,10,0) end
+        end
+    end
+end)
+
+-- ORBIT button
+local orbConn
+orbBtn.MouseButton1Click:Connect(function()
+    orbActive = not orbActive
+    orbBtn.Text = orbActive and "ORBIT ON" or "ORBIT OFF"
+    orbBtn.BackgroundColor3 = orbActive and Color3.fromRGB(60, 40, 150) or Color3.fromRGB(35, 35, 55)
+    if orbActive then
+        orbConn = RunService.Heartbeat:Connect(function()
+            local target = getClosestEnemy()
+            if target and target:FindFirstChild("HumanoidRootPart") and orbActive then
+                local enemyHRP = target.HumanoidRootPart
+                orbAngle = orbAngle + 0.5
+                HRP.CFrame = CFrame.new(
+                    enemyHRP.Position + Vector3.new(math.cos(orbAngle)*6, 4, math.sin(orbAngle)*6),
+                    enemyHRP.Position
+                )
+            end
+        end)
+    else
+        if orbConn then orbConn:Disconnect() orbConn = nil end
+    end
+end)
+
+-- Character respawn safety
+LocalPlayer.CharacterAdded:Connect(function(char)
+    Character = char
+    HRP = char:WaitForChild('HumanoidRootPart')
+    if voidActive then
+        task.wait(0.5)
+        local hrp = getHRP()
+        if hrp then hrp.CFrame = CFrame.new(0, 39126371928633123561237812537, 0) end
+    end
+    if fistConnection then fistConnection:Disconnect() fistConnection = nil end
+    if roitConnection then roitConnection:Disconnect() roitConnection = nil end
+    fistActive = false
+    roitActive = false
+    fistBtn.Text = "FIST OFF"
+    fistBtn.BackgroundColor3 = Color3.fromRGB(50,30,30)
+    fistBtn.TextColor3 = Color3.new(1,1,1)
+    roitBtn.Text = "ROIT OFF"
+    roitBtn.BackgroundColor3 = Color3.fromRGB(30,30,50)
+    roitBtn.TextColor3 = Color3.new(1,1,1)
+    if wallbangActive then
+        stopWallbang()
+        wallbangActive = false
+        wallbangBtn.Text = "WALLBANG OFF"
+        wallbangBtn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+        wallbangBtn.TextColor3 = Color3.new(1,1,1)
+    end
+end)
+
+print("FinHub Loaded - FIST and ROIT can now be ON at the same time.")
