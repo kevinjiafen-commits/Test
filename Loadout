@@ -1,0 +1,54 @@
+local WeaponChoices = {
+    [1] = "Bow",
+    [2] = "Handgun",
+    [3] = "Fists",
+    [4] = "Grenade",
+}
+local localPlayer = game:GetService("Players").LocalPlayer
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local weaponPickRemote
+local prePickRemote
+local function fetchRemoteReferences()
+    if weaponPickRemote then
+        return true
+    end
+    local success = pcall(function()
+        weaponPickRemote = replicatedStorage.Remotes.Replication.Fighter.PickWeapons
+        prePickRemote = replicatedStorage.Remotes.Duels.PickWeaponsAheadOfTime
+    end)
+    return success and weaponPickRemote ~= nil
+end
+local function createSelectionPayload()
+    local payload = {}
+    for index, weaponName in next, WeaponChoices do
+        if weaponName and weaponName ~= "" then
+            payload[index] = weaponName
+        end
+    end
+    return payload
+end
+local function attemptWeaponSelection()
+    if not fetchRemoteReferences() then
+        return
+    end
+    local selectionData = createSelectionPayload()
+    if not next(selectionData) then
+        return
+    end
+    pcall(function()
+        weaponPickRemote:FireServer(selectionData)
+    end)
+    pcall(function()
+        prePickRemote:FireServer(selectionData)
+    end)
+end
+while task.wait(0.1) do
+    local playerGui = localPlayer:FindFirstChildOfClass("PlayerGui")
+    local selectionInterface = playerGui and playerGui:FindFirstChild("PickWeapons", true)
+    if selectionInterface and selectionInterface.Visible then
+        attemptWeaponSelection()
+        repeat
+            task.wait(0.1)
+        until not (selectionInterface and selectionInterface.Visible)
+    end
+end
