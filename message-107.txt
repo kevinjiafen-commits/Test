@@ -1,0 +1,11 @@
+--more opsex by frxcture
+local bypass_anticheat = true
+local beat_all_scripts = true
+
+if bypass_anticheat == true then
+print("rivals script loaded very opsec bradar")
+end
+
+if beat_all_scripts == true then 
+print("raping all scripts..")
+end
