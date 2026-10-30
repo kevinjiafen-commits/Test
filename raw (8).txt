@@ -1,7 +1,7 @@
 --!nocheck
 --!nolint
 
-local __ANTIBRAIN_MODULES = {cache = {}}
+local __Arch Script Premium_MODULES = {cache = {}}
 
 do
     do
@@ -28,14 +28,14 @@ do
             return table.freeze(Failure)
         end
 
-        function __ANTIBRAIN_MODULES.a()
-            local v = __ANTIBRAIN_MODULES.cache.a
+        function __Arch Script Premium_MODULES.a()
+            local v = __Arch Script Premium_MODULES.cache.a
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.a = v
+                __Arch Script Premium_MODULES.cache.a = v
             end
 
             return v.c
@@ -46,14 +46,14 @@ do
             return table.freeze({})
         end
 
-        function __ANTIBRAIN_MODULES.b()
-            local v = __ANTIBRAIN_MODULES.cache.b
+        function __Arch Script Premium_MODULES.b()
+            local v = __Arch Script Premium_MODULES.cache.b
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.b = v
+                __Arch Script Premium_MODULES.cache.b = v
             end
 
             return v.c
@@ -61,7 +61,7 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
+            local Failure = __Arch Script Premium_MODULES.a()
             local REPORTS_PER_CONNECTION = 5
             local HIDDEN_NOTICE = 'Further errors from this connection are not reported.'
             local REPORTS_PER_SCOPE = 10
@@ -302,14 +302,14 @@ do
             return table.freeze(Scope)
         end
 
-        function __ANTIBRAIN_MODULES.c()
-            local v = __ANTIBRAIN_MODULES.cache.c
+        function __Arch Script Premium_MODULES.c()
+            local v = __Arch Script Premium_MODULES.cache.c
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.c = v
+                __Arch Script Premium_MODULES.cache.c = v
             end
 
             return v.c
@@ -317,20 +317,20 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.b()
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.b()
+            __Arch Script Premium_MODULES.c()
 
             return table.freeze({})
         end
 
-        function __ANTIBRAIN_MODULES.d()
-            local v = __ANTIBRAIN_MODULES.cache.d
+        function __Arch Script Premium_MODULES.d()
+            local v = __Arch Script Premium_MODULES.cache.d
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.d = v
+                __Arch Script Premium_MODULES.cache.d = v
             end
 
             return v.c
@@ -338,8 +338,8 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local Scope = __ANTIBRAIN_MODULES.c()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local Scope = __Arch Script Premium_MODULES.c()
             local Class = {}
 
             Class.__index = Class
@@ -395,14 +395,14 @@ do
             return table.freeze(Session)
         end
 
-        function __ANTIBRAIN_MODULES.e()
-            local v = __ANTIBRAIN_MODULES.cache.e
+        function __Arch Script Premium_MODULES.e()
+            local v = __Arch Script Premium_MODULES.cache.e
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.e = v
+                __Arch Script Premium_MODULES.cache.e = v
             end
 
             return v.c
@@ -410,20 +410,20 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.c()
-            __ANTIBRAIN_MODULES.e()
+            __Arch Script Premium_MODULES.c()
+            __Arch Script Premium_MODULES.e()
 
             return table.freeze({})
         end
 
-        function __ANTIBRAIN_MODULES.f()
-            local v = __ANTIBRAIN_MODULES.cache.f
+        function __Arch Script Premium_MODULES.f()
+            local v = __Arch Script Premium_MODULES.cache.f
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.f = v
+                __Arch Script Premium_MODULES.cache.f = v
             end
 
             return v.c
@@ -431,22 +431,22 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.b()
-            __ANTIBRAIN_MODULES.d()
-            __ANTIBRAIN_MODULES.f()
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.b()
+            __Arch Script Premium_MODULES.d()
+            __Arch Script Premium_MODULES.f()
+            __Arch Script Premium_MODULES.c()
 
             return table.freeze({})
         end
 
-        function __ANTIBRAIN_MODULES.g()
-            local v = __ANTIBRAIN_MODULES.cache.g
+        function __Arch Script Premium_MODULES.g()
+            local v = __Arch Script Premium_MODULES.cache.g
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.g = v
+                __Arch Script Premium_MODULES.cache.g = v
             end
 
             return v.c
@@ -454,7 +454,7 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.g()
+            __Arch Script Premium_MODULES.g()
 
             local function register(routes, ids, definition, kind)
                 for _, id in ids do
@@ -494,14 +494,14 @@ do
             return table.freeze(Registry)
         end
 
-        function __ANTIBRAIN_MODULES.h()
-            local v = __ANTIBRAIN_MODULES.cache.h
+        function __Arch Script Premium_MODULES.h()
+            local v = __Arch Script Premium_MODULES.cache.h
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.h = v
+                __Arch Script Premium_MODULES.cache.h = v
             end
 
             return v.c
@@ -509,17 +509,17 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
+            local Failure = __Arch Script Premium_MODULES.a()
 
-            __ANTIBRAIN_MODULES.g()
-            __ANTIBRAIN_MODULES.d()
-            __ANTIBRAIN_MODULES.f()
+            __Arch Script Premium_MODULES.g()
+            __Arch Script Premium_MODULES.d()
+            __Arch Script Premium_MODULES.f()
 
-            local Registry = __ANTIBRAIN_MODULES.h()
+            local Registry = __Arch Script Premium_MODULES.h()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
-            local Session = __ANTIBRAIN_MODULES.e()
+            local Session = __Arch Script Premium_MODULES.e()
 
             local function replacePrevious(slot)
                 local previous = slot.current
@@ -760,14 +760,14 @@ do
             return table.freeze(App)
         end
 
-        function __ANTIBRAIN_MODULES.i()
-            local v = __ANTIBRAIN_MODULES.cache.i
+        function __Arch Script Premium_MODULES.i()
+            local v = __Arch Script Premium_MODULES.cache.i
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.i = v
+                __Arch Script Premium_MODULES.cache.i = v
             end
 
             return v.c
@@ -802,14 +802,14 @@ do
             return table.freeze(GameCode)
         end
 
-        function __ANTIBRAIN_MODULES.j()
-            local v = __ANTIBRAIN_MODULES.cache.j
+        function __Arch Script Premium_MODULES.j()
+            local v = __Arch Script Premium_MODULES.cache.j
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.j = v
+                __Arch Script Premium_MODULES.cache.j = v
             end
 
             return v.c
@@ -843,14 +843,14 @@ do
             return ((table.freeze(Services)))
         end
 
-        function __ANTIBRAIN_MODULES.k()
-            local v = __ANTIBRAIN_MODULES.cache.k
+        function __Arch Script Premium_MODULES.k()
+            local v = __Arch Script Premium_MODULES.cache.k
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.k = v
+                __Arch Script Premium_MODULES.cache.k = v
             end
 
             return v.c
@@ -858,8 +858,8 @@ do
     end
     do
         local function __modImpl()
-            local GameCode = __ANTIBRAIN_MODULES.j()
-            local Services = __ANTIBRAIN_MODULES.k()
+            local GameCode = __Arch Script Premium_MODULES.j()
+            local Services = __Arch Script Premium_MODULES.k()
 
             local function find(root, names)
                 return GameCode.find('RIVALS', root, names)
@@ -945,14 +945,14 @@ do
             return table.freeze(Modules)
         end
 
-        function __ANTIBRAIN_MODULES.l()
-            local v = __ANTIBRAIN_MODULES.cache.l
+        function __Arch Script Premium_MODULES.l()
+            local v = __Arch Script Premium_MODULES.cache.l
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.l = v
+                __Arch Script Premium_MODULES.cache.l = v
             end
 
             return v.c
@@ -960,10 +960,10 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
+            local Failure = __Arch Script Premium_MODULES.a()
 
-            __ANTIBRAIN_MODULES.g()
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.g()
+            __Arch Script Premium_MODULES.c()
 
             local Service = {}
 
@@ -1052,14 +1052,14 @@ do
             return table.freeze(Service)
         end
 
-        function __ANTIBRAIN_MODULES.m()
-            local v = __ANTIBRAIN_MODULES.cache.m
+        function __Arch Script Premium_MODULES.m()
+            local v = __Arch Script Premium_MODULES.cache.m
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.m = v
+                __Arch Script Premium_MODULES.cache.m = v
             end
 
             return v.c
@@ -1067,7 +1067,7 @@ do
     end
     do
         local function __modImpl()
-            local Service = __ANTIBRAIN_MODULES.m()
+            local Service = __Arch Script Premium_MODULES.m()
             local REPORT = Service.value('ragebot report')
             local RageReport = {}
 
@@ -1082,14 +1082,14 @@ do
             return table.freeze(RageReport)
         end
 
-        function __ANTIBRAIN_MODULES.n()
-            local v = __ANTIBRAIN_MODULES.cache.n
+        function __Arch Script Premium_MODULES.n()
+            local v = __Arch Script Premium_MODULES.cache.n
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.n = v
+                __Arch Script Premium_MODULES.cache.n = v
             end
 
             return v.c
@@ -1125,14 +1125,14 @@ do
             return table.freeze(Fighter)
         end
 
-        function __ANTIBRAIN_MODULES.o()
-            local v = __ANTIBRAIN_MODULES.cache.o
+        function __Arch Script Premium_MODULES.o()
+            local v = __Arch Script Premium_MODULES.cache.o
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.o = v
+                __Arch Script Premium_MODULES.cache.o = v
             end
 
             return v.c
@@ -1180,14 +1180,14 @@ do
             return table.freeze(Reaction)
         end
 
-        function __ANTIBRAIN_MODULES.p()
-            local v = __ANTIBRAIN_MODULES.cache.p
+        function __Arch Script Premium_MODULES.p()
+            local v = __Arch Script Premium_MODULES.cache.p
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.p = v
+                __Arch Script Premium_MODULES.cache.p = v
             end
 
             return v.c
@@ -1195,7 +1195,7 @@ do
     end
     do
         local function __modImpl()
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Services = __Arch Script Premium_MODULES.k()
             local REACH = 9.5
             local FLOOR_DEPTH = 5
             local offsets = nil
@@ -1306,14 +1306,14 @@ do
             return table.freeze(Sight)
         end
 
-        function __ANTIBRAIN_MODULES.q()
-            local v = __ANTIBRAIN_MODULES.cache.q
+        function __Arch Script Premium_MODULES.q()
+            local v = __Arch Script Premium_MODULES.cache.q
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.q = v
+                __Arch Script Premium_MODULES.cache.q = v
             end
 
             return v.c
@@ -1321,10 +1321,10 @@ do
     end
     do
         local function __modImpl()
-            local Fighter = __ANTIBRAIN_MODULES.o()
-            local Reaction = __ANTIBRAIN_MODULES.p()
-            local Services = __ANTIBRAIN_MODULES.k()
-            local Sight = __ANTIBRAIN_MODULES.q()
+            local Fighter = __Arch Script Premium_MODULES.o()
+            local Reaction = __Arch Script Premium_MODULES.p()
+            local Services = __Arch Script Premium_MODULES.k()
+            local Sight = __Arch Script Premium_MODULES.q()
             local EYE, CROUCHED_EYE = 1.75, 0.25
             local NOT_BODY = table.freeze({
                 HitboxBody = true,
@@ -1583,14 +1583,14 @@ do
             return table.freeze(Targeting)
         end
 
-        function __ANTIBRAIN_MODULES.r()
-            local v = __ANTIBRAIN_MODULES.cache.r
+        function __Arch Script Premium_MODULES.r()
+            local v = __Arch Script Premium_MODULES.cache.r
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.r = v
+                __Arch Script Premium_MODULES.cache.r = v
             end
 
             return v.c
@@ -1598,15 +1598,15 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local Modules = __ANTIBRAIN_MODULES.l()
-            local RageReport = __ANTIBRAIN_MODULES.n()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local Modules = __Arch Script Premium_MODULES.l()
+            local RageReport = __Arch Script Premium_MODULES.n()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
-            local Service = __ANTIBRAIN_MODULES.m()
-            local Services = __ANTIBRAIN_MODULES.k()
-            local Targeting = __ANTIBRAIN_MODULES.r()
+            local Service = __Arch Script Premium_MODULES.m()
+            local Services = __Arch Script Premium_MODULES.k()
+            local Targeting = __Arch Script Premium_MODULES.r()
             local LATEST = Service.value('aim selection')
             local PASS = Service.new('aiming', function(
                 scope,
@@ -1690,14 +1690,14 @@ do
             return table.freeze(Aiming)
         end
 
-        function __ANTIBRAIN_MODULES.s()
-            local v = __ANTIBRAIN_MODULES.cache.s
+        function __Arch Script Premium_MODULES.s()
+            local v = __Arch Script Premium_MODULES.cache.s
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.s = v
+                __Arch Script Premium_MODULES.cache.s = v
             end
 
             return v.c
@@ -1917,14 +1917,14 @@ do
             return table.freeze(FovCircle)
         end
 
-        function __ANTIBRAIN_MODULES.t()
-            local v = __ANTIBRAIN_MODULES.cache.t
+        function __Arch Script Premium_MODULES.t()
+            local v = __Arch Script Premium_MODULES.cache.t
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.t = v
+                __Arch Script Premium_MODULES.cache.t = v
             end
 
             return v.c
@@ -1965,14 +1965,14 @@ do
             return table.freeze(Steer)
         end
 
-        function __ANTIBRAIN_MODULES.u()
-            local v = __ANTIBRAIN_MODULES.cache.u
+        function __Arch Script Premium_MODULES.u()
+            local v = __Arch Script Premium_MODULES.cache.u
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.u = v
+                __Arch Script Premium_MODULES.cache.u = v
             end
 
             return v.c
@@ -1980,16 +1980,16 @@ do
     end
     do
         local function __modImpl()
-            local Aiming = __ANTIBRAIN_MODULES.s()
-            local FovCircle = __ANTIBRAIN_MODULES.t()
-            local Modules = __ANTIBRAIN_MODULES.l()
+            local Aiming = __Arch Script Premium_MODULES.s()
+            local FovCircle = __Arch Script Premium_MODULES.t()
+            local Modules = __Arch Script Premium_MODULES.l()
 
-            __ANTIBRAIN_MODULES.c()
-            __ANTIBRAIN_MODULES.m()
+            __Arch Script Premium_MODULES.c()
+            __Arch Script Premium_MODULES.m()
 
-            local Steer = __ANTIBRAIN_MODULES.u()
+            local Steer = __Arch Script Premium_MODULES.u()
 
-            __ANTIBRAIN_MODULES.r()
+            __Arch Script Premium_MODULES.r()
 
             local Aimbot = {}
 
@@ -2100,14 +2100,14 @@ do
             return table.freeze(Aimbot)
         end
 
-        function __ANTIBRAIN_MODULES.v()
-            local v = __ANTIBRAIN_MODULES.cache.v
+        function __Arch Script Premium_MODULES.v()
+            local v = __Arch Script Premium_MODULES.cache.v
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.v = v
+                __Arch Script Premium_MODULES.cache.v = v
             end
 
             return v.c
@@ -2115,9 +2115,9 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
+            local Failure = __Arch Script Premium_MODULES.a()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
             local Hooks = {}
 
@@ -2242,14 +2242,14 @@ do
             return table.freeze(Hooks)
         end
 
-        function __ANTIBRAIN_MODULES.w()
-            local v = __ANTIBRAIN_MODULES.cache.w
+        function __Arch Script Premium_MODULES.w()
+            local v = __Arch Script Premium_MODULES.cache.w
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.w = v
+                __Arch Script Premium_MODULES.cache.w = v
             end
 
             return v.c
@@ -2257,13 +2257,13 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local Hooks = __ANTIBRAIN_MODULES.w()
-            local Modules = __ANTIBRAIN_MODULES.l()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local Hooks = __Arch Script Premium_MODULES.w()
+            local Modules = __Arch Script Premium_MODULES.l()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
-            local Service = __ANTIBRAIN_MODULES.m()
+            local Service = __Arch Script Premium_MODULES.m()
             local HOLD = 1
 
             local function resolve()
@@ -2391,14 +2391,14 @@ do
             return table.freeze(CameraHold)
         end
 
-        function __ANTIBRAIN_MODULES.x()
-            local v = __ANTIBRAIN_MODULES.cache.x
+        function __Arch Script Premium_MODULES.x()
+            local v = __Arch Script Premium_MODULES.cache.x
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.x = v
+                __Arch Script Premium_MODULES.cache.x = v
             end
 
             return v.c
@@ -2489,14 +2489,14 @@ do
             return table.freeze(Pose)
         end
 
-        function __ANTIBRAIN_MODULES.y()
-            local v = __ANTIBRAIN_MODULES.cache.y
+        function __Arch Script Premium_MODULES.y()
+            local v = __Arch Script Premium_MODULES.cache.y
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.y = v
+                __Arch Script Premium_MODULES.cache.y = v
             end
 
             return v.c
@@ -2504,14 +2504,14 @@ do
     end
     do
         local function __modImpl()
-            local CameraHold = __ANTIBRAIN_MODULES.x()
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local Hooks = __ANTIBRAIN_MODULES.w()
-            local Modules = __ANTIBRAIN_MODULES.l()
-            local Pose = __ANTIBRAIN_MODULES.y()
+            local CameraHold = __Arch Script Premium_MODULES.x()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local Hooks = __Arch Script Premium_MODULES.w()
+            local Modules = __Arch Script Premium_MODULES.l()
+            local Pose = __Arch Script Premium_MODULES.y()
 
-            __ANTIBRAIN_MODULES.c()
-            __ANTIBRAIN_MODULES.m()
+            __Arch Script Premium_MODULES.c()
+            __Arch Script Premium_MODULES.m()
 
             local SETTLE = 0.05
 
@@ -2619,14 +2619,14 @@ do
             return table.freeze(AlwaysBackstab)
         end
 
-        function __ANTIBRAIN_MODULES.z()
-            local v = __ANTIBRAIN_MODULES.cache.z
+        function __Arch Script Premium_MODULES.z()
+            local v = __Arch Script Premium_MODULES.cache.z
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.z = v
+                __Arch Script Premium_MODULES.cache.z = v
             end
 
             return v.c
@@ -2634,14 +2634,14 @@ do
     end
     do
         local function __modImpl()
-            local Aiming = __ANTIBRAIN_MODULES.s()
-            local Hooks = __ANTIBRAIN_MODULES.w()
-            local Modules = __ANTIBRAIN_MODULES.l()
-            local Pose = __ANTIBRAIN_MODULES.y()
+            local Aiming = __Arch Script Premium_MODULES.s()
+            local Hooks = __Arch Script Premium_MODULES.w()
+            local Modules = __Arch Script Premium_MODULES.l()
+            local Pose = __Arch Script Premium_MODULES.y()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
-            local Service = __ANTIBRAIN_MODULES.m()
+            local Service = __Arch Script Premium_MODULES.m()
 
             local function resolve()
                 local loop = Modules.controller('FighterController')._CameraReplicationLoop
@@ -2716,14 +2716,14 @@ do
             return table.freeze(Encoder)
         end
 
-        function __ANTIBRAIN_MODULES.A()
-            local v = __ANTIBRAIN_MODULES.cache.A
+        function __Arch Script Premium_MODULES.A()
+            local v = __Arch Script Premium_MODULES.cache.A
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.A = v
+                __Arch Script Premium_MODULES.cache.A = v
             end
 
             return v.c
@@ -2731,13 +2731,13 @@ do
     end
     do
         local function __modImpl()
-            local Encoder = __ANTIBRAIN_MODULES.A()
-            local Hooks = __ANTIBRAIN_MODULES.w()
-            local Modules = __ANTIBRAIN_MODULES.l()
-            local Pose = __ANTIBRAIN_MODULES.y()
+            local Encoder = __Arch Script Premium_MODULES.A()
+            local Hooks = __Arch Script Premium_MODULES.w()
+            local Modules = __Arch Script Premium_MODULES.l()
+            local Pose = __Arch Script Premium_MODULES.y()
 
-            __ANTIBRAIN_MODULES.c()
-            __ANTIBRAIN_MODULES.m()
+            __Arch Script Premium_MODULES.c()
+            __Arch Script Premium_MODULES.m()
 
             local AntiAim = {}
 
@@ -2770,14 +2770,14 @@ do
             return table.freeze(AntiAim)
         end
 
-        function __ANTIBRAIN_MODULES.B()
-            local v = __ANTIBRAIN_MODULES.cache.B
+        function __Arch Script Premium_MODULES.B()
+            local v = __Arch Script Premium_MODULES.cache.B
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.B = v
+                __Arch Script Premium_MODULES.cache.B = v
             end
 
             return v.c
@@ -2785,9 +2785,9 @@ do
     end
     do
         local function __modImpl()
-            local AntiAim = __ANTIBRAIN_MODULES.B()
+            local AntiAim = __Arch Script Premium_MODULES.B()
 
-            __ANTIBRAIN_MODULES.g()
+            __Arch Script Premium_MODULES.g()
 
             local Character = {}
 
@@ -2870,14 +2870,14 @@ do
             return table.freeze(Character)
         end
 
-        function __ANTIBRAIN_MODULES.C()
-            local v = __ANTIBRAIN_MODULES.cache.C
+        function __Arch Script Premium_MODULES.C()
+            local v = __Arch Script Premium_MODULES.cache.C
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.C = v
+                __Arch Script Premium_MODULES.cache.C = v
             end
 
             return v.c
@@ -3004,14 +3004,14 @@ do
             return table.freeze(Blink)
         end
 
-        function __ANTIBRAIN_MODULES.D()
-            local v = __ANTIBRAIN_MODULES.cache.D
+        function __Arch Script Premium_MODULES.D()
+            local v = __Arch Script Premium_MODULES.cache.D
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.D = v
+                __Arch Script Premium_MODULES.cache.D = v
             end
 
             return v.c
@@ -3019,11 +3019,11 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
+            local Failure = __Arch Script Premium_MODULES.a()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Services = __Arch Script Premium_MODULES.k()
 
             local function bind(run, priority, callback)
                 if run.closed then
@@ -3031,7 +3031,7 @@ do
                 end
 
                 local runService = Services.RunService
-                local name = string.format('AntiBrain.%s', tostring(Services.HttpService:GenerateGUID(false)))
+                local name = string.format('Arch Script Premium.%s', tostring(Services.HttpService:GenerateGUID(false)))
 
                 runService:BindToRenderStep(name, priority, function()
                     if run.closed then
@@ -3061,14 +3061,14 @@ do
             return table.freeze(RenderStep)
         end
 
-        function __ANTIBRAIN_MODULES.E()
-            local v = __ANTIBRAIN_MODULES.cache.E
+        function __Arch Script Premium_MODULES.E()
+            local v = __Arch Script Premium_MODULES.cache.E
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.E = v
+                __Arch Script Premium_MODULES.cache.E = v
             end
 
             return v.c
@@ -3076,15 +3076,15 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local Fighter = __ANTIBRAIN_MODULES.o()
-            local Modules = __ANTIBRAIN_MODULES.l()
-            local RenderStep = __ANTIBRAIN_MODULES.E()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local Fighter = __Arch Script Premium_MODULES.o()
+            local Modules = __Arch Script Premium_MODULES.l()
+            local RenderStep = __Arch Script Premium_MODULES.E()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
-            local Service = __ANTIBRAIN_MODULES.m()
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Service = __Arch Script Premium_MODULES.m()
+            local Services = __Arch Script Premium_MODULES.k()
             local ROOT_TIMEOUT = 10
             local DESYNC = Service.new('desync', function(scope, services)
                 local player = Modules.player()
@@ -3205,14 +3205,14 @@ do
             return table.freeze(Desync)
         end
 
-        function __ANTIBRAIN_MODULES.F()
-            local v = __ANTIBRAIN_MODULES.cache.F
+        function __Arch Script Premium_MODULES.F()
+            local v = __Arch Script Premium_MODULES.cache.F
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.F = v
+                __Arch Script Premium_MODULES.cache.F = v
             end
 
             return v.c
@@ -3220,7 +3220,7 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.q()
+            __Arch Script Premium_MODULES.q()
 
             local CAMERA, MUZZLE, HIT_PART, HIT_OFFSET = '\0', '\1', '\2', '\3'
             local PACKED = table.freeze({
@@ -3312,14 +3312,14 @@ do
             return table.freeze(Shot)
         end
 
-        function __ANTIBRAIN_MODULES.G()
-            local v = __ANTIBRAIN_MODULES.cache.G
+        function __Arch Script Premium_MODULES.G()
+            local v = __Arch Script Premium_MODULES.cache.G
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.G = v
+                __Arch Script Premium_MODULES.cache.G = v
             end
 
             return v.c
@@ -3327,7 +3327,7 @@ do
     end
     do
         local function __modImpl()
-            local Shot = __ANTIBRAIN_MODULES.G()
+            local Shot = __Arch Script Premium_MODULES.G()
             local Swing = {}
 
             function Swing.data(aim, part)
@@ -3373,14 +3373,14 @@ do
             return table.freeze(Swing)
         end
 
-        function __ANTIBRAIN_MODULES.H()
-            local v = __ANTIBRAIN_MODULES.cache.H
+        function __Arch Script Premium_MODULES.H()
+            local v = __Arch Script Premium_MODULES.cache.H
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.H = v
+                __Arch Script Premium_MODULES.cache.H = v
             end
 
             return v.c
@@ -3495,14 +3495,14 @@ do
             return table.freeze(Ragers)
         end
 
-        function __ANTIBRAIN_MODULES.I()
-            local v = __ANTIBRAIN_MODULES.cache.I
+        function __Arch Script Premium_MODULES.I()
+            local v = __Arch Script Premium_MODULES.cache.I
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.I = v
+                __Arch Script Premium_MODULES.cache.I = v
             end
 
             return v.c
@@ -3510,8 +3510,8 @@ do
     end
     do
         local function __modImpl()
-            local Ragers = __ANTIBRAIN_MODULES.I()
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Ragers = __Arch Script Premium_MODULES.I()
+            local Services = __Arch Script Premium_MODULES.k()
             local OUTSIDE, NEAR, GRACE, GROUND = 100, 8, 1.5, 200
             local VOID = 1000000
             local RUNNING = 200
@@ -3688,14 +3688,14 @@ do
             return table.freeze(Watch)
         end
 
-        function __ANTIBRAIN_MODULES.J()
-            local v = __ANTIBRAIN_MODULES.cache.J
+        function __Arch Script Premium_MODULES.J()
+            local v = __Arch Script Premium_MODULES.cache.J
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.J = v
+                __Arch Script Premium_MODULES.cache.J = v
             end
 
             return v.c
@@ -3703,18 +3703,18 @@ do
     end
     do
         local function __modImpl()
-            local Blink = __ANTIBRAIN_MODULES.D()
-            local Desync = __ANTIBRAIN_MODULES.F()
-            local Fighter = __ANTIBRAIN_MODULES.o()
-            local Modules = __ANTIBRAIN_MODULES.l()
+            local Blink = __Arch Script Premium_MODULES.D()
+            local Desync = __Arch Script Premium_MODULES.F()
+            local Fighter = __Arch Script Premium_MODULES.o()
+            local Modules = __Arch Script Premium_MODULES.l()
 
-            __ANTIBRAIN_MODULES.c()
-            __ANTIBRAIN_MODULES.m()
+            __Arch Script Premium_MODULES.c()
+            __Arch Script Premium_MODULES.m()
 
-            local Services = __ANTIBRAIN_MODULES.k()
-            local Shot = __ANTIBRAIN_MODULES.G()
-            local Swing = __ANTIBRAIN_MODULES.H()
-            local Watch = __ANTIBRAIN_MODULES.J()
+            local Services = __Arch Script Premium_MODULES.k()
+            local Shot = __Arch Script Premium_MODULES.G()
+            local Swing = __Arch Script Premium_MODULES.H()
+            local Watch = __Arch Script Premium_MODULES.J()
             local LIFT = 6000
             local CEILING = 40000
             local HOP_EVERY = 4
@@ -4247,14 +4247,14 @@ do
             return table.freeze(Counter)
         end
 
-        function __ANTIBRAIN_MODULES.K()
-            local v = __ANTIBRAIN_MODULES.cache.K
+        function __Arch Script Premium_MODULES.K()
+            local v = __Arch Script Premium_MODULES.cache.K
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.K = v
+                __Arch Script Premium_MODULES.cache.K = v
             end
 
             return v.c
@@ -4262,12 +4262,12 @@ do
     end
     do
         local function __modImpl()
-            local Blink = __ANTIBRAIN_MODULES.D()
-            local CounterSystem = __ANTIBRAIN_MODULES.K()
-            local RageReport = __ANTIBRAIN_MODULES.n()
+            local Blink = __Arch Script Premium_MODULES.D()
+            local CounterSystem = __Arch Script Premium_MODULES.K()
+            local RageReport = __Arch Script Premium_MODULES.n()
 
-            __ANTIBRAIN_MODULES.c()
-            __ANTIBRAIN_MODULES.m()
+            __Arch Script Premium_MODULES.c()
+            __Arch Script Premium_MODULES.m()
 
             local Counter = {}
 
@@ -4303,14 +4303,14 @@ do
             return table.freeze(Counter)
         end
 
-        function __ANTIBRAIN_MODULES.L()
-            local v = __ANTIBRAIN_MODULES.cache.L
+        function __Arch Script Premium_MODULES.L()
+            local v = __Arch Script Premium_MODULES.cache.L
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.L = v
+                __Arch Script Premium_MODULES.cache.L = v
             end
 
             return v.c
@@ -4318,9 +4318,9 @@ do
     end
     do
         local function __modImpl()
-            local Counter = __ANTIBRAIN_MODULES.L()
+            local Counter = __Arch Script Premium_MODULES.L()
 
-            __ANTIBRAIN_MODULES.g()
+            __Arch Script Premium_MODULES.g()
 
             local ENGINES = table.freeze({
                 ['ue counter'] = 'ue',
@@ -4417,14 +4417,14 @@ do
             return table.freeze(CounterControls)
         end
 
-        function __ANTIBRAIN_MODULES.M()
-            local v = __ANTIBRAIN_MODULES.cache.M
+        function __Arch Script Premium_MODULES.M()
+            local v = __Arch Script Premium_MODULES.cache.M
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.M = v
+                __Arch Script Premium_MODULES.cache.M = v
             end
 
             return v.c
@@ -4497,14 +4497,14 @@ do
             return table.freeze(Poll)
         end
 
-        function __ANTIBRAIN_MODULES.N()
-            local v = __ANTIBRAIN_MODULES.cache.N
+        function __Arch Script Premium_MODULES.N()
+            local v = __Arch Script Premium_MODULES.cache.N
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.N = v
+                __Arch Script Premium_MODULES.cache.N = v
             end
 
             return v.c
@@ -4512,13 +4512,13 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
+            local Failure = __Arch Script Premium_MODULES.a()
 
-            __ANTIBRAIN_MODULES.g()
+            __Arch Script Premium_MODULES.g()
 
-            local Poll = __ANTIBRAIN_MODULES.N()
+            local Poll = __Arch Script Premium_MODULES.N()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
             local FIRST_WAIT, LONGEST_WAIT, NOTICE_SECONDS, GIVE_UP_SECONDS = 0.25, 2, 8, 30
             local Feature = {}
@@ -4717,14 +4717,14 @@ do
             return table.freeze(Feature)
         end
 
-        function __ANTIBRAIN_MODULES.O()
-            local v = __ANTIBRAIN_MODULES.cache.O
+        function __Arch Script Premium_MODULES.O()
+            local v = __Arch Script Premium_MODULES.cache.O
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.O = v
+                __Arch Script Premium_MODULES.cache.O = v
             end
 
             return v.c
@@ -4732,10 +4732,10 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local Poll = __ANTIBRAIN_MODULES.N()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local Poll = __Arch Script Premium_MODULES.N()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
             local REPOSITORY = 'https://raw.githubusercontent.com/bluescan/proggyfonts/'
             local COMMIT = '139ec08a38096161291792313ef5803fc4f0e37b'
@@ -4869,14 +4869,14 @@ do
             return table.freeze(Fonts)
         end
 
-        function __ANTIBRAIN_MODULES.P()
-            local v = __ANTIBRAIN_MODULES.cache.P
+        function __Arch Script Premium_MODULES.P()
+            local v = __Arch Script Premium_MODULES.cache.P
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.P = v
+                __Arch Script Premium_MODULES.cache.P = v
             end
 
             return v.c
@@ -4884,8 +4884,8 @@ do
     end
     do
         local function __modImpl()
-            local Fonts = __ANTIBRAIN_MODULES.P()
-            local FovCircle = __ANTIBRAIN_MODULES.t()
+            local Fonts = __Arch Script Premium_MODULES.P()
+            local FovCircle = __Arch Script Premium_MODULES.t()
             local LINE_GAP = 2
             local Indicator = {}
 
@@ -5046,14 +5046,14 @@ do
             return table.freeze(Indicator)
         end
 
-        function __ANTIBRAIN_MODULES.Q()
-            local v = __ANTIBRAIN_MODULES.cache.Q
+        function __Arch Script Premium_MODULES.Q()
+            local v = __Arch Script Premium_MODULES.cache.Q
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.Q = v
+                __Arch Script Premium_MODULES.cache.Q = v
             end
 
             return v.c
@@ -5061,18 +5061,18 @@ do
     end
     do
         local function __modImpl()
-            local Aiming = __ANTIBRAIN_MODULES.s()
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local Fonts = __ANTIBRAIN_MODULES.P()
-            local FovCircle = __ANTIBRAIN_MODULES.t()
-            local Indicator = __ANTIBRAIN_MODULES.Q()
-            local Modules = __ANTIBRAIN_MODULES.l()
-            local RageReport = __ANTIBRAIN_MODULES.n()
+            local Aiming = __Arch Script Premium_MODULES.s()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local Fonts = __Arch Script Premium_MODULES.P()
+            local FovCircle = __Arch Script Premium_MODULES.t()
+            local Indicator = __Arch Script Premium_MODULES.Q()
+            local Modules = __Arch Script Premium_MODULES.l()
+            local RageReport = __Arch Script Premium_MODULES.n()
 
-            __ANTIBRAIN_MODULES.c()
-            __ANTIBRAIN_MODULES.m()
+            __Arch Script Premium_MODULES.c()
+            __Arch Script Premium_MODULES.m()
 
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Services = __Arch Script Premium_MODULES.k()
             local Indicators = {}
 
             Indicators.EMPTY = Indicator.EMPTY
@@ -5145,14 +5145,14 @@ do
             return table.freeze(Indicators)
         end
 
-        function __ANTIBRAIN_MODULES.R()
-            local v = __ANTIBRAIN_MODULES.cache.R
+        function __Arch Script Premium_MODULES.R()
+            local v = __Arch Script Premium_MODULES.cache.R
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.R = v
+                __Arch Script Premium_MODULES.cache.R = v
             end
 
             return v.c
@@ -5160,7 +5160,7 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
             local LEVEL = 3
             local CAMERA, MUZZLE, HIT_PART, HIT_OFFSET = '\0', '\1', '\2', '\3'
@@ -5219,14 +5219,14 @@ do
             return table.freeze(Visualize)
         end
 
-        function __ANTIBRAIN_MODULES.S()
-            local v = __ANTIBRAIN_MODULES.cache.S
+        function __Arch Script Premium_MODULES.S()
+            local v = __Arch Script Premium_MODULES.cache.S
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.S = v
+                __Arch Script Premium_MODULES.cache.S = v
             end
 
             return v.c
@@ -5234,20 +5234,20 @@ do
     end
     do
         local function __modImpl()
-            local Aiming = __ANTIBRAIN_MODULES.s()
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local FovCircle = __ANTIBRAIN_MODULES.t()
-            local Hooks = __ANTIBRAIN_MODULES.w()
-            local Modules = __ANTIBRAIN_MODULES.l()
+            local Aiming = __Arch Script Premium_MODULES.s()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local FovCircle = __Arch Script Premium_MODULES.t()
+            local Hooks = __Arch Script Premium_MODULES.w()
+            local Modules = __Arch Script Premium_MODULES.l()
 
-            __ANTIBRAIN_MODULES.c()
-            __ANTIBRAIN_MODULES.m()
+            __Arch Script Premium_MODULES.c()
+            __Arch Script Premium_MODULES.m()
 
-            local Shot = __ANTIBRAIN_MODULES.G()
+            local Shot = __Arch Script Premium_MODULES.G()
 
-            __ANTIBRAIN_MODULES.r()
+            __Arch Script Premium_MODULES.r()
 
-            local Visualize = __ANTIBRAIN_MODULES.S()
+            local Visualize = __Arch Script Premium_MODULES.S()
             local SilentAim = {}
 
             function SilentAim.start(run, settings, log, services)
@@ -5364,14 +5364,14 @@ do
             return table.freeze(SilentAim)
         end
 
-        function __ANTIBRAIN_MODULES.T()
-            local v = __ANTIBRAIN_MODULES.cache.T
+        function __Arch Script Premium_MODULES.T()
+            local v = __Arch Script Premium_MODULES.cache.T
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.T = v
+                __Arch Script Premium_MODULES.cache.T = v
             end
 
             return v.c
@@ -5379,8 +5379,8 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.g()
-            __ANTIBRAIN_MODULES.T()
+            __Arch Script Premium_MODULES.g()
+            __Arch Script Premium_MODULES.T()
 
             local FovControls = {}
 
@@ -5500,14 +5500,14 @@ do
             return table.freeze(FovControls)
         end
 
-        function __ANTIBRAIN_MODULES.U()
-            local v = __ANTIBRAIN_MODULES.cache.U
+        function __Arch Script Premium_MODULES.U()
+            local v = __Arch Script Premium_MODULES.cache.U
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.U = v
+                __Arch Script Premium_MODULES.cache.U = v
             end
 
             return v.c
@@ -5515,9 +5515,9 @@ do
     end
     do
         local function __modImpl()
-            local Fighter = __ANTIBRAIN_MODULES.o()
+            local Fighter = __Arch Script Premium_MODULES.o()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
             local VOID = 1000000
             local Targets = {}
@@ -5688,14 +5688,14 @@ do
             return table.freeze(Targets)
         end
 
-        function __ANTIBRAIN_MODULES.V()
-            local v = __ANTIBRAIN_MODULES.cache.V
+        function __Arch Script Premium_MODULES.V()
+            local v = __Arch Script Premium_MODULES.cache.V
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.V = v
+                __Arch Script Premium_MODULES.cache.V = v
             end
 
             return v.c
@@ -5703,14 +5703,14 @@ do
     end
     do
         local function __modImpl()
-            local Hooks = __ANTIBRAIN_MODULES.w()
-            local Modules = __ANTIBRAIN_MODULES.l()
+            local Hooks = __Arch Script Premium_MODULES.w()
+            local Modules = __Arch Script Premium_MODULES.l()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
-            local Services = __ANTIBRAIN_MODULES.k()
-            local Swing = __ANTIBRAIN_MODULES.H()
-            local Targets = __ANTIBRAIN_MODULES.V()
+            local Services = __Arch Script Premium_MODULES.k()
+            local Swing = __Arch Script Premium_MODULES.H()
+            local Targets = __Arch Script Premium_MODULES.V()
             local GAP = 2
             local CONE = math.cos(math.rad(60))
 
@@ -5822,14 +5822,14 @@ do
             return table.freeze(MeleeReach)
         end
 
-        function __ANTIBRAIN_MODULES.W()
-            local v = __ANTIBRAIN_MODULES.cache.W
+        function __Arch Script Premium_MODULES.W()
+            local v = __Arch Script Premium_MODULES.cache.W
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.W = v
+                __Arch Script Premium_MODULES.cache.W = v
             end
 
             return v.c
@@ -5869,14 +5869,14 @@ do
             return table.freeze(Origins)
         end
 
-        function __ANTIBRAIN_MODULES.X()
-            local v = __ANTIBRAIN_MODULES.cache.X
+        function __Arch Script Premium_MODULES.X()
+            local v = __Arch Script Premium_MODULES.cache.X
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.X = v
+                __Arch Script Premium_MODULES.cache.X = v
             end
 
             return v.c
@@ -5884,13 +5884,13 @@ do
     end
     do
         local function __modImpl()
-            local CameraHold = __ANTIBRAIN_MODULES.x()
-            local Origins = __ANTIBRAIN_MODULES.X()
-            local Pose = __ANTIBRAIN_MODULES.y()
-            local Shot = __ANTIBRAIN_MODULES.G()
-            local Swing = __ANTIBRAIN_MODULES.H()
+            local CameraHold = __Arch Script Premium_MODULES.x()
+            local Origins = __Arch Script Premium_MODULES.X()
+            local Pose = __Arch Script Premium_MODULES.y()
+            local Shot = __Arch Script Premium_MODULES.G()
+            local Swing = __Arch Script Premium_MODULES.H()
 
-            __ANTIBRAIN_MODULES.V()
+            __Arch Script Premium_MODULES.V()
 
             local SETTLE = 0.05
             local EYE, CROUCHED_EYE = 1.75, 0.25
@@ -6415,14 +6415,14 @@ do
             return table.freeze(Attacks)
         end
 
-        function __ANTIBRAIN_MODULES.Y()
-            local v = __ANTIBRAIN_MODULES.cache.Y
+        function __Arch Script Premium_MODULES.Y()
+            local v = __Arch Script Premium_MODULES.cache.Y
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.Y = v
+                __Arch Script Premium_MODULES.cache.Y = v
             end
 
             return v.c
@@ -6430,14 +6430,14 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local Hooks = __ANTIBRAIN_MODULES.w()
-            local Modules = __ANTIBRAIN_MODULES.l()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local Hooks = __Arch Script Premium_MODULES.w()
+            local Modules = __Arch Script Premium_MODULES.l()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
-            local Service = __ANTIBRAIN_MODULES.m()
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Service = __Arch Script Premium_MODULES.m()
+            local Services = __Arch Script Premium_MODULES.k()
             local EVENTS = Service.new('fighter events', function(
                 scope,
                 services
@@ -6503,14 +6503,14 @@ do
             return table.freeze(FighterEvents)
         end
 
-        function __ANTIBRAIN_MODULES.Z()
-            local v = __ANTIBRAIN_MODULES.cache.Z
+        function __Arch Script Premium_MODULES.Z()
+            local v = __Arch Script Premium_MODULES.cache.Z
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.Z = v
+                __Arch Script Premium_MODULES.cache.Z = v
             end
 
             return v.c
@@ -6543,14 +6543,14 @@ do
             return table.freeze(Identity)
         end
 
-        function __ANTIBRAIN_MODULES._()
-            local v = __ANTIBRAIN_MODULES.cache._
+        function __Arch Script Premium_MODULES._()
+            local v = __Arch Script Premium_MODULES.cache._
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache._ = v
+                __Arch Script Premium_MODULES.cache._ = v
             end
 
             return v.c
@@ -6576,14 +6576,14 @@ do
             return table.freeze(Void)
         end
 
-        function __ANTIBRAIN_MODULES.aa()
-            local v = __ANTIBRAIN_MODULES.cache.aa
+        function __Arch Script Premium_MODULES.aa()
+            local v = __Arch Script Premium_MODULES.cache.aa
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aa = v
+                __Arch Script Premium_MODULES.cache.aa = v
             end
 
             return v.c
@@ -6591,23 +6591,23 @@ do
     end
     do
         local function __modImpl()
-            local Aiming = __ANTIBRAIN_MODULES.s()
-            local Attacks = __ANTIBRAIN_MODULES.Y()
-            local CameraHold = __ANTIBRAIN_MODULES.x()
-            local Desync = __ANTIBRAIN_MODULES.F()
-            local Encoder = __ANTIBRAIN_MODULES.A()
-            local FighterEvents = __ANTIBRAIN_MODULES.Z()
-            local Identity = __ANTIBRAIN_MODULES._()
-            local Modules = __ANTIBRAIN_MODULES.l()
-            local Origins = __ANTIBRAIN_MODULES.X()
-            local RageReport = __ANTIBRAIN_MODULES.n()
+            local Aiming = __Arch Script Premium_MODULES.s()
+            local Attacks = __Arch Script Premium_MODULES.Y()
+            local CameraHold = __Arch Script Premium_MODULES.x()
+            local Desync = __Arch Script Premium_MODULES.F()
+            local Encoder = __Arch Script Premium_MODULES.A()
+            local FighterEvents = __Arch Script Premium_MODULES.Z()
+            local Identity = __Arch Script Premium_MODULES._()
+            local Modules = __Arch Script Premium_MODULES.l()
+            local Origins = __Arch Script Premium_MODULES.X()
+            local RageReport = __Arch Script Premium_MODULES.n()
 
-            __ANTIBRAIN_MODULES.c()
-            __ANTIBRAIN_MODULES.m()
+            __Arch Script Premium_MODULES.c()
+            __Arch Script Premium_MODULES.m()
 
-            local Services = __ANTIBRAIN_MODULES.k()
-            local Targets = __ANTIBRAIN_MODULES.V()
-            local Void = __ANTIBRAIN_MODULES.aa()
+            local Services = __Arch Script Premium_MODULES.k()
+            local Targets = __Arch Script Premium_MODULES.V()
+            local Void = __Arch Script Premium_MODULES.aa()
             local ORDER = 1
             local Ragebot = {}
 
@@ -6779,14 +6779,14 @@ do
             return table.freeze(Ragebot)
         end
 
-        function __ANTIBRAIN_MODULES.ab()
-            local v = __ANTIBRAIN_MODULES.cache.ab
+        function __Arch Script Premium_MODULES.ab()
+            local v = __Arch Script Premium_MODULES.cache.ab
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.ab = v
+                __Arch Script Premium_MODULES.cache.ab = v
             end
 
             return v.c
@@ -6794,12 +6794,12 @@ do
     end
     do
         local function __modImpl()
-            local Fighter = __ANTIBRAIN_MODULES.o()
-            local Modules = __ANTIBRAIN_MODULES.l()
+            local Fighter = __Arch Script Premium_MODULES.o()
+            local Modules = __Arch Script Premium_MODULES.l()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Services = __Arch Script Premium_MODULES.k()
             local HITBOXES = table.freeze({
                 HitboxBody = true,
                 HitboxHead = true,
@@ -6987,14 +6987,14 @@ do
             return table.freeze(Triggerbot)
         end
 
-        function __ANTIBRAIN_MODULES.ac()
-            local v = __ANTIBRAIN_MODULES.cache.ac
+        function __Arch Script Premium_MODULES.ac()
+            local v = __Arch Script Premium_MODULES.cache.ac
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.ac = v
+                __Arch Script Premium_MODULES.cache.ac = v
             end
 
             return v.c
@@ -7002,12 +7002,12 @@ do
     end
     do
         local function __modImpl()
-            local Hooks = __ANTIBRAIN_MODULES.w()
-            local Modules = __ANTIBRAIN_MODULES.l()
+            local Hooks = __Arch Script Premium_MODULES.w()
+            local Modules = __Arch Script Premium_MODULES.l()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Services = __Arch Script Premium_MODULES.k()
             local PLAY, PLAY_HOOK = 'PlayAnimation', '\0PlayAnimation '
 
             local function constantAt(access, closure, value)
@@ -7279,14 +7279,14 @@ do
             return table.freeze(Weapons)
         end
 
-        function __ANTIBRAIN_MODULES.ad()
-            local v = __ANTIBRAIN_MODULES.cache.ad
+        function __Arch Script Premium_MODULES.ad()
+            local v = __Arch Script Premium_MODULES.cache.ad
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.ad = v
+                __Arch Script Premium_MODULES.cache.ad = v
             end
 
             return v.c
@@ -7294,16 +7294,16 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.v()
+            __Arch Script Premium_MODULES.v()
 
-            local FovControls = __ANTIBRAIN_MODULES.U()
+            local FovControls = __Arch Script Premium_MODULES.U()
 
-            __ANTIBRAIN_MODULES.g()
-            __ANTIBRAIN_MODULES.W()
-            __ANTIBRAIN_MODULES.ab()
-            __ANTIBRAIN_MODULES.T()
-            __ANTIBRAIN_MODULES.ac()
-            __ANTIBRAIN_MODULES.ad()
+            __Arch Script Premium_MODULES.g()
+            __Arch Script Premium_MODULES.W()
+            __Arch Script Premium_MODULES.ab()
+            __Arch Script Premium_MODULES.T()
+            __Arch Script Premium_MODULES.ac()
+            __Arch Script Premium_MODULES.ad()
 
             local BODY_PARTS = table.freeze({
                 'Head',
@@ -7927,14 +7927,14 @@ do
             return table.freeze(Main)
         end
 
-        function __ANTIBRAIN_MODULES.ae()
-            local v = __ANTIBRAIN_MODULES.cache.ae
+        function __Arch Script Premium_MODULES.ae()
+            local v = __Arch Script Premium_MODULES.cache.ae
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.ae = v
+                __Arch Script Premium_MODULES.cache.ae = v
             end
 
             return v.c
@@ -7942,7 +7942,7 @@ do
     end
     do
         local function __modImpl()
-            local Modules = __ANTIBRAIN_MODULES.l()
+            local Modules = __Arch Script Premium_MODULES.l()
             local Cosmetics = {}
 
             function Cosmetics.load()
@@ -8067,14 +8067,14 @@ do
             return table.freeze(Cosmetics)
         end
 
-        function __ANTIBRAIN_MODULES.af()
-            local v = __ANTIBRAIN_MODULES.cache.af
+        function __Arch Script Premium_MODULES.af()
+            local v = __Arch Script Premium_MODULES.cache.af
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.af = v
+                __Arch Script Premium_MODULES.cache.af = v
             end
 
             return v.c
@@ -8212,14 +8212,14 @@ do
             return table.freeze(Selection)
         end
 
-        function __ANTIBRAIN_MODULES.ag()
-            local v = __ANTIBRAIN_MODULES.cache.ag
+        function __Arch Script Premium_MODULES.ag()
+            local v = __Arch Script Premium_MODULES.cache.ag
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.ag = v
+                __Arch Script Premium_MODULES.cache.ag = v
             end
 
             return v.c
@@ -8227,17 +8227,17 @@ do
     end
     do
         local function __modImpl()
-            local Cosmetics = __ANTIBRAIN_MODULES.af()
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local FighterEvents = __ANTIBRAIN_MODULES.Z()
-            local Hooks = __ANTIBRAIN_MODULES.w()
-            local Modules = __ANTIBRAIN_MODULES.l()
+            local Cosmetics = __Arch Script Premium_MODULES.af()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local FighterEvents = __Arch Script Premium_MODULES.Z()
+            local Hooks = __Arch Script Premium_MODULES.w()
+            local Modules = __Arch Script Premium_MODULES.l()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
-            local Selection = __ANTIBRAIN_MODULES.ag()
+            local Selection = __Arch Script Premium_MODULES.ag()
 
-            __ANTIBRAIN_MODULES.m()
+            __Arch Script Premium_MODULES.m()
 
             local TRANSIENT = table.freeze({
                 ItemIndex = true,
@@ -8583,14 +8583,14 @@ do
             return table.freeze(Dresser)
         end
 
-        function __ANTIBRAIN_MODULES.ah()
-            local v = __ANTIBRAIN_MODULES.cache.ah
+        function __Arch Script Premium_MODULES.ah()
+            local v = __Arch Script Premium_MODULES.cache.ah
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.ah = v
+                __Arch Script Premium_MODULES.cache.ah = v
             end
 
             return v.c
@@ -8598,7 +8598,7 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.ag()
+            __Arch Script Premium_MODULES.ag()
 
             local Listing = {}
 
@@ -8726,14 +8726,14 @@ do
             return table.freeze(Listing)
         end
 
-        function __ANTIBRAIN_MODULES.ai()
-            local v = __ANTIBRAIN_MODULES.cache.ai
+        function __Arch Script Premium_MODULES.ai()
+            local v = __Arch Script Premium_MODULES.cache.ai
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.ai = v
+                __Arch Script Premium_MODULES.cache.ai = v
             end
 
             return v.c
@@ -8814,14 +8814,14 @@ do
             return table.freeze(Framing)
         end
 
-        function __ANTIBRAIN_MODULES.aj()
-            local v = __ANTIBRAIN_MODULES.cache.aj
+        function __Arch Script Premium_MODULES.aj()
+            local v = __Arch Script Premium_MODULES.cache.aj
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aj = v
+                __Arch Script Premium_MODULES.cache.aj = v
             end
 
             return v.c
@@ -8829,12 +8829,12 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local Framing = __ANTIBRAIN_MODULES.aj()
-            local Identity = __ANTIBRAIN_MODULES._()
-            local Modules = __ANTIBRAIN_MODULES.l()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local Framing = __Arch Script Premium_MODULES.aj()
+            local Identity = __Arch Script Premium_MODULES._()
+            local Modules = __Arch Script Premium_MODULES.l()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
             local Preview = {}
 
@@ -9113,14 +9113,14 @@ do
             return table.freeze(Preview)
         end
 
-        function __ANTIBRAIN_MODULES.ak()
-            local v = __ANTIBRAIN_MODULES.cache.ak
+        function __Arch Script Premium_MODULES.ak()
+            local v = __Arch Script Premium_MODULES.cache.ak
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.ak = v
+                __Arch Script Premium_MODULES.cache.ak = v
             end
 
             return v.c
@@ -9128,25 +9128,25 @@ do
     end
     do
         local function __modImpl()
-            local Cosmetics = __ANTIBRAIN_MODULES.af()
-            local Dresser = __ANTIBRAIN_MODULES.ah()
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local FighterEvents = __ANTIBRAIN_MODULES.Z()
+            local Cosmetics = __Arch Script Premium_MODULES.af()
+            local Dresser = __Arch Script Premium_MODULES.ah()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local FighterEvents = __Arch Script Premium_MODULES.Z()
 
-            __ANTIBRAIN_MODULES.g()
+            __Arch Script Premium_MODULES.g()
 
-            local Identity = __ANTIBRAIN_MODULES._()
-            local Listing = __ANTIBRAIN_MODULES.ai()
-            local Modules = __ANTIBRAIN_MODULES.l()
-            local Preview = __ANTIBRAIN_MODULES.ak()
+            local Identity = __Arch Script Premium_MODULES._()
+            local Listing = __Arch Script Premium_MODULES.ai()
+            local Modules = __Arch Script Premium_MODULES.l()
+            local Preview = __Arch Script Premium_MODULES.ak()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
-            local Selection = __ANTIBRAIN_MODULES.ag()
+            local Selection = __Arch Script Premium_MODULES.ag()
 
-            __ANTIBRAIN_MODULES.m()
+            __Arch Script Premium_MODULES.m()
 
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Services = __Arch Script Premium_MODULES.k()
             local SkinChanger = {}
 
             SkinChanger.KINDS = Selection.kinds
@@ -9460,14 +9460,14 @@ do
             return table.freeze(SkinChanger)
         end
 
-        function __ANTIBRAIN_MODULES.al()
-            local v = __ANTIBRAIN_MODULES.cache.al
+        function __Arch Script Premium_MODULES.al()
+            local v = __Arch Script Premium_MODULES.cache.al
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.al = v
+                __Arch Script Premium_MODULES.cache.al = v
             end
 
             return v.c
@@ -9475,12 +9475,12 @@ do
     end
     do
         local function __modImpl()
-            local Desync = __ANTIBRAIN_MODULES.F()
+            local Desync = __Arch Script Premium_MODULES.F()
 
-            __ANTIBRAIN_MODULES.c()
-            __ANTIBRAIN_MODULES.m()
+            __Arch Script Premium_MODULES.c()
+            __Arch Script Premium_MODULES.m()
 
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Services = __Arch Script Premium_MODULES.k()
             local DEPTH = 5
             local REACH = 500
             local ORDER = 2
@@ -9531,14 +9531,14 @@ do
             return table.freeze(Underground)
         end
 
-        function __ANTIBRAIN_MODULES.am()
-            local v = __ANTIBRAIN_MODULES.cache.am
+        function __Arch Script Premium_MODULES.am()
+            local v = __Arch Script Premium_MODULES.cache.am
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.am = v
+                __Arch Script Premium_MODULES.cache.am = v
             end
 
             return v.c
@@ -9546,9 +9546,9 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.g()
+            __Arch Script Premium_MODULES.g()
 
-            local SkinChanger = __ANTIBRAIN_MODULES.al()
+            local SkinChanger = __Arch Script Premium_MODULES.al()
             local WIDTH, ROWS = 669, 2
             local CAPTION_GAP = 4
             local CosmeticChanger = {}
@@ -9653,14 +9653,14 @@ do
             return table.freeze(CosmeticChanger)
         end
 
-        function __ANTIBRAIN_MODULES.an()
-            local v = __ANTIBRAIN_MODULES.cache.an
+        function __Arch Script Premium_MODULES.an()
+            local v = __Arch Script Premium_MODULES.cache.an
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.an = v
+                __Arch Script Premium_MODULES.cache.an = v
             end
 
             return v.c
@@ -9668,14 +9668,14 @@ do
     end
     do
         local function __modImpl()
-            local CosmeticChanger = __ANTIBRAIN_MODULES.an()
-            local FovControls = __ANTIBRAIN_MODULES.U()
+            local CosmeticChanger = __Arch Script Premium_MODULES.an()
+            local FovControls = __Arch Script Premium_MODULES.U()
 
-            __ANTIBRAIN_MODULES.g()
+            __Arch Script Premium_MODULES.g()
 
-            local Indicators = __ANTIBRAIN_MODULES.R()
+            local Indicators = __Arch Script Premium_MODULES.R()
 
-            __ANTIBRAIN_MODULES.al()
+            __Arch Script Premium_MODULES.al()
 
             local Visuals = {}
 
@@ -9833,14 +9833,14 @@ do
             return table.freeze(Visuals)
         end
 
-        function __ANTIBRAIN_MODULES.ao()
-            local v = __ANTIBRAIN_MODULES.cache.ao
+        function __Arch Script Premium_MODULES.ao()
+            local v = __Arch Script Premium_MODULES.cache.ao
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.ao = v
+                __Arch Script Premium_MODULES.cache.ao = v
             end
 
             return v.c
@@ -9848,26 +9848,26 @@ do
     end
     do
         local function __modImpl()
-            local Aimbot = __ANTIBRAIN_MODULES.v()
-            local AlwaysBackstab = __ANTIBRAIN_MODULES.z()
-            local AntiAim = __ANTIBRAIN_MODULES.B()
-            local Character = __ANTIBRAIN_MODULES.C()
-            local Counter = __ANTIBRAIN_MODULES.L()
-            local CounterControls = __ANTIBRAIN_MODULES.M()
-            local Feature = __ANTIBRAIN_MODULES.O()
+            local Aimbot = __Arch Script Premium_MODULES.v()
+            local AlwaysBackstab = __Arch Script Premium_MODULES.z()
+            local AntiAim = __Arch Script Premium_MODULES.B()
+            local Character = __Arch Script Premium_MODULES.C()
+            local Counter = __Arch Script Premium_MODULES.L()
+            local CounterControls = __Arch Script Premium_MODULES.M()
+            local Feature = __Arch Script Premium_MODULES.O()
 
-            __ANTIBRAIN_MODULES.g()
+            __Arch Script Premium_MODULES.g()
 
-            local Indicators = __ANTIBRAIN_MODULES.R()
-            local Main = __ANTIBRAIN_MODULES.ae()
-            local MeleeReach = __ANTIBRAIN_MODULES.W()
-            local Ragebot = __ANTIBRAIN_MODULES.ab()
-            local SilentAim = __ANTIBRAIN_MODULES.T()
-            local SkinChanger = __ANTIBRAIN_MODULES.al()
-            local Triggerbot = __ANTIBRAIN_MODULES.ac()
-            local Underground = __ANTIBRAIN_MODULES.am()
-            local Visuals = __ANTIBRAIN_MODULES.ao()
-            local Weapons = __ANTIBRAIN_MODULES.ad()
+            local Indicators = __Arch Script Premium_MODULES.R()
+            local Main = __Arch Script Premium_MODULES.ae()
+            local MeleeReach = __Arch Script Premium_MODULES.W()
+            local Ragebot = __Arch Script Premium_MODULES.ab()
+            local SilentAim = __Arch Script Premium_MODULES.T()
+            local SkinChanger = __Arch Script Premium_MODULES.al()
+            local Triggerbot = __Arch Script Premium_MODULES.ac()
+            local Underground = __Arch Script Premium_MODULES.am()
+            local Visuals = __Arch Script Premium_MODULES.ao()
+            local Weapons = __Arch Script Premium_MODULES.ad()
 
             local function start(context)
                 local main = Main.build(context.ui)
@@ -9913,14 +9913,14 @@ do
             return table.freeze(definition)
         end
 
-        function __ANTIBRAIN_MODULES.ap()
-            local v = __ANTIBRAIN_MODULES.cache.ap
+        function __Arch Script Premium_MODULES.ap()
+            local v = __Arch Script Premium_MODULES.cache.ap
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.ap = v
+                __Arch Script Premium_MODULES.cache.ap = v
             end
 
             return v.c
@@ -9928,24 +9928,24 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.g()
+            __Arch Script Premium_MODULES.g()
 
             return table.freeze({
                 games = table.freeze({
-                    (__ANTIBRAIN_MODULES.ap()),
+                    (__Arch Script Premium_MODULES.ap()),
                 }),
                 universal = nil,
             })
         end
 
-        function __ANTIBRAIN_MODULES.aq()
-            local v = __ANTIBRAIN_MODULES.cache.aq
+        function __Arch Script Premium_MODULES.aq()
+            local v = __Arch Script Premium_MODULES.cache.aq
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aq = v
+                __Arch Script Premium_MODULES.cache.aq = v
             end
 
             return v.c
@@ -9953,8 +9953,8 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local Services = __Arch Script Premium_MODULES.k()
             local Files = {}
 
             function Files.validName(name)
@@ -10146,14 +10146,14 @@ do
             return table.freeze(Files)
         end
 
-        function __ANTIBRAIN_MODULES.ar()
-            local v = __ANTIBRAIN_MODULES.cache.ar
+        function __Arch Script Premium_MODULES.ar()
+            local v = __Arch Script Premium_MODULES.cache.ar
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.ar = v
+                __Arch Script Premium_MODULES.cache.ar = v
             end
 
             return v.c
@@ -10162,20 +10162,20 @@ do
     do
         local function __modImpl()
             return table.freeze({
-                name = 'AntiBrain',
+                name = 'Arch Script Premium',
                 version = '0.1.0',
-                folder = 'AntiBrain',
+                folder = 'Arch Script Premium',
             })
         end
 
-        function __ANTIBRAIN_MODULES.as()
-            local v = __ANTIBRAIN_MODULES.cache.as
+        function __Arch Script Premium_MODULES.as()
+            local v = __Arch Script Premium_MODULES.cache.as
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.as = v
+                __Arch Script Premium_MODULES.cache.as = v
             end
 
             return v.c
@@ -10183,7 +10183,7 @@ do
     end
     do
         local function __modImpl()
-            local Meta = __ANTIBRAIN_MODULES.as()
+            local Meta = __Arch Script Premium_MODULES.as()
             local Paths = {}
 
             Paths.LAYOUT = 2
@@ -10232,14 +10232,14 @@ do
             return table.freeze(Paths)
         end
 
-        function __ANTIBRAIN_MODULES.at()
-            local v = __ANTIBRAIN_MODULES.cache.at
+        function __Arch Script Premium_MODULES.at()
+            local v = __Arch Script Premium_MODULES.cache.at
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.at = v
+                __Arch Script Premium_MODULES.cache.at = v
             end
 
             return v.c
@@ -10247,9 +10247,9 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local Files = __ANTIBRAIN_MODULES.ar()
-            local Paths = __ANTIBRAIN_MODULES.at()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local Files = __Arch Script Premium_MODULES.ar()
+            local Paths = __Arch Script Premium_MODULES.at()
             local Migration = {}
             local NOT_GAMES = table.freeze({
                 themes = true,
@@ -10382,14 +10382,14 @@ do
             return table.freeze(Migration)
         end
 
-        function __ANTIBRAIN_MODULES.au()
-            local v = __ANTIBRAIN_MODULES.cache.au
+        function __Arch Script Premium_MODULES.au()
+            local v = __Arch Script Premium_MODULES.cache.au
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.au = v
+                __Arch Script Premium_MODULES.cache.au = v
             end
 
             return v.c
@@ -10397,14 +10397,14 @@ do
     end
     do
         local function __modImpl()
-            local Files = __ANTIBRAIN_MODULES.ar()
-            local Meta = __ANTIBRAIN_MODULES.as()
-            local Migration = __ANTIBRAIN_MODULES.au()
-            local Paths = __ANTIBRAIN_MODULES.at()
+            local Files = __Arch Script Premium_MODULES.ar()
+            local Meta = __Arch Script Premium_MODULES.as()
+            local Migration = __Arch Script Premium_MODULES.au()
+            local Paths = __Arch Script Premium_MODULES.at()
 
-            __ANTIBRAIN_MODULES.f()
+            __Arch Script Premium_MODULES.f()
 
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Services = __Arch Script Premium_MODULES.k()
             local REQUIRED = table.freeze({
                 'getgenv',
                 'gethui',
@@ -10418,7 +10418,7 @@ do
                 'listfiles',
                 'delfile',
             })
-            local SLOT_KEY = '__ANTIBRAIN_SESSION_V1'
+            local SLOT_KEY = '__Arch Script Premium_SESSION_V1'
 
             local function claimSlot(environment)
                 if environment[SLOT_KEY] == nil then
@@ -10558,14 +10558,14 @@ do
             return table.freeze(Executor)
         end
 
-        function __ANTIBRAIN_MODULES.av()
-            local v = __ANTIBRAIN_MODULES.cache.av
+        function __Arch Script Premium_MODULES.av()
+            local v = __Arch Script Premium_MODULES.cache.av
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.av = v
+                __Arch Script Premium_MODULES.cache.av = v
             end
 
             return v.c
@@ -10573,7 +10573,7 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
+            local Failure = __Arch Script Premium_MODULES.a()
             local VERSION = 1
             local Options = {}
 
@@ -10639,14 +10639,14 @@ do
             return table.freeze(Options)
         end
 
-        function __ANTIBRAIN_MODULES.aw()
-            local v = __ANTIBRAIN_MODULES.cache.aw
+        function __Arch Script Premium_MODULES.aw()
+            local v = __Arch Script Premium_MODULES.cache.aw
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aw = v
+                __Arch Script Premium_MODULES.cache.aw = v
             end
 
             return v.c
@@ -10654,7 +10654,7 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
+            local Failure = __Arch Script Premium_MODULES.a()
             local Signal = {}
 
             function Signal.new(report)
@@ -10698,14 +10698,14 @@ do
             return table.freeze(Signal)
         end
 
-        function __ANTIBRAIN_MODULES.ax()
-            local v = __ANTIBRAIN_MODULES.cache.ax
+        function __Arch Script Premium_MODULES.ax()
+            local v = __Arch Script Premium_MODULES.cache.ax
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.ax = v
+                __Arch Script Premium_MODULES.cache.ax = v
             end
 
             return v.c
@@ -10713,10 +10713,10 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.b()
 
-            local Options = __ANTIBRAIN_MODULES.aw()
-            local Signal = __ANTIBRAIN_MODULES.ax()
+            local Options = __Arch Script Premium_MODULES.aw()
+            local Signal = __Arch Script Premium_MODULES.ax()
             local Data = {}
 
             function Data.new(registry, id, default, report)
@@ -10756,14 +10756,14 @@ do
             return table.freeze(Data)
         end
 
-        function __ANTIBRAIN_MODULES.ay()
-            local v = __ANTIBRAIN_MODULES.cache.ay
+        function __Arch Script Premium_MODULES.ay()
+            local v = __Arch Script Premium_MODULES.cache.ay
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.ay = v
+                __Arch Script Premium_MODULES.cache.ay = v
             end
 
             return v.c
@@ -10771,8 +10771,8 @@ do
     end
     do
         local function __modImpl()
-            local Scope = __ANTIBRAIN_MODULES.c()
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Scope = __Arch Script Premium_MODULES.c()
+            local Services = __Arch Script Premium_MODULES.k()
             local Backdrop = {}
             local apply
 
@@ -10921,14 +10921,14 @@ do
             return table.freeze(Backdrop)
         end
 
-        function __ANTIBRAIN_MODULES.az()
-            local v = __ANTIBRAIN_MODULES.cache.az
+        function __Arch Script Premium_MODULES.az()
+            local v = __Arch Script Premium_MODULES.cache.az
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.az = v
+                __Arch Script Premium_MODULES.cache.az = v
             end
 
             return v.c
@@ -11037,14 +11037,14 @@ do
             return table.freeze(Palette)
         end
 
-        function __ANTIBRAIN_MODULES.aA()
-            local v = __ANTIBRAIN_MODULES.cache.aA
+        function __Arch Script Premium_MODULES.aA()
+            local v = __Arch Script Premium_MODULES.cache.aA
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aA = v
+                __Arch Script Premium_MODULES.cache.aA = v
             end
 
             return v.c
@@ -11052,10 +11052,10 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local Palette = __ANTIBRAIN_MODULES.aA()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local Palette = __Arch Script Premium_MODULES.aA()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
             local Theme = {}
 
@@ -11133,14 +11133,14 @@ do
             return table.freeze(Theme)
         end
 
-        function __ANTIBRAIN_MODULES.aB()
-            local v = __ANTIBRAIN_MODULES.cache.aB
+        function __Arch Script Premium_MODULES.aB()
+            local v = __Arch Script Premium_MODULES.cache.aB
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aB = v
+                __Arch Script Premium_MODULES.cache.aB = v
             end
 
             return v.c
@@ -11148,13 +11148,13 @@ do
     end
     do
         local function __modImpl()
-            local Palette = __ANTIBRAIN_MODULES.aA()
+            local Palette = __Arch Script Premium_MODULES.aA()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Services = __Arch Script Premium_MODULES.k()
 
-            __ANTIBRAIN_MODULES.aB()
+            __Arch Script Premium_MODULES.aB()
 
             local Kit = {}
 
@@ -11323,14 +11323,14 @@ do
             return table.freeze(Kit)
         end
 
-        function __ANTIBRAIN_MODULES.aC()
-            local v = __ANTIBRAIN_MODULES.cache.aC
+        function __Arch Script Premium_MODULES.aC()
+            local v = __Arch Script Premium_MODULES.cache.aC
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aC = v
+                __Arch Script Premium_MODULES.cache.aC = v
             end
 
             return v.c
@@ -11338,11 +11338,11 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
+            local Failure = __Arch Script Premium_MODULES.a()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Services = __Arch Script Premium_MODULES.k()
             local Pointer = {}
 
             Pointer.location = function()
@@ -11405,14 +11405,14 @@ do
             return table.freeze(Pointer)
         end
 
-        function __ANTIBRAIN_MODULES.aD()
-            local v = __ANTIBRAIN_MODULES.cache.aD
+        function __Arch Script Premium_MODULES.aD()
+            local v = __Arch Script Premium_MODULES.cache.aD
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aD = v
+                __Arch Script Premium_MODULES.cache.aD = v
             end
 
             return v.c
@@ -11420,12 +11420,12 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
+            local Failure = __Arch Script Premium_MODULES.a()
 
-            __ANTIBRAIN_MODULES.aC()
+            __Arch Script Premium_MODULES.aC()
 
-            local Pointer = __ANTIBRAIN_MODULES.aD()
-            local Scope = __ANTIBRAIN_MODULES.c()
+            local Pointer = __Arch Script Premium_MODULES.aD()
+            local Scope = __Arch Script Premium_MODULES.c()
             local Drag = {}
 
             local function outlineOf(kit, target, layer, life)
@@ -11607,14 +11607,14 @@ do
             return table.freeze(Drag)
         end
 
-        function __ANTIBRAIN_MODULES.aE()
-            local v = __ANTIBRAIN_MODULES.cache.aE
+        function __Arch Script Premium_MODULES.aE()
+            local v = __Arch Script Premium_MODULES.cache.aE
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aE = v
+                __Arch Script Premium_MODULES.cache.aE = v
             end
 
             return v.c
@@ -11622,9 +11622,9 @@ do
     end
     do
         local function __modImpl()
-            local Drag = __ANTIBRAIN_MODULES.aE()
-            local Kit = __ANTIBRAIN_MODULES.aC()
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Drag = __Arch Script Premium_MODULES.aE()
+            local Kit = __Arch Script Premium_MODULES.aC()
+            local Services = __Arch Script Premium_MODULES.k()
             local ENTRY_HEIGHT, HEADER_HEIGHT = 18, 23
             local MIN_WIDTH = 210
             local KeybindList = {}
@@ -11760,14 +11760,14 @@ do
             return table.freeze(KeybindList)
         end
 
-        function __ANTIBRAIN_MODULES.aF()
-            local v = __ANTIBRAIN_MODULES.cache.aF
+        function __Arch Script Premium_MODULES.aF()
+            local v = __Arch Script Premium_MODULES.cache.aF
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aF = v
+                __Arch Script Premium_MODULES.cache.aF = v
             end
 
             return v.c
@@ -11775,12 +11775,12 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local Pointer = __ANTIBRAIN_MODULES.aD()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local Pointer = __Arch Script Premium_MODULES.aD()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Services = __Arch Script Premium_MODULES.k()
             local Overlay = {}
 
             local function release(overlay, popup)
@@ -11898,14 +11898,14 @@ do
             return table.freeze(Overlay)
         end
 
-        function __ANTIBRAIN_MODULES.aG()
-            local v = __ANTIBRAIN_MODULES.cache.aG
+        function __Arch Script Premium_MODULES.aG()
+            local v = __Arch Script Premium_MODULES.cache.aG
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aG = v
+                __Arch Script Premium_MODULES.cache.aG = v
             end
 
             return v.c
@@ -11913,10 +11913,10 @@ do
     end
     do
         local function __modImpl()
-            local Kit = __ANTIBRAIN_MODULES.aC()
-            local Overlay = __ANTIBRAIN_MODULES.aG()
-            local Pointer = __ANTIBRAIN_MODULES.aD()
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Kit = __Arch Script Premium_MODULES.aC()
+            local Overlay = __Arch Script Premium_MODULES.aG()
+            local Pointer = __Arch Script Premium_MODULES.aD()
+            local Services = __Arch Script Premium_MODULES.k()
             local TEXT_SIZE, PADDING_X, PADDING_Y, OFFSET_X, OFFSET_Y = 14, 5, 4, 15, 12
             local Tooltip = {}
 
@@ -11983,14 +11983,14 @@ do
             return table.freeze(Tooltip)
         end
 
-        function __ANTIBRAIN_MODULES.aH()
-            local v = __ANTIBRAIN_MODULES.cache.aH
+        function __Arch Script Premium_MODULES.aH()
+            local v = __Arch Script Premium_MODULES.cache.aH
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aH = v
+                __Arch Script Premium_MODULES.cache.aH = v
             end
 
             return v.c
@@ -11998,15 +11998,15 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.b()
-            __ANTIBRAIN_MODULES.aF()
-            __ANTIBRAIN_MODULES.aC()
+            __Arch Script Premium_MODULES.b()
+            __Arch Script Premium_MODULES.aF()
+            __Arch Script Premium_MODULES.aC()
 
-            local Overlay = __ANTIBRAIN_MODULES.aG()
-            local Pointer = __ANTIBRAIN_MODULES.aD()
+            local Overlay = __Arch Script Premium_MODULES.aG()
+            local Pointer = __Arch Script Premium_MODULES.aD()
 
-            __ANTIBRAIN_MODULES.ax()
-            __ANTIBRAIN_MODULES.aH()
+            __Arch Script Premium_MODULES.ax()
+            __Arch Script Premium_MODULES.aH()
 
             local Context = {}
 
@@ -12020,14 +12020,14 @@ do
             return table.freeze(Context)
         end
 
-        function __ANTIBRAIN_MODULES.aI()
-            local v = __ANTIBRAIN_MODULES.cache.aI
+        function __Arch Script Premium_MODULES.aI()
+            local v = __Arch Script Premium_MODULES.cache.aI
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aI = v
+                __Arch Script Premium_MODULES.cache.aI = v
             end
 
             return v.c
@@ -12035,13 +12035,13 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.aC()
+            __Arch Script Premium_MODULES.aC()
 
-            local Pointer = __ANTIBRAIN_MODULES.aD()
+            local Pointer = __Arch Script Premium_MODULES.aD()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Services = __Arch Script Premium_MODULES.k()
             local ARROW = 'rbxassetid://4292970642'
             local Cursor = {}
 
@@ -12136,14 +12136,14 @@ do
             return table.freeze(Cursor)
         end
 
-        function __ANTIBRAIN_MODULES.aJ()
-            local v = __ANTIBRAIN_MODULES.cache.aJ
+        function __Arch Script Premium_MODULES.aJ()
+            local v = __Arch Script Premium_MODULES.cache.aJ
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aJ = v
+                __Arch Script Premium_MODULES.cache.aJ = v
             end
 
             return v.c
@@ -12151,13 +12151,13 @@ do
     end
     do
         local function __modImpl()
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local Kit = __ANTIBRAIN_MODULES.aC()
-            local Palette = __ANTIBRAIN_MODULES.aA()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local Kit = __Arch Script Premium_MODULES.aC()
+            local Palette = __Arch Script Premium_MODULES.aA()
 
-            __ANTIBRAIN_MODULES.c()
+            __Arch Script Premium_MODULES.c()
 
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Services = __Arch Script Premium_MODULES.k()
             local SECONDS, SLIDE = 5, 0.4
             local WIDTH, TOP = 2560, 39
             local Notifications = {}
@@ -12414,14 +12414,14 @@ do
             return table.freeze(Notifications)
         end
 
-        function __ANTIBRAIN_MODULES.aK()
-            local v = __ANTIBRAIN_MODULES.cache.aK
+        function __Arch Script Premium_MODULES.aK()
+            local v = __Arch Script Premium_MODULES.cache.aK
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aK = v
+                __Arch Script Premium_MODULES.cache.aK = v
             end
 
             return v.c
@@ -12429,8 +12429,8 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.aI()
-            __ANTIBRAIN_MODULES.aw()
+            __Arch Script Premium_MODULES.aI()
+            __Arch Script Premium_MODULES.aw()
 
             local Slot = {}
 
@@ -12460,14 +12460,14 @@ do
             return table.freeze(Slot)
         end
 
-        function __ANTIBRAIN_MODULES.aL()
-            local v = __ANTIBRAIN_MODULES.cache.aL
+        function __Arch Script Premium_MODULES.aL()
+            local v = __Arch Script Premium_MODULES.cache.aL
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aL = v
+                __Arch Script Premium_MODULES.cache.aL = v
             end
 
             return v.c
@@ -12475,14 +12475,14 @@ do
     end
     do
         local function __modImpl()
-            local Context = __ANTIBRAIN_MODULES.aI()
+            local Context = __Arch Script Premium_MODULES.aI()
 
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.b()
 
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local Kit = __ANTIBRAIN_MODULES.aC()
-            local Slot = __ANTIBRAIN_MODULES.aL()
-            local Tooltip = __ANTIBRAIN_MODULES.aH()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local Kit = __Arch Script Premium_MODULES.aC()
+            local Slot = __Arch Script Premium_MODULES.aL()
+            local Tooltip = __Arch Script Premium_MODULES.aH()
             local HEIGHT, GAP, CONFIRM_SECONDS = 20, 5, 0.5
             local Button = {}
 
@@ -12587,14 +12587,14 @@ do
             return table.freeze(Button)
         end
 
-        function __ANTIBRAIN_MODULES.aM()
-            local v = __ANTIBRAIN_MODULES.cache.aM
+        function __Arch Script Premium_MODULES.aM()
+            local v = __Arch Script Premium_MODULES.cache.aM
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aM = v
+                __Arch Script Premium_MODULES.cache.aM = v
             end
 
             return v.c
@@ -12721,14 +12721,14 @@ do
             return table.freeze(Values)
         end
 
-        function __ANTIBRAIN_MODULES.aN()
-            local v = __ANTIBRAIN_MODULES.cache.aN
+        function __Arch Script Premium_MODULES.aN()
+            local v = __Arch Script Premium_MODULES.cache.aN
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aN = v
+                __Arch Script Premium_MODULES.cache.aN = v
             end
 
             return v.c
@@ -12736,18 +12736,18 @@ do
     end
     do
         local function __modImpl()
-            local Context = __ANTIBRAIN_MODULES.aI()
+            local Context = __Arch Script Premium_MODULES.aI()
 
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.b()
 
-            local Kit = __ANTIBRAIN_MODULES.aC()
-            local Options = __ANTIBRAIN_MODULES.aw()
-            local Overlay = __ANTIBRAIN_MODULES.aG()
-            local Pointer = __ANTIBRAIN_MODULES.aD()
-            local Signal = __ANTIBRAIN_MODULES.ax()
-            local Slot = __ANTIBRAIN_MODULES.aL()
-            local Tooltip = __ANTIBRAIN_MODULES.aH()
-            local Values = __ANTIBRAIN_MODULES.aN()
+            local Kit = __Arch Script Premium_MODULES.aC()
+            local Options = __Arch Script Premium_MODULES.aw()
+            local Overlay = __Arch Script Premium_MODULES.aG()
+            local Pointer = __Arch Script Premium_MODULES.aD()
+            local Signal = __Arch Script Premium_MODULES.ax()
+            local Slot = __Arch Script Premium_MODULES.aL()
+            local Tooltip = __Arch Script Premium_MODULES.aH()
+            local Values = __Arch Script Premium_MODULES.aN()
             local BOX, ITEM, SHOWN, TEXT, GAP = 20, 20, 8, 13, 5
             local Dropdown = {}
 
@@ -13147,14 +13147,14 @@ do
             return table.freeze(Dropdown)
         end
 
-        function __ANTIBRAIN_MODULES.aO()
-            local v = __ANTIBRAIN_MODULES.cache.aO
+        function __Arch Script Premium_MODULES.aO()
+            local v = __Arch Script Premium_MODULES.cache.aO
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aO = v
+                __Arch Script Premium_MODULES.cache.aO = v
             end
 
             return v.c
@@ -13162,18 +13162,18 @@ do
     end
     do
         local function __modImpl()
-            local Context = __ANTIBRAIN_MODULES.aI()
+            local Context = __Arch Script Premium_MODULES.aI()
 
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.b()
 
-            local Failure = __ANTIBRAIN_MODULES.a()
-            local Identity = __ANTIBRAIN_MODULES._()
-            local Kit = __ANTIBRAIN_MODULES.aC()
-            local Pointer = __ANTIBRAIN_MODULES.aD()
-            local Scope = __ANTIBRAIN_MODULES.c()
-            local Services = __ANTIBRAIN_MODULES.k()
-            local Signal = __ANTIBRAIN_MODULES.ax()
-            local Slot = __ANTIBRAIN_MODULES.aL()
+            local Failure = __Arch Script Premium_MODULES.a()
+            local Identity = __Arch Script Premium_MODULES._()
+            local Kit = __Arch Script Premium_MODULES.aC()
+            local Pointer = __Arch Script Premium_MODULES.aD()
+            local Scope = __Arch Script Premium_MODULES.c()
+            local Services = __Arch Script Premium_MODULES.k()
+            local Signal = __Arch Script Premium_MODULES.ax()
+            local Slot = __Arch Script Premium_MODULES.aL()
             local GAP, ZOOM, HOVER, PRESS, VIEW = 5, 1.6, 1.09375, 0.95, 0.7
             local COLUMNS, BETWEEN, MARGIN, SLACK = 6, 5, 6, 2
             local START = 96
@@ -13789,14 +13789,14 @@ do
             return table.freeze(Gallery)
         end
 
-        function __ANTIBRAIN_MODULES.aP()
-            local v = __ANTIBRAIN_MODULES.cache.aP
+        function __Arch Script Premium_MODULES.aP()
+            local v = __Arch Script Premium_MODULES.cache.aP
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aP = v
+                __Arch Script Premium_MODULES.cache.aP = v
             end
 
             return v.c
@@ -13804,14 +13804,14 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.b()
 
-            local Kit = __ANTIBRAIN_MODULES.aC()
-            local Options = __ANTIBRAIN_MODULES.aw()
-            local Signal = __ANTIBRAIN_MODULES.ax()
-            local Slot = __ANTIBRAIN_MODULES.aL()
-            local Tooltip = __ANTIBRAIN_MODULES.aH()
-            local Values = __ANTIBRAIN_MODULES.aN()
+            local Kit = __Arch Script Premium_MODULES.aC()
+            local Options = __Arch Script Premium_MODULES.aw()
+            local Signal = __Arch Script Premium_MODULES.ax()
+            local Slot = __Arch Script Premium_MODULES.aL()
+            local Tooltip = __Arch Script Premium_MODULES.aH()
+            local Values = __Arch Script Premium_MODULES.aN()
             local TEXT, BOX, GAP, MARGIN = 15, 20, 5, 2
             local TEXT_GAP = 1
             local Input = {}
@@ -13970,14 +13970,14 @@ do
             return table.freeze(Input)
         end
 
-        function __ANTIBRAIN_MODULES.aQ()
-            local v = __ANTIBRAIN_MODULES.cache.aQ
+        function __Arch Script Premium_MODULES.aQ()
+            local v = __Arch Script Premium_MODULES.cache.aQ
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aQ = v
+                __Arch Script Premium_MODULES.cache.aQ = v
             end
 
             return v.c
@@ -13985,11 +13985,11 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.aI()
+            __Arch Script Premium_MODULES.aI()
 
-            local Kit = __ANTIBRAIN_MODULES.aC()
-            local Overlay = __ANTIBRAIN_MODULES.aG()
-            local Pointer = __ANTIBRAIN_MODULES.aD()
+            local Kit = __Arch Script Premium_MODULES.aC()
+            local Overlay = __Arch Script Premium_MODULES.aG()
+            local Pointer = __Arch Script Premium_MODULES.aD()
             local OPTION_HEIGHT, MIN_WIDTH = 15, 60
             local ContextMenu = {}
 
@@ -14081,14 +14081,14 @@ do
             return table.freeze(ContextMenu)
         end
 
-        function __ANTIBRAIN_MODULES.aR()
-            local v = __ANTIBRAIN_MODULES.cache.aR
+        function __Arch Script Premium_MODULES.aR()
+            local v = __Arch Script Premium_MODULES.cache.aR
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aR = v
+                __Arch Script Premium_MODULES.cache.aR = v
             end
 
             return v.c
@@ -14096,17 +14096,17 @@ do
     end
     do
         local function __modImpl()
-            local Context = __ANTIBRAIN_MODULES.aI()
-            local ContextMenu = __ANTIBRAIN_MODULES.aR()
+            local Context = __Arch Script Premium_MODULES.aI()
+            local ContextMenu = __Arch Script Premium_MODULES.aR()
 
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.b()
 
-            local Kit = __ANTIBRAIN_MODULES.aC()
-            local Options = __ANTIBRAIN_MODULES.aw()
-            local Overlay = __ANTIBRAIN_MODULES.aG()
-            local Palette = __ANTIBRAIN_MODULES.aA()
-            local Pointer = __ANTIBRAIN_MODULES.aD()
-            local Signal = __ANTIBRAIN_MODULES.ax()
+            local Kit = __Arch Script Premium_MODULES.aC()
+            local Options = __Arch Script Premium_MODULES.aw()
+            local Overlay = __Arch Script Premium_MODULES.aG()
+            local Palette = __Arch Script Premium_MODULES.aA()
+            local Pointer = __Arch Script Premium_MODULES.aD()
+            local Signal = __Arch Script Premium_MODULES.ax()
             local SQUARE_IMAGE = 'rbxassetid://4155801252'
             local CURSOR_IMAGE = 'rbxassetid://9619665977'
             local SWATCH_CHECKER = 'rbxassetid://12977615774'
@@ -14541,14 +14541,14 @@ do
             return table.freeze(ColorPicker)
         end
 
-        function __ANTIBRAIN_MODULES.aS()
-            local v = __ANTIBRAIN_MODULES.cache.aS
+        function __Arch Script Premium_MODULES.aS()
+            local v = __Arch Script Premium_MODULES.cache.aS
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aS = v
+                __Arch Script Premium_MODULES.cache.aS = v
             end
 
             return v.c
@@ -14556,18 +14556,18 @@ do
     end
     do
         local function __modImpl()
-            local Context = __ANTIBRAIN_MODULES.aI()
-            local ContextMenu = __ANTIBRAIN_MODULES.aR()
+            local Context = __Arch Script Premium_MODULES.aI()
+            local ContextMenu = __Arch Script Premium_MODULES.aR()
 
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.b()
 
-            local KeybindList = __ANTIBRAIN_MODULES.aF()
-            local Kit = __ANTIBRAIN_MODULES.aC()
-            local Options = __ANTIBRAIN_MODULES.aw()
-            local Overlay = __ANTIBRAIN_MODULES.aG()
-            local Pointer = __ANTIBRAIN_MODULES.aD()
-            local Services = __ANTIBRAIN_MODULES.k()
-            local Signal = __ANTIBRAIN_MODULES.ax()
+            local KeybindList = __Arch Script Premium_MODULES.aF()
+            local Kit = __Arch Script Premium_MODULES.aC()
+            local Options = __Arch Script Premium_MODULES.aw()
+            local Overlay = __Arch Script Premium_MODULES.aG()
+            local Pointer = __Arch Script Premium_MODULES.aD()
+            local Services = __Arch Script Premium_MODULES.k()
+            local Signal = __Arch Script Premium_MODULES.ax()
             local MODES = {
                 'Always',
                 'Toggle',
@@ -14839,14 +14839,14 @@ do
             return table.freeze(Keybind)
         end
 
-        function __ANTIBRAIN_MODULES.aT()
-            local v = __ANTIBRAIN_MODULES.cache.aT
+        function __Arch Script Premium_MODULES.aT()
+            local v = __Arch Script Premium_MODULES.cache.aT
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aT = v
+                __Arch Script Premium_MODULES.cache.aT = v
             end
 
             return v.c
@@ -14854,13 +14854,13 @@ do
     end
     do
         local function __modImpl()
-            local ColorPicker = __ANTIBRAIN_MODULES.aS()
+            local ColorPicker = __Arch Script Premium_MODULES.aS()
 
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.b()
 
-            local Keybind = __ANTIBRAIN_MODULES.aT()
-            local Kit = __ANTIBRAIN_MODULES.aC()
-            local Slot = __ANTIBRAIN_MODULES.aL()
+            local Keybind = __Arch Script Premium_MODULES.aT()
+            local Kit = __Arch Script Premium_MODULES.aC()
+            local Slot = __Arch Script Premium_MODULES.aL()
             local HEIGHT, TEXT_SIZE, GAP = 15, 14, 5
             local Label = {}
 
@@ -14951,14 +14951,14 @@ do
             return table.freeze(Label)
         end
 
-        function __ANTIBRAIN_MODULES.aU()
-            local v = __ANTIBRAIN_MODULES.cache.aU
+        function __Arch Script Premium_MODULES.aU()
+            local v = __Arch Script Premium_MODULES.cache.aU
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aU = v
+                __Arch Script Premium_MODULES.cache.aU = v
             end
 
             return v.c
@@ -14966,18 +14966,18 @@ do
     end
     do
         local function __modImpl()
-            local Context = __ANTIBRAIN_MODULES.aI()
+            local Context = __Arch Script Premium_MODULES.aI()
 
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.b()
 
-            local Kit = __ANTIBRAIN_MODULES.aC()
-            local Options = __ANTIBRAIN_MODULES.aw()
-            local Pointer = __ANTIBRAIN_MODULES.aD()
-            local Services = __ANTIBRAIN_MODULES.k()
-            local Signal = __ANTIBRAIN_MODULES.ax()
-            local Slot = __ANTIBRAIN_MODULES.aL()
-            local Tooltip = __ANTIBRAIN_MODULES.aH()
-            local Values = __ANTIBRAIN_MODULES.aN()
+            local Kit = __Arch Script Premium_MODULES.aC()
+            local Options = __Arch Script Premium_MODULES.aw()
+            local Pointer = __Arch Script Premium_MODULES.aD()
+            local Services = __Arch Script Premium_MODULES.k()
+            local Signal = __Arch Script Premium_MODULES.ax()
+            local Slot = __Arch Script Premium_MODULES.aL()
+            local Tooltip = __Arch Script Premium_MODULES.aH()
+            local Values = __Arch Script Premium_MODULES.aN()
             local BAR, TEXT, GAP = 13, 13, 6
             local PER_ROW = 3
             local Slider = {}
@@ -15167,14 +15167,14 @@ do
             return table.freeze(Slider)
         end
 
-        function __ANTIBRAIN_MODULES.aV()
-            local v = __ANTIBRAIN_MODULES.cache.aV
+        function __Arch Script Premium_MODULES.aV()
+            local v = __Arch Script Premium_MODULES.cache.aV
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aV = v
+                __Arch Script Premium_MODULES.cache.aV = v
             end
 
             return v.c
@@ -15182,17 +15182,17 @@ do
     end
     do
         local function __modImpl()
-            local ColorPicker = __ANTIBRAIN_MODULES.aS()
-            local Context = __ANTIBRAIN_MODULES.aI()
+            local ColorPicker = __Arch Script Premium_MODULES.aS()
+            local Context = __Arch Script Premium_MODULES.aI()
 
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.b()
 
-            local Keybind = __ANTIBRAIN_MODULES.aT()
-            local Kit = __ANTIBRAIN_MODULES.aC()
-            local Options = __ANTIBRAIN_MODULES.aw()
-            local Signal = __ANTIBRAIN_MODULES.ax()
-            local Slot = __ANTIBRAIN_MODULES.aL()
-            local Tooltip = __ANTIBRAIN_MODULES.aH()
+            local Keybind = __Arch Script Premium_MODULES.aT()
+            local Kit = __Arch Script Premium_MODULES.aC()
+            local Options = __Arch Script Premium_MODULES.aw()
+            local Signal = __Arch Script Premium_MODULES.ax()
+            local Slot = __Arch Script Premium_MODULES.aL()
+            local Tooltip = __Arch Script Premium_MODULES.aH()
             local SQUARE, GAP, TEXT_X, TEXT_MARGIN, CLICK_WIDTH, SWATCH_WIDTH = 13, 7, 19, 25, 170, 32
             local Toggle = {}
 
@@ -15318,14 +15318,14 @@ do
             return table.freeze(Toggle)
         end
 
-        function __ANTIBRAIN_MODULES.aW()
-            local v = __ANTIBRAIN_MODULES.cache.aW
+        function __Arch Script Premium_MODULES.aW()
+            local v = __Arch Script Premium_MODULES.cache.aW
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aW = v
+                __Arch Script Premium_MODULES.cache.aW = v
             end
 
             return v.c
@@ -15333,19 +15333,19 @@ do
     end
     do
         local function __modImpl()
-            local Button = __ANTIBRAIN_MODULES.aM()
+            local Button = __Arch Script Premium_MODULES.aM()
 
-            __ANTIBRAIN_MODULES.aI()
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.aI()
+            __Arch Script Premium_MODULES.b()
 
-            local Dropdown = __ANTIBRAIN_MODULES.aO()
-            local Gallery = __ANTIBRAIN_MODULES.aP()
-            local Input = __ANTIBRAIN_MODULES.aQ()
-            local Kit = __ANTIBRAIN_MODULES.aC()
-            local Label = __ANTIBRAIN_MODULES.aU()
-            local Slider = __ANTIBRAIN_MODULES.aV()
-            local Slot = __ANTIBRAIN_MODULES.aL()
-            local Toggle = __ANTIBRAIN_MODULES.aW()
+            local Dropdown = __Arch Script Premium_MODULES.aO()
+            local Gallery = __Arch Script Premium_MODULES.aP()
+            local Input = __Arch Script Premium_MODULES.aQ()
+            local Kit = __Arch Script Premium_MODULES.aC()
+            local Label = __Arch Script Premium_MODULES.aU()
+            local Slider = __Arch Script Premium_MODULES.aV()
+            local Slot = __Arch Script Premium_MODULES.aL()
+            local Toggle = __Arch Script Premium_MODULES.aW()
             local HEADER, FOOTER, TOP_GAP = 20, 4, 3
             local DIVIDER_ABOVE, DIVIDER, DIVIDER_BELOW = 2, 5, 9
             local Box = {}
@@ -15466,14 +15466,14 @@ do
             return table.freeze(Box)
         end
 
-        function __ANTIBRAIN_MODULES.aX()
-            local v = __ANTIBRAIN_MODULES.cache.aX
+        function __Arch Script Premium_MODULES.aX()
+            local v = __Arch Script Premium_MODULES.cache.aX
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aX = v
+                __Arch Script Premium_MODULES.cache.aX = v
             end
 
             return v.c
@@ -15481,19 +15481,19 @@ do
     end
     do
         local function __modImpl()
-            local Box = __ANTIBRAIN_MODULES.aX()
+            local Box = __Arch Script Premium_MODULES.aX()
 
-            __ANTIBRAIN_MODULES.aI()
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.aI()
+            __Arch Script Premium_MODULES.b()
 
-            local Drag = __ANTIBRAIN_MODULES.aE()
-            local Kit = __ANTIBRAIN_MODULES.aC()
+            local Drag = __Arch Script Premium_MODULES.aE()
+            local Kit = __Arch Script Premium_MODULES.aC()
 
-            __ANTIBRAIN_MODULES.aw()
+            __Arch Script Premium_MODULES.aw()
 
-            local Overlay = __ANTIBRAIN_MODULES.aG()
-            local Slot = __ANTIBRAIN_MODULES.aL()
-            local Tooltip = __ANTIBRAIN_MODULES.aH()
+            local Overlay = __Arch Script Premium_MODULES.aG()
+            local Slot = __Arch Script Premium_MODULES.aL()
+            local Tooltip = __Arch Script Premium_MODULES.aH()
             local TITLE, OPENS_X, OPENS_Y, BESIDE_GAP = 25, 175, 50, 8
             local MARGIN, FOOT = 8, 3
             local TOP, BOTTOM = 1 + TITLE + 8 + MARGIN, FOOT + 8 + 8 + 1
@@ -15655,14 +15655,14 @@ do
             return table.freeze(Popout)
         end
 
-        function __ANTIBRAIN_MODULES.aY()
-            local v = __ANTIBRAIN_MODULES.cache.aY
+        function __Arch Script Premium_MODULES.aY()
+            local v = __Arch Script Premium_MODULES.cache.aY
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aY = v
+                __Arch Script Premium_MODULES.cache.aY = v
             end
 
             return v.c
@@ -15670,9 +15670,9 @@ do
     end
     do
         local function __modImpl()
-            local Drag = __ANTIBRAIN_MODULES.aE()
-            local Kit = __ANTIBRAIN_MODULES.aC()
-            local Palette = __ANTIBRAIN_MODULES.aA()
+            local Drag = __Arch Script Premium_MODULES.aE()
+            local Kit = __Arch Script Premium_MODULES.aC()
+            local Palette = __Arch Script Premium_MODULES.aA()
             local WIDTH, HEIGHT, LEFT = 77, 30, 0.008
             local TouchButton = {}
 
@@ -15742,14 +15742,14 @@ do
             return table.freeze(TouchButton)
         end
 
-        function __ANTIBRAIN_MODULES.aZ()
-            local v = __ANTIBRAIN_MODULES.cache.aZ
+        function __Arch Script Premium_MODULES.aZ()
+            local v = __Arch Script Premium_MODULES.cache.aZ
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.aZ = v
+                __Arch Script Premium_MODULES.cache.aZ = v
             end
 
             return v.c
@@ -15757,16 +15757,16 @@ do
     end
     do
         local function __modImpl()
-            local Box = __ANTIBRAIN_MODULES.aX()
+            local Box = __Arch Script Premium_MODULES.aX()
 
-            __ANTIBRAIN_MODULES.aI()
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.aI()
+            __Arch Script Premium_MODULES.b()
 
-            local Kit = __ANTIBRAIN_MODULES.aC()
+            local Kit = __Arch Script Premium_MODULES.aC()
 
-            __ANTIBRAIN_MODULES.aw()
+            __Arch Script Premium_MODULES.aw()
 
-            local Slot = __ANTIBRAIN_MODULES.aL()
+            local Slot = __Arch Script Premium_MODULES.aL()
             local Groupbox = {}
 
             function Groupbox.new(context, column, order, registry, title)
@@ -15800,14 +15800,14 @@ do
             return table.freeze(Groupbox)
         end
 
-        function __ANTIBRAIN_MODULES.a_()
-            local v = __ANTIBRAIN_MODULES.cache.a_
+        function __Arch Script Premium_MODULES.a_()
+            local v = __Arch Script Premium_MODULES.cache.a_
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.a_ = v
+                __Arch Script Premium_MODULES.cache.a_ = v
             end
 
             return v.c
@@ -15815,16 +15815,16 @@ do
     end
     do
         local function __modImpl()
-            local Box = __ANTIBRAIN_MODULES.aX()
-            local Context = __ANTIBRAIN_MODULES.aI()
+            local Box = __Arch Script Premium_MODULES.aX()
+            local Context = __Arch Script Premium_MODULES.aI()
 
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.b()
 
-            local Kit = __ANTIBRAIN_MODULES.aC()
+            local Kit = __Arch Script Premium_MODULES.aC()
 
-            __ANTIBRAIN_MODULES.aw()
+            __Arch Script Premium_MODULES.aw()
 
-            local Slot = __ANTIBRAIN_MODULES.aL()
+            local Slot = __Arch Script Premium_MODULES.aL()
             local Tabbox = {}
 
             function Tabbox.new(context, column, order, registry)
@@ -15936,14 +15936,14 @@ do
             return table.freeze(Tabbox)
         end
 
-        function __ANTIBRAIN_MODULES.a0()
-            local v = __ANTIBRAIN_MODULES.cache.a0
+        function __Arch Script Premium_MODULES.a0()
+            local v = __Arch Script Premium_MODULES.cache.a0
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.a0 = v
+                __Arch Script Premium_MODULES.cache.a0 = v
             end
 
             return v.c
@@ -15951,7 +15951,7 @@ do
     end
     do
         local function __modImpl()
-            local Kit = __ANTIBRAIN_MODULES.aC()
+            local Kit = __Arch Script Premium_MODULES.aC()
             local TITLE, TEXT_SIZE, GAP = 18, 14, 5
             local Warning = {}
 
@@ -16065,14 +16065,14 @@ do
             return table.freeze(Warning)
         end
 
-        function __ANTIBRAIN_MODULES.a1()
-            local v = __ANTIBRAIN_MODULES.cache.a1
+        function __Arch Script Premium_MODULES.a1()
+            local v = __Arch Script Premium_MODULES.cache.a1
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.a1 = v
+                __Arch Script Premium_MODULES.cache.a1 = v
             end
 
             return v.c
@@ -16080,16 +16080,16 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.aI()
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.aI()
+            __Arch Script Premium_MODULES.b()
 
-            local Groupbox = __ANTIBRAIN_MODULES.a_()
-            local Kit = __ANTIBRAIN_MODULES.aC()
+            local Groupbox = __Arch Script Premium_MODULES.a_()
+            local Kit = __Arch Script Premium_MODULES.aC()
 
-            __ANTIBRAIN_MODULES.aw()
+            __Arch Script Premium_MODULES.aw()
 
-            local Tabbox = __ANTIBRAIN_MODULES.a0()
-            local Warning = __ANTIBRAIN_MODULES.a1()
+            local Tabbox = __Arch Script Premium_MODULES.a0()
+            local Warning = __Arch Script Premium_MODULES.a1()
             local MARGIN, BETWEEN, WARNING_X = 7, 8, 8
             local Tab = {}
 
@@ -16176,14 +16176,14 @@ do
             return table.freeze(Tab)
         end
 
-        function __ANTIBRAIN_MODULES.a2()
-            local v = __ANTIBRAIN_MODULES.cache.a2
+        function __Arch Script Premium_MODULES.a2()
+            local v = __Arch Script Premium_MODULES.cache.a2
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.a2 = v
+                __Arch Script Premium_MODULES.cache.a2 = v
             end
 
             return v.c
@@ -16191,13 +16191,13 @@ do
     end
     do
         local function __modImpl()
-            local Context = __ANTIBRAIN_MODULES.aI()
-            local Drag = __ANTIBRAIN_MODULES.aE()
-            local Kit = __ANTIBRAIN_MODULES.aC()
+            local Context = __Arch Script Premium_MODULES.aI()
+            local Drag = __Arch Script Premium_MODULES.aE()
+            local Kit = __Arch Script Premium_MODULES.aC()
 
-            __ANTIBRAIN_MODULES.aw()
+            __Arch Script Premium_MODULES.aw()
 
-            local Tab = __ANTIBRAIN_MODULES.a2()
+            local Tab = __Arch Script Premium_MODULES.a2()
             local WIDTH, HEIGHT, MIN_WIDTH, MIN_HEIGHT = 550, 650, 550, 300
             local TITLE, TAB_GAP, TAB_PADDING = 25, 8, 12
 
@@ -16416,14 +16416,14 @@ do
             return table.freeze(Window)
         end
 
-        function __ANTIBRAIN_MODULES.a3()
-            local v = __ANTIBRAIN_MODULES.cache.a3
+        function __Arch Script Premium_MODULES.a3()
+            local v = __Arch Script Premium_MODULES.cache.a3
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.a3 = v
+                __Arch Script Premium_MODULES.cache.a3 = v
             end
 
             return v.c
@@ -16431,28 +16431,28 @@ do
     end
     do
         local function __modImpl()
-            local Backdrop = __ANTIBRAIN_MODULES.az()
+            local Backdrop = __Arch Script Premium_MODULES.az()
 
-            __ANTIBRAIN_MODULES.aI()
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.aI()
+            __Arch Script Premium_MODULES.b()
 
-            local Cursor = __ANTIBRAIN_MODULES.aJ()
-            local KeybindList = __ANTIBRAIN_MODULES.aF()
-            local Kit = __ANTIBRAIN_MODULES.aC()
-            local Notifications = __ANTIBRAIN_MODULES.aK()
+            local Cursor = __Arch Script Premium_MODULES.aJ()
+            local KeybindList = __Arch Script Premium_MODULES.aF()
+            local Kit = __Arch Script Premium_MODULES.aC()
+            local Notifications = __Arch Script Premium_MODULES.aK()
 
-            __ANTIBRAIN_MODULES.aw()
+            __Arch Script Premium_MODULES.aw()
 
-            local Overlay = __ANTIBRAIN_MODULES.aG()
-            local Palette = __ANTIBRAIN_MODULES.aA()
-            local Popout = __ANTIBRAIN_MODULES.aY()
-            local Scope = __ANTIBRAIN_MODULES.c()
-            local Services = __ANTIBRAIN_MODULES.k()
-            local Signal = __ANTIBRAIN_MODULES.ax()
-            local Theme = __ANTIBRAIN_MODULES.aB()
-            local Tooltip = __ANTIBRAIN_MODULES.aH()
-            local TouchButton = __ANTIBRAIN_MODULES.aZ()
-            local Window = __ANTIBRAIN_MODULES.a3()
+            local Overlay = __Arch Script Premium_MODULES.aG()
+            local Palette = __Arch Script Premium_MODULES.aA()
+            local Popout = __Arch Script Premium_MODULES.aY()
+            local Scope = __Arch Script Premium_MODULES.c()
+            local Services = __Arch Script Premium_MODULES.k()
+            local Signal = __Arch Script Premium_MODULES.ax()
+            local Theme = __Arch Script Premium_MODULES.aB()
+            local Tooltip = __Arch Script Premium_MODULES.aH()
+            local TouchButton = __Arch Script Premium_MODULES.aZ()
+            local Window = __Arch Script Premium_MODULES.a3()
             local BACKDROP, OUTLINES, WINDOW, POPOUTS, CURSOR = 997, 998, 999, 1000, 1001
             local Library = {}
 
@@ -16622,14 +16622,14 @@ do
             return table.freeze(Library)
         end
 
-        function __ANTIBRAIN_MODULES.a4()
-            local v = __ANTIBRAIN_MODULES.cache.a4
+        function __Arch Script Premium_MODULES.a4()
+            local v = __Arch Script Premium_MODULES.cache.a4
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.a4 = v
+                __Arch Script Premium_MODULES.cache.a4 = v
             end
 
             return v.c
@@ -16637,10 +16637,10 @@ do
     end
     do
         local function __modImpl()
-            local Backdrop = __ANTIBRAIN_MODULES.az()
+            local Backdrop = __Arch Script Premium_MODULES.az()
 
-            __ANTIBRAIN_MODULES.b()
-            __ANTIBRAIN_MODULES.a4()
+            __Arch Script Premium_MODULES.b()
+            __Arch Script Premium_MODULES.a4()
 
             local BackgroundTab = {}
 
@@ -16727,14 +16727,14 @@ do
             return table.freeze(BackgroundTab)
         end
 
-        function __ANTIBRAIN_MODULES.a5()
-            local v = __ANTIBRAIN_MODULES.cache.a5
+        function __Arch Script Premium_MODULES.a5()
+            local v = __Arch Script Premium_MODULES.cache.a5
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.a5 = v
+                __Arch Script Premium_MODULES.cache.a5 = v
             end
 
             return v.c
@@ -16742,8 +16742,8 @@ do
     end
     do
         local function __modImpl()
-            local Files = __ANTIBRAIN_MODULES.ar()
-            local Paths = __ANTIBRAIN_MODULES.at()
+            local Files = __Arch Script Premium_MODULES.ar()
+            local Paths = __Arch Script Premium_MODULES.at()
             local Preferences = {}
 
             local function fileName(value)
@@ -16801,14 +16801,14 @@ do
             return table.freeze(Preferences)
         end
 
-        function __ANTIBRAIN_MODULES.a6()
-            local v = __ANTIBRAIN_MODULES.cache.a6
+        function __Arch Script Premium_MODULES.a6()
+            local v = __Arch Script Premium_MODULES.cache.a6
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.a6 = v
+                __Arch Script Premium_MODULES.cache.a6 = v
             end
 
             return v.c
@@ -16816,16 +16816,16 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.b()
 
-            local Files = __ANTIBRAIN_MODULES.ar()
+            local Files = __Arch Script Premium_MODULES.ar()
 
-            __ANTIBRAIN_MODULES.a4()
+            __Arch Script Premium_MODULES.a4()
 
-            local Options = __ANTIBRAIN_MODULES.aw()
-            local Paths = __ANTIBRAIN_MODULES.at()
-            local Preferences = __ANTIBRAIN_MODULES.a6()
-            local Services = __ANTIBRAIN_MODULES.k()
+            local Options = __Arch Script Premium_MODULES.aw()
+            local Paths = __Arch Script Premium_MODULES.at()
+            local Preferences = __Arch Script Premium_MODULES.a6()
+            local Services = __Arch Script Premium_MODULES.k()
             local ConfigurationBox = {}
 
             local function save(sources)
@@ -17117,14 +17117,14 @@ do
             return table.freeze(ConfigurationBox)
         end
 
-        function __ANTIBRAIN_MODULES.a7()
-            local v = __ANTIBRAIN_MODULES.cache.a7
+        function __Arch Script Premium_MODULES.a7()
+            local v = __Arch Script Premium_MODULES.cache.a7
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.a7 = v
+                __Arch Script Premium_MODULES.cache.a7 = v
             end
 
             return v.c
@@ -17132,11 +17132,11 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.b()
 
-            local KeybindList = __ANTIBRAIN_MODULES.aF()
+            local KeybindList = __Arch Script Premium_MODULES.aF()
 
-            __ANTIBRAIN_MODULES.a4()
+            __Arch Script Premium_MODULES.a4()
 
             local MenuTab = {}
 
@@ -17206,14 +17206,14 @@ do
             return table.freeze(MenuTab)
         end
 
-        function __ANTIBRAIN_MODULES.a8()
-            local v = __ANTIBRAIN_MODULES.cache.a8
+        function __Arch Script Premium_MODULES.a8()
+            local v = __Arch Script Premium_MODULES.cache.a8
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.a8 = v
+                __Arch Script Premium_MODULES.cache.a8 = v
             end
 
             return v.c
@@ -17221,10 +17221,10 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.b()
-            __ANTIBRAIN_MODULES.a4()
+            __Arch Script Premium_MODULES.b()
+            __Arch Script Premium_MODULES.a4()
 
-            local Notifications = __ANTIBRAIN_MODULES.aK()
+            local Notifications = __Arch Script Premium_MODULES.aK()
             local NotificationsTab = {}
 
             NotificationsTab.CONFIG_IDS = table.freeze({
@@ -17422,14 +17422,14 @@ do
             return table.freeze(NotificationsTab)
         end
 
-        function __ANTIBRAIN_MODULES.a9()
-            local v = __ANTIBRAIN_MODULES.cache.a9
+        function __Arch Script Premium_MODULES.a9()
+            local v = __Arch Script Premium_MODULES.cache.a9
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.a9 = v
+                __Arch Script Premium_MODULES.cache.a9 = v
             end
 
             return v.c
@@ -17437,16 +17437,16 @@ do
     end
     do
         local function __modImpl()
-            __ANTIBRAIN_MODULES.b()
+            __Arch Script Premium_MODULES.b()
 
-            local Files = __ANTIBRAIN_MODULES.ar()
+            local Files = __Arch Script Premium_MODULES.ar()
 
-            __ANTIBRAIN_MODULES.a4()
+            __Arch Script Premium_MODULES.a4()
 
-            local Options = __ANTIBRAIN_MODULES.aw()
-            local Palette = __ANTIBRAIN_MODULES.aA()
-            local Paths = __ANTIBRAIN_MODULES.at()
-            local Preferences = __ANTIBRAIN_MODULES.a6()
+            local Options = __Arch Script Premium_MODULES.aw()
+            local Palette = __Arch Script Premium_MODULES.aA()
+            local Paths = __Arch Script Premium_MODULES.at()
+            local Preferences = __Arch Script Premium_MODULES.a6()
             local ThemesTab = {}
 
             ThemesTab.THEME_IDS = table.freeze({
@@ -17711,14 +17711,14 @@ do
             return table.freeze(ThemesTab)
         end
 
-        function __ANTIBRAIN_MODULES.ba()
-            local v = __ANTIBRAIN_MODULES.cache.ba
+        function __Arch Script Premium_MODULES.ba()
+            local v = __Arch Script Premium_MODULES.cache.ba
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.ba = v
+                __Arch Script Premium_MODULES.cache.ba = v
             end
 
             return v.c
@@ -17726,15 +17726,15 @@ do
     end
     do
         local function __modImpl()
-            local BackgroundTab = __ANTIBRAIN_MODULES.a5()
-            local ConfigurationBox = __ANTIBRAIN_MODULES.a7()
+            local BackgroundTab = __Arch Script Premium_MODULES.a5()
+            local ConfigurationBox = __Arch Script Premium_MODULES.a7()
 
-            __ANTIBRAIN_MODULES.a4()
+            __Arch Script Premium_MODULES.a4()
 
-            local MenuTab = __ANTIBRAIN_MODULES.a8()
-            local NotificationsTab = __ANTIBRAIN_MODULES.a9()
-            local Options = __ANTIBRAIN_MODULES.aw()
-            local ThemesTab = __ANTIBRAIN_MODULES.ba()
+            local MenuTab = __Arch Script Premium_MODULES.a8()
+            local NotificationsTab = __Arch Script Premium_MODULES.a9()
+            local Options = __Arch Script Premium_MODULES.aw()
+            local ThemesTab = __Arch Script Premium_MODULES.ba()
             local SettingsTab = {}
 
             SettingsTab.NAME = 'settings'
@@ -17787,14 +17787,14 @@ do
             return table.freeze(SettingsTab)
         end
 
-        function __ANTIBRAIN_MODULES.bb()
-            local v = __ANTIBRAIN_MODULES.cache.bb
+        function __Arch Script Premium_MODULES.bb()
+            local v = __Arch Script Premium_MODULES.cache.bb
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.bb = v
+                __Arch Script Premium_MODULES.cache.bb = v
             end
 
             return v.c
@@ -17802,15 +17802,15 @@ do
     end
     do
         local function __modImpl()
-            local Data = __ANTIBRAIN_MODULES.ay()
-            local Failure = __ANTIBRAIN_MODULES.a()
+            local Data = __Arch Script Premium_MODULES.ay()
+            local Failure = __Arch Script Premium_MODULES.a()
 
-            __ANTIBRAIN_MODULES.d()
+            __Arch Script Premium_MODULES.d()
 
-            local Library = __ANTIBRAIN_MODULES.a4()
-            local Meta = __ANTIBRAIN_MODULES.as()
-            local Options = __ANTIBRAIN_MODULES.aw()
-            local SettingsTab = __ANTIBRAIN_MODULES.bb()
+            local Library = __Arch Script Premium_MODULES.a4()
+            local Meta = __Arch Script Premium_MODULES.as()
+            local Options = __Arch Script Premium_MODULES.aw()
+            local SettingsTab = __Arch Script Premium_MODULES.bb()
             local View = {}
 
             function View.mount(context)
@@ -17916,14 +17916,14 @@ do
             return table.freeze(View)
         end
 
-        function __ANTIBRAIN_MODULES.bc()
-            local v = __ANTIBRAIN_MODULES.cache.bc
+        function __Arch Script Premium_MODULES.bc()
+            local v = __Arch Script Premium_MODULES.cache.bc
 
             if not v then
                 v = {
                     c = __modImpl(),
                 }
-                __ANTIBRAIN_MODULES.cache.bc = v
+                __Arch Script Premium_MODULES.cache.bc = v
             end
 
             return v.c
@@ -17931,12 +17931,12 @@ do
     end
 end
 
-local App = __ANTIBRAIN_MODULES.i()
-local Catalog = __ANTIBRAIN_MODULES.aq()
-local Executor = __ANTIBRAIN_MODULES.av()
-local Failure = __ANTIBRAIN_MODULES.a()
-local Meta = __ANTIBRAIN_MODULES.as()
-local View = __ANTIBRAIN_MODULES.bc()
+local App = __Arch Script Premium_MODULES.i()
+local Catalog = __Arch Script Premium_MODULES.aq()
+local Executor = __Arch Script Premium_MODULES.av()
+local Failure = __Arch Script Premium_MODULES.a()
+local Meta = __Arch Script Premium_MODULES.as()
+local View = __Arch Script Premium_MODULES.bc()
 local connected, platform = xpcall(Executor.connect, Failure.traceback)
 
 if not connected then
