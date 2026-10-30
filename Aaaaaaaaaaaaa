@@ -1,0 +1,1762 @@
+--[[
+    EXTRACTED MODULE: Ragebot / Counter / Priority
+    Source: antibrain script
+    Contains:
+      - Targets (priority system)
+      - Counter system (full: state, step, loop, resolve, rescue)
+      - CounterControls (UI builder)
+      - Attacks (void spam, knife, melee, gun, cycle)
+      - Ragebot.start
+      - Ragebot UI builder (ragebot function / settings)
+--]]
+
+-- ============================================================
+-- SECTION 1: TARGETS / PRIORITY
+-- ============================================================
+
+local Targets = (function()
+    local VOID = 1000000
+    local Targets = {}
+
+    -- Creates a new priority state object.
+    -- settings : () -> settings table
+    -- notify   : (string) -> void
+    -- scope    : Scope (optional, for auto-cleanup)
+    function Targets.priority(settings, notify, scope)
+        return {
+            players  = {},
+            notify   = notify,
+            settings = settings,
+            scope    = scope,
+            current  = nil,
+        }
+    end
+
+    -- Adds a player to the priority list.
+    -- Sends a notification if settings().notify is true.
+    -- Auto-removes the player when they leave the game.
+    function Targets.prioritize(priority, player, me)
+        if player == me or table.find(priority.players, player) then
+            return
+        end
+
+        table.insert(priority.players, player)
+
+        local leaving = player.AncestryChanged:Once(function()
+            local at = table.find(priority.players, player)
+            if at then
+                table.remove(priority.players, at)
+            end
+        end)
+
+        local owner = priority.scope
+        if owner and leaving then
+            owner:add(function()
+                leaving:Disconnect()
+            end)
+        end
+
+        if priority.settings().notify then
+            priority.notify(string.format('Added %s to ragebot priority', tostring(player.Name)))
+        end
+    end
+
+    -- Internal: checks if a player/dueler pair is a valid attack target.
+    -- Returns a target record or nil.
+    local function candidate(player, dueler, me)
+        if player == me or type(dueler) ~= 'table' or dueler._is_ally then
+            return nil
+        end
+
+        local character = player.Character
+        local humanoid  = character and character:FindFirstChildOfClass('Humanoid')
+
+        if not character or not humanoid or not (humanoid.Health > 0) then
+            return nil
+        end
+
+        local root     = character:FindFirstChild('HumanoidRootPart')
+        local distance = (root and root:IsA('BasePart'))
+            and root.Position.Magnitude
+            or  math.huge
+
+        if not (distance < VOID) then
+            return nil
+        end
+
+        local head    = character:FindFirstChild('HitboxHead')
+        local fighter = dueler.ClientFighter
+
+        -- Fighter module stubs (replace with real imports):
+        -- Fighter.invincible(fighter) -> bool
+        -- Fighter.deflecting(fighter) -> bool
+        if not head or not head:IsA('BasePart') or not fighter then
+            return nil
+        end
+        if not (head.Position.Magnitude < VOID) then
+            return nil
+        end
+
+        return {
+            part      = head,
+            character = character,
+            fighter   = fighter,
+            name      = player.Name,
+            health    = humanoid.Health,
+        }
+    end
+
+    Targets.candidate = candidate
+
+    -- Picks the best target from the current duelers table.
+    -- priority  : priority object from Targets.priority()
+    -- duelers   : { [Player] = duelerData }
+    -- me        : LocalPlayer
+    -- reachable : (target) -> bool  (optional visibility check)
+    function Targets.pick(priority, duelers, me, reachable)
+        local options  = priority.settings()
+        local checked  = {}
+        local rejected = {}
+
+        local function available(player, dueler)
+            if rejected[player] then return nil end
+
+            local target = checked[player] or candidate(player, dueler, me)
+
+            if target and (not reachable or checked[player] or reachable(target)) then
+                checked[player] = target
+                return target
+            end
+
+            rejected[player] = true
+            return nil
+        end
+
+        -- Auto-prioritize path
+        if options.autoPrioritize then
+            -- Add voided players to the priority list
+            if options.join['voided players'] then
+                for player, dueler in duelers do
+                    local character = player.Character
+                    local root = character and character:FindFirstChild('HumanoidRootPart')
+
+                    if player ~= me
+                        and not dueler._is_ally
+                        and root and root:IsA('BasePart')
+                        and root.Position.Magnitude > VOID
+                    then
+                        Targets.prioritize(priority, player, me)
+                    end
+                end
+            end
+
+            -- Try priority list first
+            for _, player in priority.players do
+                local dueler = duelers[player]
+                local target = dueler and available(player, dueler)
+
+                if target then
+                    priority.current = player
+                    return target
+                end
+            end
+        end
+
+        -- Stick to current target if still valid
+        local current       = priority.current
+        local currentDueler = current and duelers[current]
+        local held          = (current and currentDueler)
+            and available(current, currentDueler)
+            or  nil
+
+        if held then
+            return held
+        end
+
+        -- Fall back to lowest-health target
+        local best, selected = nil, nil
+
+        for player, dueler in duelers do
+            local target = available(player, dueler)
+
+            if target and (
+                not best
+                or target.health < best.health
+                or (target.health == best.health and target.name < best.name)
+            ) then
+                best, selected = target, player
+            end
+        end
+
+        priority.current = selected
+        return best
+    end
+
+    return Targets
+end)()
+
+
+-- ============================================================
+-- SECTION 2: COUNTER SYSTEM
+-- ============================================================
+-- Depends on: Blink, Desync, Fighter, Modules, Services,
+--             Shot, Swing, Watch  (game-specific imports)
+
+local Counter = (function()
+    -- Constants
+    local LIFT      = 6000
+    local CEILING   = 40000
+    local HOP_EVERY = 4
+    local HOP_MIN   = 1000
+    local HOP_MAX   = 2000
+    local EYE       = 1.75
+    local CAMERA    = 1.8
+    local ORDER     = 1.5
+
+    local NAMES = {
+        ue    = 'ue counter',
+        solix = 'solix counter',
+        kicia = 'kicia counter',
+    }
+
+    -- Blink engine defaults (exposed for UI dropdowns)
+    -- Replace with actual Blink.DEFAULTS from your Blink module.
+    local ENGINE_DEFAULTS = {}
+
+    -- --------------------------------------------------------
+    -- Helper: teleport to a spawn point
+    -- --------------------------------------------------------
+    local function toSpawn(Modules, Services)
+        return function()
+            local character = Modules.player().Character
+            local part = character and character:FindFirstChild('HumanoidRootPart')
+
+            if not part or not part:IsA('BasePart') then return end
+
+            local duel   = Modules.controller('SpectateController').CurrentDuelSubject
+            local map    = (type(duel) == 'table' and type(duel.Map) == 'table') and duel.Map.Model or nil
+            local folder = (typeof(map) == 'Instance') and map:FindFirstChild('Spawns') or nil
+
+            if not folder then return end
+
+            for _, spawn in folder:GetDescendants() do
+                if spawn:IsA('BasePart') then
+                    part.AssemblyLinearVelocity = Vector3.zero
+                    part.CFrame = CFrame.new(spawn.Position + Vector3.new(0, 3, 0))
+                    return
+                end
+            end
+        end
+    end
+
+    -- --------------------------------------------------------
+    -- resolve(): builds the deps table the counter step needs.
+    -- Call once per session.
+    -- --------------------------------------------------------
+    local function resolve(run, services, Modules, Blink, Desync, Fighter, Shot, Swing, Watch, Services)
+        local me       = Modules.player()
+        local fighters = Modules.controller('FighterController')
+        local spectate = Modules.controller('SpectateController')
+        local enums    = Modules.shared('EnumLibrary')
+        local useItem  = Modules.remote({'Replication', 'Fighter', 'UseItem'})
+        local random   = Random.new()
+        local watch    = Watch.new()
+
+        local function send(...)
+            useItem:FireServer(...)
+        end
+
+        local function root()
+            local character = me.Character
+            local part = character and character:FindFirstChild('HumanoidRootPart')
+            return (part and part:IsA('BasePart')) and part or nil
+        end
+
+        return {
+            now = tick,
+
+            fighter = function()
+                local fighter = fighters.LocalFighter
+                return (Fighter.alive(fighter, me)) and fighter or nil
+            end,
+
+            root = root,
+
+            opponents = function(part)
+                return Watch.update(watch, me, spectate.CurrentDuelSubject, part.Position)
+            end,
+
+            height = function(part)
+                return part.Position.Y
+            end,
+
+            equip = function(fighter, item)
+                run:spawn(fighter.EquipItem, fighter, item.Data.ItemIndex)
+            end,
+
+            -- Lifts root part to anchor.y + LIFT
+            lift = function(part, anchor)
+                part.CFrame = CFrame.new(anchor.x, anchor.y + LIFT, anchor.z) * part.CFrame.Rotation
+            end,
+
+            -- Random horizontal hop
+            hop = function(part)
+                local angle    = random:NextNumber(0, math.pi * 2)
+                local distance = random:NextNumber(HOP_MIN, HOP_MAX)
+                part.CFrame = part.CFrame + Vector3.new(
+                    math.cos(angle) * distance, 0, math.sin(angle) * distance
+                )
+            end,
+
+            -- Set vertical velocity (climbing)
+            rise = function(part, speed)
+                part.AssemblyLinearVelocity = Vector3.new(0, speed, 0)
+            end,
+
+            -- Drop onto target with lead compensation
+            drop = function(part, opponent, lead)
+                local position = opponent.position
+                local moving   = opponent.velocity * Vector3.new(1, 0, 1)
+                local at = position + (
+                    (moving.Magnitude > 1) and (moving.Unit * lead) or Vector3.zero
+                )
+                part.CFrame = CFrame.new(at) * part.CFrame.Rotation
+                part.AssemblyLinearVelocity = Vector3.zero
+            end,
+
+            -- Rescue: put player back above anchor or at spawn
+            rescue = function(anchor)
+                local part = root()
+                if part and anchor then
+                    part.AssemblyLinearVelocity = Vector3.zero
+                    part.CFrame = CFrame.new(anchor.x, anchor.y + 3, anchor.z)
+                else
+                    toSpawn(Modules, Services)()
+                end
+            end,
+
+            -- Snapshot camera data before drop
+            prepare = function()
+                local fighter = fighters.LocalFighter
+                if type(fighter) == 'table' then
+                    local ok, data = pcall(fighter.GetCameraData, fighter)
+                    return (ok and type(data) == 'table') and table.clone(data) or nil
+                end
+                return nil
+            end,
+
+            -- Physics replication trick
+            replicate = function(part)
+                local setIdentity = setthreadidentity
+                local setHidden   = sethiddenproperty
+                if type(setIdentity) == 'function' then setIdentity(8) end
+                if type(setHidden)   == 'function' then
+                    setHidden(part, 'PhysicsRepRootPart', Services.Workspace.Terrain)
+                end
+            end,
+
+            -- Swing melee at target
+            swing = function(item, part, taken)
+                local own = root()
+                if not own then return end
+
+                if taken then
+                    local animation = Swing.animation(item, false)
+                    if animation then
+                        local sent = table.clone(taken)
+                        sent['\0'] = Shot.pack(CFrame.new(own.Position + Vector3.new(0, CAMERA, 0)))
+
+                        send(item:Get('ObjectID'), enums:ToEnum('StartShooting'), {
+                            ['\1'] = sent,
+                            ['\2'] = enums:ToEnum(animation),
+                        }, nil)
+                    end
+                    return
+                end
+
+                local eye   = own.Position + Vector3.new(0, EYE, 0)
+                local level = Vector3.new(part.Position.X, eye.Y, part.Position.Z)
+                local aim   = ((level - eye).Magnitude > 0.01)
+                    and CFrame.lookAt(eye, level)
+                    or  CFrame.new(eye)
+
+                Swing.send(send, enums, item, aim, part, false)
+            end,
+
+            position = function(part)
+                local p = part.Position
+                return { x = p.X, y = p.Y, z = p.Z }
+            end,
+
+            -- All spawn spots for the current map
+            spots = function()
+                local duel   = spectate.CurrentDuelSubject
+                local map    = (type(duel) == 'table' and type(duel.Map) == 'table') and duel.Map.Model or nil
+                local folder = (typeof(map) == 'Instance') and map:FindFirstChild('Spawns') or nil
+                local spots  = {}
+
+                if folder then
+                    for _, part in folder:GetDescendants() do
+                        if part:IsA('BasePart') then
+                            local pos = part.Position
+                            table.insert(spots, {
+                                x     = pos.X,
+                                z     = pos.Z,
+                                floor = pos.Y - part.Size.Y / 2,
+                            })
+                        end
+                    end
+                end
+
+                return spots
+            end,
+
+            -- Place root at blink pose
+            place = function(part, pose)
+                local pitch = pose.flying and (-math.pi / 2) or (math.pi / 2)
+                part.CFrame = CFrame.new(pose.x, pose.y, pose.z) * CFrame.Angles(pitch, 0, 0)
+                part.AssemblyLinearVelocity = Vector3.zero
+            end,
+
+            random = function()
+                return random:NextNumber()
+            end,
+
+            heartbeat = Services.RunService.Heartbeat,
+
+            -- Join desync frame (nil when services unavailable)
+            join = services and function(frame)
+                Desync.join(run, services, ORDER, function()
+                    frame()
+                    return nil
+                end, frame)
+            end or nil,
+        }
+    end
+
+    -- --------------------------------------------------------
+    -- Counter.new(): initial state for one counter session
+    -- --------------------------------------------------------
+    local function counterNew()
+        return {
+            life      = false,
+            born      = 0,
+            hopAt     = 0,
+            equipAt   = 0,
+            mode      = nil,
+            last      = nil,
+            blink     = nil, -- set to Blink.new()
+            drop      = nil,
+            nextDrop  = 0,
+            anchor    = nil,
+        }
+    end
+
+    -- --------------------------------------------------------
+    -- Internals
+    -- --------------------------------------------------------
+
+    local function isMelee(item)
+        return type(item) == 'table'
+            and type(item.Info) == 'table'
+            and item.Info.Type == 'Melee'
+    end
+
+    local function short(height)
+        local size = math.abs(height)
+        if size >= 1e6 then
+            return string.format('%sM', tostring(math.floor(height / 1e5) / 10))
+        elseif size >= 1e4 then
+            return string.format('%sK', tostring(math.floor(height / 1e2) / 10))
+        end
+        return tostring(math.floor(height))
+    end
+
+    local function over(counter, forget)
+        if forget then counter.anchor = nil end
+        counter.life     = false
+        counter.last     = nil
+        counter.drop     = nil
+        counter.nextDrop = 0
+        -- Blink.reset(counter.blink)  -- call with your Blink module
+    end
+
+    local function allowed(opponent, settings)
+        return (not settings.enemiesOnly or not opponent.ally)
+            and (not settings.aliveOnly  or opponent.health > 0)
+    end
+
+    local function first(list, priority, random)
+        if #list == 0 then return nil end
+        if priority == 'random' then
+            return list[math.clamp(math.floor(random() * #list) + 1, 1, #list)]
+        end
+
+        local best = list[1]
+        for i = 2, #list do
+            local other = list[i]
+            local better =
+                (priority == 'a to z') and (other.name < best.name)
+                or (priority == 'z to a') and (other.name > best.name)
+                or (other.health < best.health)
+
+            if better then best = other end
+        end
+
+        return best
+    end
+
+    local function choose(counter, opponents, settings, now, random)
+        local bots, legits = {}, {}
+
+        for _, opponent in opponents do
+            if opponent.health > 0 and opponent.inside and allowed(opponent, settings) then
+                table.insert(opponent.rager and bots or legits, opponent)
+            end
+        end
+
+        local priority = settings.legits.priority
+
+        if settings.bots.on and #bots > 0 then
+            return first(bots, priority, random), settings.bots
+        end
+
+        local legit = settings.legits
+        if legit.on and #legits > 0 and #legits <= legit.max
+            and now - counter.born >= legit.delay
+        then
+            return first(legits, priority, random), legit
+        end
+
+        return nil, nil
+    end
+
+    -- --------------------------------------------------------
+    -- Counter.step(): run every frame
+    -- Returns: status string or nil (nil = inactive/silent)
+    -- --------------------------------------------------------
+    local function counterStep(counter, deps, settings, Blink)
+        if not settings.active then
+            if counter.life then deps.rescue(counter.anchor) end
+            over(counter, true)
+            return nil
+        end
+
+        local fighter = deps.fighter()
+        local root    = fighter and deps.root()
+
+        if not fighter or not root then
+            over(counter, true)
+            return 'counter: no character...'
+        end
+
+        if counter.mode ~= settings.mode then
+            if counter.life then deps.rescue(counter.anchor) end
+            over(counter, false)
+            counter.mode = settings.mode
+        end
+
+        if not counter.anchor then
+            counter.anchor = deps.position(root)
+        end
+
+        local from      = counter.anchor
+        local opponents = deps.opponents(root)
+        local now       = deps.now()
+        local item      = fighter.EquippedItem
+        local holding   = isMelee(item)
+
+        -- Auto-equip melee when swapToMelee is on
+        if settings.swapToMelee and not holding and now >= counter.equipAt then
+            for _, carried in fighter.Items do
+                if isMelee(carried) then
+                    deps.equip(fighter, carried)
+                    counter.equipAt = now + settings.swapEvery
+                    break
+                end
+            end
+        end
+
+        local delta    = counter.last and (now - counter.last) or 0
+        counter.last   = now
+
+        if not counter.life then
+            counter.born = now
+            deps.prepare(root)
+        end
+
+        local name   = NAMES[settings.mode] or settings.mode
+        local status
+        local target = nil
+        local fresh  = false
+
+        if settings.mode == 'solix' or settings.mode == 'kicia' then
+            -- Blink-based engines: place directly at blink pose
+            counter.life = true
+
+            local spots = (settings.mode == 'solix') and deps.spots() or nil
+            -- Blink.pose() returns { x, y, z, flying }
+            local pose  = Blink.pose(counter.blink, now, delta, from, spots, deps.random, settings.engine)
+
+            deps.place(root, pose)
+
+            status = string.format('%s: at %s...', tostring(name), tostring(short(pose.y)))
+
+        else
+            -- UE engine: lift -> hop -> drop onto target
+            local drop = counter.drop
+
+            if drop and now >= drop.ends then
+                counter.drop, counter.nextDrop = nil, drop.ends + drop.gap
+                drop = nil
+                deps.lift(root, from)
+            end
+
+            if drop then
+                for _, opponent in opponents do
+                    if opponent.name == drop.name
+                        and opponent.health > 0
+                        and opponent.inside
+                        and allowed(opponent, settings)
+                    then
+                        target = opponent
+                    end
+                end
+
+                if not target then
+                    counter.drop, counter.nextDrop = nil, now
+                    deps.lift(root, from)
+                end
+
+            elseif counter.life and now >= counter.nextDrop then
+                local chosen, group = choose(counter, opponents, settings, now, deps.random)
+
+                if chosen and group then
+                    target = chosen
+                    fresh  = true
+                    counter.drop = {
+                        name  = chosen.name,
+                        ends  = now + group.stay,
+                        gap   = group.gap,
+                        lead  = group.lead,
+                    }
+                end
+            end
+
+            local dropping = counter.drop
+
+            if target and dropping then
+                deps.drop(root, target, dropping.lead)
+                if fresh then deps.replicate(root) end
+                status = string.format('%s: dropping on %s...', tostring(name), tostring(target.name))
+            else
+                if not counter.life then
+                    counter.life  = true
+                    counter.hopAt = now + HOP_EVERY
+                    deps.lift(root, from)
+                elseif deps.height(root) > CEILING then
+                    deps.lift(root, from)
+                elseif now >= counter.hopAt then
+                    counter.hopAt = now + HOP_EVERY
+                    deps.hop(root)
+                end
+
+                deps.rise(root, settings.voidSpeed)
+
+                status = string.format('%s: climbing...', tostring(name))
+            end
+        end
+
+        -- Swing melee at nearest reachable target while airborne
+        if holding and now >= (item._equip_cooldown or 0) then
+            local aim = target
+            if not aim then
+                for _, opponent in opponents do
+                    if allowed(opponent, settings)
+                        and (not aim or opponent.distance < aim.distance)
+                    then
+                        aim = opponent
+                    end
+                end
+            end
+            if aim then
+                -- taken = camera snapshot; pass nil if not available
+                deps.swing(item, aim.part, nil)
+            end
+        end
+
+        return status
+    end
+
+    -- --------------------------------------------------------
+    -- Counter.loop(): attach to run scope, fires every frame
+    -- --------------------------------------------------------
+    local function counterLoop(run, settings, deps, report, Blink)
+        local counter = counterNew()
+        counter.blink = Blink.new()
+
+        local function frame()
+            local status = counterStep(counter, deps, settings(), Blink)
+            if report then report(status) end
+        end
+
+        if deps.join then
+            deps.join(frame)
+        else
+            run:connect(
+                assert(deps.heartbeat, 'the counter needs a frame signal'),
+                frame
+            )
+        end
+    end
+
+    -- Public API
+    return {
+        HOP_EVERY = HOP_EVERY,
+        CEILING   = CEILING,
+        ENGINE    = ENGINE_DEFAULTS,
+        resolve   = resolve,
+        new       = counterNew,
+        step      = counterStep,
+        loop      = counterLoop,
+        rescue    = toSpawn,   -- call as rescue(Modules, Services)()
+    }
+end)()
+
+
+-- ============================================================
+-- SECTION 3: COUNTER UI CONTROLS BUILDER
+-- ============================================================
+-- Call CounterControls.build(box, ui) to add counter widgets.
+
+local CounterControls = (function()
+    -- Maps display names to internal engine keys
+    local ENGINES = {
+        ['ue counter']    = 'ue',
+        ['kicia counter'] = 'kicia',
+        ['solix counter'] = 'solix',
+    }
+
+    local CounterControls = {}
+
+    -- box : groupbox or tabbox element from your UI library
+    -- ui  : { id = function(localId) -> string }
+    -- Returns: { counter = toggleControl, settings = () -> settingsTable }
+    function CounterControls.build(box, ui)
+        local counter = box:toggle(ui.id('counter'), {
+            text    = 'enabled',
+            default = false,
+            tooltip = [[throws your character far out of the map and drops onto enemies ]]
+                   .. [[for a split second at a time, swinging your melee. ]]
+                   .. [[while it is on the ragebot rests; use it against ragebots]],
+        })
+
+        local key = counter:keybind(ui.id('counter-key'), {
+            text = 'counter',
+        })
+
+        local options = box:dependent(function()
+            return counter.value
+        end)
+
+        local engine = options:dropdown(ui.id('counter-engine'), {
+            text    = 'engine',
+            values  = { 'ue counter', 'kicia counter', 'solix counter' },
+            default = 'ue counter',
+            tooltip = [[ue climbs out of the map and drops onto enemies; ]]
+                   .. [[kicia and solix blink between the sky and under your spawn]],
+        })
+
+        -- Only show drop-onto-target settings for ue engine
+        local drops = options:dependent(function()
+            return engine.value == 'ue counter'
+        end)
+
+        local attackBots = drops:toggle(ui.id('counter-bots'), {
+            text    = 'attack ragebots',
+            default = true,
+            tooltip = [[drops onto players using a ragebot when they come into the map]],
+        })
+
+        local attackLegits = drops:toggle(ui.id('counter-legits'), {
+            text    = 'attack legits',
+            default = true,
+            tooltip = [[also drops onto normal players, three seconds after you spawn, while only one is alive]],
+        })
+
+        -- Rescue button: teleports you back to spawn if stuck out of map
+        box:button({
+            text     = 'get me out of the void',
+            callback = Counter.rescue,
+            tooltip  = [[puts you back above your spawn, should you ever be left stuck far out of the map]],
+        })
+
+        -- Default settings table (mutated and returned each frame)
+        local settings = {
+            active      = false,
+            mode        = 'ue',
+            enemiesOnly = true,
+            aliveOnly   = true,
+            swapToMelee = true,
+            swapEvery   = 0.3,
+            voidSpeed   = 3000,
+            engine      = Counter.ENGINE,
+            bots = {
+                on   = true,
+                stay = 0.35,
+                gap  = 0.5,
+                lead = 6,
+            },
+            legits = {
+                on       = true,
+                stay     = 0.35,
+                gap      = 0.5,
+                lead     = 6,
+                delay    = 3,
+                max      = 1,
+                priority = 'lowest health',
+            },
+        }
+
+        return {
+            counter = counter,
+            settings = function()
+                settings.active        = key:active()
+                settings.mode          = ENGINES[engine.value or 'ue counter'] or 'ue'
+                settings.bots.on       = attackBots.value
+                settings.legits.on     = attackLegits.value
+                return settings
+            end,
+        }
+    end
+
+    return CounterControls
+end)()
+
+
+-- ============================================================
+-- SECTION 4: ATTACKS (void spam / gun / knife / melee / cycle)
+-- ============================================================
+-- Depends on: Shot, Swing, Origins, CameraHold, Pose, Desync,
+--             Aiming (game-specific)
+
+local Attacks = (function()
+    local SETTLE      = 0.05
+    local EYE         = 1.75
+    local CROUCHED_EYE = 0.25
+
+    local Attacks = {}
+
+    -- Creates initial Attacks state.
+    -- deps fields:
+    --   settings()     -> settings table (live, called each frame)
+    --   enums          -> EnumLibrary
+    --   use(...)       -> FireServer wrapper
+    --   hide()         -> void CFrame (Void.resolver result)
+    --   hold           -> CameraHold handle
+    --   clear(from,to) -> bool (raycast line-of-sight)
+    --   equip(fighter, item)
+    --   replicationDelay() -> number
+    --   replicate(root)
+    function Attacks.new(deps)
+        return {
+            deps          = deps,
+            server        = nil,
+            meleeAt       = tick(),
+            swingAt       = tick(),
+            physicsAt     = tick(),
+            shotAt        = tick(),
+            spamAt        = tick(),
+            hiding        = false,
+            burstAt       = nil,
+            burstAmmo     = nil,
+            attackPose    = nil,
+            attackTarget  = nil,
+            attackItem    = nil,
+            attackMode    = nil,
+            attackPosition = nil,
+            poseFired     = false,
+            equipItem     = nil,
+            equipAt       = 0,
+            reloadItem    = nil,
+            reloadAt      = 0,
+        }
+    end
+
+    -- Clears attack attachment state (called on target change or void)
+    local function detach(attacks)
+        attacks.attackPose     = nil
+        attacks.attackTarget   = nil
+        attacks.attackItem     = nil
+        attacks.attackMode     = nil
+        attacks.attackPosition = nil
+        attacks.burstAt        = nil
+        attacks.burstAmmo      = nil
+        attacks.poseFired      = false
+    end
+
+    -- Full reset (between rounds / when ragebot deactivates)
+    function Attacks.reset(attacks)
+        detach(attacks)
+        attacks.hiding    = false
+        attacks.spamAt    = tick()
+        attacks.equipItem = nil
+        attacks.reloadItem = nil
+        attacks.equipAt   = 0
+        attacks.reloadAt  = 0
+    end
+
+    -- --------------------------------------------------------
+    -- Void spam state machine
+    -- Returns true while the character should be hiding in void
+    -- --------------------------------------------------------
+    local function spamming(attacks)
+        local options = attacks.deps.settings()
+
+        if not options.voidSpam then
+            attacks.hiding  = false
+            attacks.spamAt  = tick()
+            attacks.burstAt = nil
+            return false
+        end
+
+        local now          = tick()
+        local item, ammo, started = attacks.attackItem, attacks.burstAmmo, attacks.burstAt
+        local confirmed = item and ammo and started
+            and (item.Data.Ammo or ammo) < ammo
+            and (item.Info.ShootCooldown or 0) > options.voidAttack
+            and now >= started + SETTLE
+
+        if attacks.hiding then
+            if now >= attacks.spamAt then
+                attacks.hiding = false
+            end
+        elseif confirmed
+            or (attacks.burstAt and now >= attacks.burstAt + math.max(options.voidAttack, SETTLE))
+            or (not attacks.attackPose and now >= attacks.spamAt)
+        then
+            attacks.hiding = true
+            attacks.spamAt = now + options.voidHide
+        end
+
+        return attacks.hiding
+    end
+
+    -- --------------------------------------------------------
+    -- Physics placement helpers
+    -- --------------------------------------------------------
+    local function place(attacks, root, at)
+        attacks.server = at
+        if at then root.CFrame = at end
+        attacks.deps.replicate(root)
+    end
+
+    local function settle(attacks, root)
+        detach(attacks)
+        attacks.physicsAt = tick() + SETTLE
+        place(attacks, root, attacks.deps.hide())
+    end
+
+    local function attach(attacks, root, item, target, mode, pose)
+        local held, position = attacks.attackPose, attacks.attackPosition
+        local reuse   = mode == 'gun'
+            and attacks.attackMode == mode
+            and attacks.attackItem == item
+            and held == pose
+        local changed = not held
+            or (attacks.attackTarget ~= target.part and not reuse)
+            or attacks.attackItem  ~= item
+            or attacks.attackMode  ~= mode
+            or not position
+            or (mode == 'gun' and held ~= pose)
+        local moved = mode ~= 'gun'
+            and position
+            and (target.part.Position - position).Magnitude > 2
+
+        if changed or (moved and attacks.poseFired) then
+            settle(attacks, root)
+            attacks.attackPose     = pose
+            attacks.attackTarget   = target.part
+            attacks.attackItem     = item
+            attacks.attackMode     = mode
+            attacks.attackPosition = target.part.Position
+            attacks.burstAt        = nil
+            attacks.burstAmmo      = nil
+            attacks.physicsAt = tick() + math.max(SETTLE,
+                (attacks.deps.replicationDelay and attacks.deps.replicationDelay() or SETTLE)
+            )
+        end
+
+        local ready = tick() >= attacks.physicsAt
+
+        if ready and not attacks.burstAt then
+            attacks.burstAt   = tick()
+            attacks.burstAmmo = attacks.attackItem
+                and attacks.attackItem.Data
+                and attacks.attackItem.Data.Ammo
+                or nil
+        end
+
+        place(attacks, root, pose)
+        attacks.poseFired = attacks.poseFired or ready
+
+        return pose, ready
+    end
+
+    -- --------------------------------------------------------
+    -- Equip helper
+    -- --------------------------------------------------------
+    local function equip(attacks, fighter, item)
+        attacks.equipItem = item
+        attacks.equipAt   = tick() + 0.25
+
+        local schedule = attacks.deps.equip
+        if schedule then
+            schedule(fighter, item)
+        else
+            task.spawn(fighter.EquipItem, fighter, item.Data.ItemIndex)
+        end
+    end
+
+    -- --------------------------------------------------------
+    -- Shield detection helpers
+    -- --------------------------------------------------------
+    local function shield(fighter)
+        if type(fighter) ~= 'table' then return false, false end
+
+        for _, item in fighter.Items do
+            if type(item) == 'table' and item.Name == 'Riot Shield' then
+                if fighter.EquippedItem == item then
+                    return true, true
+                end
+                return true, false
+            end
+        end
+
+        return false, false
+    end
+
+    local function beyondShield(target, reach)
+        local has, held = shield(target.fighter)
+        if not has then return nil end
+
+        local facing = CFrame.new(target.part.Position) * target.fighter:GetRotationCFrame()
+        return (facing * CFrame.new(0, 0, (held and reach or -reach))).Position
+    end
+
+    local function around(target, reach)
+        local position = target.part.Position
+        local from     = beyondShield(target, reach)
+            or position + Random.new():NextUnitVector() * reach
+        return CFrame.new(from, position)
+    end
+
+    -- --------------------------------------------------------
+    -- Burst tracking
+    -- --------------------------------------------------------
+    local function beginBurst(attacks, now)
+        if not attacks.burstAt then
+            attacks.burstAt   = now
+            attacks.burstAmmo = attacks.attackItem
+                and attacks.attackItem.Data
+                and attacks.attackItem.Data.Ammo
+                or nil
+        end
+    end
+
+    -- --------------------------------------------------------
+    -- Shoot: fires the gun at target N times
+    -- --------------------------------------------------------
+    local function shoot(deps, item, target, aim, attempts)
+        for _ = 1, attempts do
+            local arguments = {
+                ['\1'] = {
+                    ['\0'] = deps.Shot.pack(aim),  -- replace deps.Shot with your Shot module
+                    ['\1'] = deps.Shot.pack(aim),
+                    ['\2'] = target.part,
+                    ['\3'] = deps.Shot.pack(deps.Shot.scatter()),
+                },
+                ['\2'] = true,
+            }
+            if item.Name == 'Revolver' then
+                arguments['\3'] = true
+            end
+            deps.use(item:Get('ObjectID'), deps.enums:ToEnum('StartShooting'), arguments, nil)
+        end
+    end
+
+    -- --------------------------------------------------------
+    -- Reload helper
+    -- --------------------------------------------------------
+    local function reload(attacks, item)
+        local deps = attacks.deps
+        local now  = tick()
+
+        if attacks.reloadItem == item and now < attacks.reloadAt then return end
+
+        attacks.reloadItem = item
+        attacks.reloadAt   = now + 0.25
+
+        local results = { item:StartReloading() }
+        if table.remove(results, 1) ~= true then return end
+
+        local action = table.remove(results, 1)
+        if type(action) ~= 'string' then return end
+
+        local arguments = {}
+        for i, v in results do
+            arguments[utf8.char(i)] = v
+        end
+
+        deps.use(item:Get('ObjectID'), deps.enums:ToEnum(action), arguments, nil)
+    end
+
+    -- --------------------------------------------------------
+    -- Gun selection: prefer primary or secondary, skip empty
+    -- --------------------------------------------------------
+    local function ammunition(item)
+        if (item.Data.Ammo or 0) > 0 then return true, false end
+        return false, (item.Data.AmmoReserve or 0) == 0
+    end
+
+    local function chooseGun(guns, options)
+        local first, last, step = 1, #guns, 1
+        if not options.primary then
+            first, last, step = #guns, 1, -1
+        end
+
+        local chosen = nil
+
+        for i = first, last, step do
+            local item = guns[i]
+            local loaded, empty = ammunition(item)
+            local candidate = { item = item, loaded = loaded, empty = empty }
+
+            if loaded or not empty then
+                local reloading = tick() < (item._reload_cooldown or 0)
+                local threads   = item._reload_threads
+
+                if item.Info.ReloadType == 'Segmented' and type(threads) == 'table' then
+                    local active = threads[#threads]
+                    reloading = reloading or (active and coroutine.status(active) ~= 'dead')
+                end
+
+                if not options.swapWhenEmpty or (loaded and not reloading) then
+                    return candidate
+                end
+
+                chosen = chosen or candidate
+            end
+        end
+
+        return chosen
+    end
+
+    -- --------------------------------------------------------
+    -- knife(): backstab attack
+    -- --------------------------------------------------------
+    local function knife(attacks, fighter, root, item, target, CameraHold, Pose, Swing)
+        local deps = attacks.deps
+
+        if fighter.EquippedItem ~= item then
+            equip(attacks, fighter, item)
+            settle(attacks, root)
+            return 'void...'
+        end
+        if not target or tick() < (item._equip_cooldown or 0) then
+            settle(attacks, root)
+            return 'void...'
+        end
+        if spamming(attacks) then
+            settle(attacks, root)
+            return 'void spamming...'
+        end
+
+        local now    = tick()
+        local facing = type(target.fighter.GetRotationCFrame) == 'function'
+            and (CFrame.new(target.part.Position) * target.fighter:GetRotationCFrame())
+            or  target.part.CFrame
+        local behind   = facing * CFrame.new(0, 0, 3)
+        local previous = attacks.attackPose
+        local pose, ready = attach(attacks, root, item, target, 'knife', behind)
+        local aim = CFrame.lookAt(pose.Position, target.part.Position)
+
+        if previous ~= pose or (ready and now >= attacks.swingAt) then
+            local pitch, yaw = aim:ToOrientation()
+            CameraHold.send(deps.hold, Pose.encode(pitch, yaw))
+        end
+
+        if ready and now >= attacks.swingAt then
+            if not Swing.send(deps.use, deps.enums, item, aim, target.part, true) then
+                settle(attacks, root)
+                return 'invalid knife animation... (void)'
+            end
+            attacks.swingAt = now + 1 / 60
+            beginBurst(attacks, now)
+        end
+
+        return ready
+            and string.format('backstabbing %s...', tostring(target.name))
+            or  string.format('attaching %s...', tostring(target.name))
+    end
+
+    -- --------------------------------------------------------
+    -- melee(): generic melee attack
+    -- --------------------------------------------------------
+    local function melee(attacks, fighter, root, item, target, Swing)
+        local deps = attacks.deps
+
+        local function wait()
+            settle(attacks, root)
+            attacks.meleeAt = tick() + SETTLE
+        end
+
+        if fighter.EquippedItem ~= item then
+            equip(attacks, fighter, item)
+            wait()
+            return 'void...'
+        end
+        if not target then
+            wait()
+            return 'void...'
+        end
+        if tick() < (item._equip_cooldown or 0) then
+            wait()
+            return 'void...'
+        end
+        if spamming(attacks) then
+            wait()
+            return 'void spamming...'
+        end
+
+        local now = tick()
+        local pose, ready = attach(attacks, root, item, target, 'melee', around(target, 3))
+        local aim = CFrame.lookAt(pose.Position, target.part.Position)
+
+        if ready and now >= attacks.meleeAt and now >= attacks.swingAt then
+            if not Swing.send(deps.use, deps.enums, item, aim, target.part, false) then
+                wait()
+                return 'invalid melee animation... (void)'
+            end
+            attacks.swingAt = now + 1 / 60
+            beginBurst(attacks, now)
+        end
+
+        return ready
+            and string.format('attacking %s...', tostring(target.name))
+            or  string.format('attaching %s...', tostring(target.name))
+    end
+
+    -- --------------------------------------------------------
+    -- gun(): ranged attack
+    -- --------------------------------------------------------
+    local function gun(attacks, fighter, root, guns, target, status, Origins)
+        local options = attacks.deps.settings()
+        local chosen  = chooseGun(guns, options)
+
+        if not chosen then
+            settle(attacks, root)
+            return 'no usable item(s)... (void)'
+        end
+
+        local item = chosen.item
+
+        if fighter.EquippedItem ~= item then
+            equip(attacks, fighter, item)
+            settle(attacks, root)
+            return 'void...'
+        end
+
+        -- Segmented reload check
+        if item.Info.ReloadType == 'Segmented' then
+            local threads = item._reload_threads
+            local thread  = threads[#threads]
+            if thread and coroutine.status(thread) ~= 'dead' then
+                settle(attacks, root)
+                return 'reloading...'
+            end
+        end
+
+        local now = tick()
+
+        if now < (item._equip_cooldown or 0) then settle(attacks, root) return 'void...' end
+        if now < (item._reload_cooldown or 0) then settle(attacks, root) return 'reloading...' end
+        if status ~= 'RoundStarted' then settle(attacks, root) return 'void...' end
+
+        if not chosen.loaded and not chosen.empty then
+            reload(attacks, item)
+            settle(attacks, root)
+            return 'reloading...'
+        end
+
+        if not target then settle(attacks, root) return 'void...' end
+        if spamming(attacks) then settle(attacks, root) return 'void spamming...' end
+
+        local position = target.part.Position
+        local above    = beyondShield(target, 2) or position + Vector3.new(0, 3, 0)
+        local eyeH     = fighter:IsCrouching() and CROUCHED_EYE or EYE
+        local eye      = Vector3.new(0, eyeH, 0)
+        local clear    = attacks.deps.clear or function() return true end
+        local hasShield = shield(target.fighter)
+
+        local held = (attacks.attackMode == 'gun'
+            and attacks.attackItem == item
+            and not hasShield)
+            and attacks.attackPose
+            or  nil
+
+        local route = (held
+            and not attacks.poseFired
+            and attacks.attackTarget == target.part
+            and clear(held.Position + eye, position)
+            and held)
+            or Origins.gun(position, above, eye, held, clear)
+
+        if not route then
+            settle(attacks, root)
+            return string.format('blocked %s... (void)', tostring(target.name))
+        end
+
+        local pose, ready = attach(attacks, root, item, target, 'gun', route)
+        local aim = CFrame.lookAt(pose.Position + eye, position)
+
+        if ready and now >= attacks.shotAt then
+            attacks.shotAt = now + 1 / 120
+            beginBurst(attacks, now)
+            shoot(attacks.deps, item, target, aim, options.shootAttempts)
+        end
+
+        return ready
+            and string.format('killing %s...', tostring(target.name))
+            or  string.format('attaching %s...', tostring(target.name))
+    end
+
+    -- --------------------------------------------------------
+    -- Attacks.cycle(): main dispatch, called every desync frame
+    -- Returns: server (CFrame or nil), doing (status string)
+    -- Pass CameraHold, Pose, Swing, Origins as additional args
+    -- --------------------------------------------------------
+    function Attacks.cycle(attacks, fighter, root, target, status, _deltaTime, Origins, CameraHold, Pose, Swing)
+        attacks.server = nil
+
+        local mode          = attacks.deps.settings().mode
+        local guns, chosen  = {}, nil
+
+        for _, item in fighter.Items do
+            if item.Info.Type == 'Gun' then
+                table.insert(guns, item)
+            elseif mode == 'knife' and item.Name == 'Knife' then
+                chosen = item
+                break
+            elseif mode == 'melee' and item.Info.Type == 'Melee' then
+                chosen = item
+                break
+            end
+        end
+
+        local doing
+
+        if chosen and mode == 'knife' then
+            doing = knife(attacks, fighter, root, chosen, target, CameraHold, Pose, Swing)
+        elseif chosen then
+            doing = melee(attacks, fighter, root, chosen, target, Swing)
+        elseif #guns > 0 then
+            doing = gun(attacks, fighter, root, guns, target, status, Origins)
+        else
+            doing = 'invalid weapons for ragebot'
+        end
+
+        return attacks.server, doing
+    end
+
+    return Attacks
+end)()
+
+
+-- ============================================================
+-- SECTION 5: RAGEBOT SYSTEM
+-- ============================================================
+-- Depends on: Targets, Attacks, Aiming, Desync, FighterEvents,
+--             Encoder, CameraHold, Identity, Origins, RageReport,
+--             Void, Services, Modules  (game-specific)
+
+local Ragebot = (function()
+    local ORDER = 1
+    local Ragebot = {}
+
+    -- Ragebot.start(): main entry point.
+    -- run        : Scope
+    -- settings   : () -> settingsTable   (live, called every frame)
+    -- services   : services table
+    -- notify     : (string) -> void
+    -- counterOn  : () -> bool  (returns true when counter is active)
+    function Ragebot.start(run, settings, services, notify, counterOn,
+        Modules, Services, Targets_m, Attacks_m,
+        Aiming, Desync, FighterEvents, Encoder,
+        CameraHold, Identity, Origins, RageReport, Void)
+
+        local me       = Modules.player()
+        local fighters = Modules.controller('FighterController')
+        local spectate = Modules.controller('SpectateController')
+        local enums    = Modules.shared('EnumLibrary')
+        local constants = Modules.shared('CONSTANTS')
+        local useItem  = Modules.remote({'Replication', 'Fighter', 'UseItem'})
+        local setIdentity = setthreadidentity
+        local setHidden   = sethiddenproperty
+        local terrain  = Services.Workspace.Terrain
+        local real     = nil
+        local params   = RaycastParams.new()
+
+        params.FilterType = Enum.RaycastFilterType.Exclude
+
+        local function duel()
+            local current = spectate.CurrentDuelSubject
+            return (type(current) == 'table') and current or nil
+        end
+
+        Encoder.use(run, services)
+
+        -- Priority system
+        local priority = Targets_m.priority(settings, function(message)
+            Identity.restore()
+            notify(message)
+        end, run)
+
+        -- Attack state
+        local attacks = Attacks_m.new({
+            settings = settings,
+            enums    = enums,
+            use      = function(...)
+                useItem:FireServer(...)
+            end,
+            hide = Void.resolver(duel, constants.IS_PRIVATE_SERVER == true, function()
+                return real
+            end),
+            hold  = CameraHold.use(run, services),
+            clear = function(from, to)
+                return Services.Workspace:Raycast(from, to - from, params) == nil
+            end,
+            equip = function(fighter, item)
+                run:spawn(fighter.EquipItem, fighter, item.Data.ItemIndex)
+            end,
+            replicationDelay = function()
+                return math.max(0.05, me:GetNetworkPing() * 2 + 1 / 30)
+            end,
+            replicate = function(root)
+                if type(setIdentity) == 'function' then setIdentity(8) end
+                if type(setHidden)   == 'function' then
+                    setHidden(root, 'PhysicsRepRootPart', terrain)
+                end
+            end,
+        })
+
+        local hurt = enums:ToEnum('HurtEffect')
+
+        -- Auto-prioritize attackers on hurt events
+        FighterEvents.listen(run, services, function(kind, effect, detail)
+            if kind ~= 'EntityChanged' or effect ~= hurt or type(detail) ~= 'table' then
+                return
+            end
+
+            local part     = detail['\2']
+            local attacker = (typeof(part) == 'Instance' and part.Parent)
+                and Services.Players:GetPlayerFromCharacter(part.Parent)
+                or  nil
+
+            if attacker and Aiming.ragebotActive(services) and settings().join.attackers then
+                Targets_m.prioritize(priority, attacker, me)
+            end
+        end)
+
+        local function stop()
+            Attacks_m.reset(attacks)
+            priority.current = nil
+            RageReport.set(services, nil)
+        end
+
+        -- Main desync frame
+        Desync.join(run, services, ORDER, function(cframe, root, deltaTime)
+            local fighter = fighters.LocalFighter
+
+            if not settings().active or counterOn() or type(fighter) ~= 'table' then
+                stop()
+                return nil
+            end
+
+            real = cframe.Position
+
+            local current = duel()
+            local status  = (current and type(current.Data) == 'table')
+                and current.Data.Status
+                or  nil
+            local duelers = current and current._duelers_by_player or nil
+
+            -- Build raycast exclusion list
+            local excluded = {}
+            if me.Character then table.insert(excluded, me.Character) end
+            if type(duelers) == 'table' then
+                for player in duelers do
+                    if player.Character then
+                        table.insert(excluded, player.Character)
+                    end
+                end
+            end
+            local camera = Services.Workspace.CurrentCamera
+            if camera then table.insert(excluded, camera) end
+            params.FilterDescendantsInstances = excluded
+
+            -- Line-of-sight check for gun mode
+            local function reachable(checked)
+                if settings().mode ~= 'gun' then return true end
+
+                local position = checked.part.Position
+                local eye      = Vector3.new(0, fighter:IsCrouching() and 0.25 or 1.75, 0)
+
+                return Origins.gun(
+                    position,
+                    position + Vector3.new(0, 3, 0),
+                    eye,
+                    attacks.attackPose,
+                    function(from, to)
+                        return Services.Workspace:Raycast(from, to - from, params) == nil
+                    end
+                ) ~= nil
+            end
+
+            local target = (status == 'RoundStarted' and type(duelers) == 'table')
+                and Targets_m.pick(priority, duelers, me, reachable)
+                or  nil
+
+            local server, doing = Attacks_m.cycle(attacks, fighter, root, target, status, deltaTime)
+
+            RageReport.set(services, {
+                status = doing,
+                target = target and target.part or nil,
+            })
+
+            return server
+        end, stop)
+
+        run:add(stop)
+    end
+
+    return Ragebot
+end)()
+
+
+-- ============================================================
+-- SECTION 6: RAGEBOT UI BUILDER  (Eclipse UI library)
+-- ============================================================
+-- Uses the Eclipse library from pastebin (Library:Tab / :Group /
+-- :Toggle / :Slider / :Dropdown / :Keybind / :Button).
+--
+-- Usage:
+--   local RageTab      = Library:Tab("Rage", <iconId>)
+--   local PriorityTab  = Library:Tab("Priority", <iconId>)
+--   local settings, getSettings = buildRagebotUI(RageTab, PriorityTab)
+--
+-- getSettings() returns the live settings table every frame.
+-- settings.active is driven by the keybind (:Keybind callback).
+-- ============================================================
+
+local function buildRagebotUI(RageTab, PriorityTab)
+    -- Live settings table – mutated by every control's callback.
+    -- Read this directly or call getSettings() for a snapshot.
+    local settings = {
+        active         = false,   -- driven by keybind
+        voidSpam       = true,
+        voidHide       = 0.25,    -- seconds hiding in void
+        voidAttack     = 0.10,    -- seconds attacking before hiding
+        shootAttempts  = 1,       -- 1x or 2x
+        mode           = "gun",   -- "gun" | "knife" | "melee"
+        primary        = true,    -- prefer primary slot
+        swapWhenEmpty  = false,
+        autoPrioritize = false,
+        notify         = true,
+        join           = {
+            attackers      = true,
+            ["voided players"] = true,
+        },
+    }
+
+    -- --------------------------------------------------------
+    -- RAGEBOT GROUP
+    -- --------------------------------------------------------
+    local RageGroup = RageTab:Group("Ragebot")
+
+    -- enabled toggle + keybind
+    RageGroup:Toggle({
+        Name     = "Enabled",
+        Tooltip  = "Activate ragebot",
+        Callback = function(v)
+            settings.active = v
+        end,
+    })
+
+    RageGroup:Keybind({
+        Name     = "Ragebot Key",
+        Default  = Enum.KeyCode.F,
+        Tooltip  = "Hold to activate ragebot",
+        Callback = function(k)
+            -- Wire to your hold-detection logic as needed.
+            -- Example: settings.active = UserInputService:IsKeyDown(k)
+        end,
+    })
+
+    -- --------------------------------------------------------
+    -- VOID SPAM GROUP
+    -- --------------------------------------------------------
+    local SpamGroup = RageTab:Group("Void Spam")
+
+    SpamGroup:Toggle({
+        Name     = "Void Spam",
+        Tooltip  = "Rapidly hide in void and attack",
+        Callback = function(v)
+            settings.voidSpam = v
+        end,
+    })
+
+    -- hide duration  (0.01 – 1 s, displayed as integer ms for slider compat)
+    -- Slider uses integer steps; we store as seconds internally.
+    SpamGroup:Slider({
+        Name     = "Hide",
+        Min      = 1,
+        Max      = 100,
+        Default  = 25,          -- 0.25 s  →  25
+        Unit     = "cs",        -- centiseconds label
+        Tooltip  = "How long it stays in void (centiseconds)",
+        Callback = function(v)
+            settings.voidHide = v / 100
+        end,
+    })
+
+    SpamGroup:Slider({
+        Name     = "Attack",
+        Min      = 1,
+        Max      = 100,
+        Default  = 10,          -- 0.10 s  →  10
+        Unit     = "cs",
+        Tooltip  = "Time attacking before hiding again (centiseconds)",
+        Callback = function(v)
+            settings.voidAttack = v / 100
+        end,
+    })
+
+    -- --------------------------------------------------------
+    -- ATTACK SETTINGS GROUP
+    -- --------------------------------------------------------
+    local AttackGroup = RageTab:Group("Attack Settings")
+
+    AttackGroup:Slider({
+        Name     = "Shoot Attempts",
+        Min      = 1,
+        Max      = 2,
+        Default  = 1,
+        Unit     = "x",
+        Tooltip  = "How many times it will try to fire your weapon",
+        Callback = function(v)
+            settings.shootAttempts = v
+        end,
+    })
+
+    AttackGroup:Dropdown({
+        Name     = "Attack Mode",
+        Options  = { "gun", "knife", "melee" },
+        Default  = "gun",
+        Tooltip  = "How the ragebot fights; defaults to gun if not possible",
+        Callback = function(v)
+            settings.mode = v
+        end,
+    })
+
+    AttackGroup:Dropdown({
+        Name     = "Preferred Weapon",
+        Options  = { "primary", "secondary" },
+        Default  = "primary",
+        Tooltip  = "Which weapon slot the ragebot picks first",
+        Callback = function(v)
+            settings.primary = (v == "primary")
+        end,
+    })
+
+    AttackGroup:Toggle({
+        Name     = "Swap When Empty",
+        Tooltip  = "Switch to the other weapon when current one runs dry",
+        Callback = function(v)
+            settings.swapWhenEmpty = v
+        end,
+    })
+
+    -- --------------------------------------------------------
+    -- PRIORITY GROUP  (separate tab / column)
+    -- --------------------------------------------------------
+    local PrioGroup = PriorityTab:Group("Ragebot Priority")
+
+    PrioGroup:Toggle({
+        Name     = "Auto Prioritize",
+        Tooltip  = "Automatically prioritize certain players",
+        Callback = function(v)
+            settings.autoPrioritize = v
+        end,
+    })
+
+    PrioGroup:Toggle({
+        Name     = "Send Notification",
+        Tooltip  = "Notify when a player is added to priority",
+        Callback = function(v)
+            settings.notify = v
+        end,
+    })
+
+    -- Auto-priority sources
+    PrioGroup:Toggle({
+        Name     = "Prioritize Attackers",
+        Tooltip  = "Add players who attack you to the priority list",
+        Callback = function(v)
+            settings.join.attackers = v
+        end,
+    })
+
+    PrioGroup:Toggle({
+        Name     = "Prioritize Voided Players",
+        Tooltip  = "Add players who are voided to the priority list",
+        Callback = function(v)
+            settings.join["voided players"] = v
+        end,
+    })
+
+    -- --------------------------------------------------------
+    -- Utility: read current settings snapshot
+    -- --------------------------------------------------------
+    local function getSettings()
+        return settings
+    end
+
+    return settings, getSettings
+end
+
+
+-- ============================================================
+-- EXPORTS
+-- ============================================================
+-- buildRagebotUI(RageTab, PriorityTab) -> settings, getSettings()
+--   RageTab / PriorityTab = Library:Tab(...) from Eclipse UI
+--
+-- Example wiring:
+--
+--   local RageTab     = Library:Tab("Rage",     10455604811)
+--   local PriorityTab = Library:Tab("Priority", <iconId>)
+--   local rbSettings, getRBSettings = buildRagebotUI(RageTab, PriorityTab)
+--
+--   -- every desync frame:
+--   local s = getRBSettings()   -- or just read rbSettings directly
+--   Ragebot.start(run, getRBSettings, services, notify, counterOn, ...)
+-- ============================================================
+return {
+    Targets           = Targets,
+    Counter           = Counter,
+    CounterControls   = CounterControls,
+    Attacks           = Attacks,
+    Ragebot           = Ragebot,
+    buildRagebotUI    = buildRagebotUI,
+}
