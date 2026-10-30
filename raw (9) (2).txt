@@ -538,6 +538,362 @@ do
         return v.c
     end
 end
+do
+    local function __modImpl()
+        local Services = __ANTIBRAIN_MODULES.k()
+        local Modules  = __ANTIBRAIN_MODULES.l()
+
+        __ANTIBRAIN_MODULES.c()
+
+        local player = Services.Players.LocalPlayer
+
+        local function getHumanoid()
+            local char = player.Character
+            return char and char:FindFirstChildOfClass('Humanoid')
+        end
+
+        local Tools = {}
+
+        function Tools.speed(run, getSpeed)
+            local conn = nil
+            local function apply()
+                local hum = getHumanoid()
+                if not hum then return end
+                local v = getSpeed()
+                hum.WalkSpeed = v
+                if conn then conn:Disconnect() end
+                conn = hum:GetPropertyChangedSignal('WalkSpeed'):Connect(function()
+                    if hum.WalkSpeed ~= v and not run.closed then hum.WalkSpeed = v end
+                end)
+            end
+            apply()
+            run:connect(player.CharacterAdded, function()
+                task.wait(0.5)
+                if not run.closed then apply() end
+            end)
+            run:add(function()
+                if conn then conn:Disconnect() end
+                local hum = getHumanoid()
+                if hum then hum.WalkSpeed = 16 end
+            end)
+        end
+
+        function Tools.infiniteJump(run)
+            run:connect(Services.UserInputService.JumpRequest, function()
+                local hum = getHumanoid()
+                if hum and hum.Health > 0 then
+                    hum:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
+            end)
+        end
+
+        function Tools.slideBoost(run, getSpeed)
+            local mech = nil
+            local function load()
+                local ok, res = pcall(function()
+                    return require(player.PlayerScripts.Controllers.MechanicsController)
+                end)
+                mech = ok and res or nil
+            end
+            load()
+            run:connect(player.CharacterAdded, function()
+                task.wait(1)
+                if not run.closed then load() end
+            end)
+            run:connect(Services.RunService.RenderStepped, function()
+                if not mech then load() end
+                if mech and mech.IsSliding then
+                    pcall(function()
+                        mech._sliding_velocity.Velocity =
+                            mech._sliding_velocity.Velocity.Unit * getSpeed()
+                    end)
+                end
+            end)
+        end
+
+        function Tools.deviceSpoof(run, getDevice)
+            local replicated = Services.ReplicatedStorage
+            local remote = replicated:FindFirstChild('Remotes')
+            remote = remote and remote:FindFirstChild('Replication')
+            remote = remote and remote:FindFirstChild('Fighter')
+            remote = remote and remote:FindFirstChild('SetControls')
+            if not remote then return end
+            local ctrl = Modules.controller('FighterController')
+            if not ctrl or type(ctrl._ReplicateControls) ~= 'function' then return end
+            local original = ctrl._ReplicateControls
+            ctrl._ReplicateControls = function(self)
+                pcall(function() remote:FireServer(getDevice()) end)
+                self._last_controls_replicated_time = tick()
+            end
+            pcall(function() remote:FireServer(getDevice()) end)
+            run:add(function()
+                ctrl._ReplicateControls = original
+            end)
+        end
+
+        return table.freeze(Tools)
+    end
+
+    function __ANTIBRAIN_MODULES.be()
+        local v = __ANTIBRAIN_MODULES.cache.be
+
+        if not v then
+            v = {
+                c = __modImpl(),
+            }
+            __ANTIBRAIN_MODULES.cache.be = v
+        end
+
+        return v.c
+    end
+end
+do
+    local function __modImpl()
+        local Services = __ANTIBRAIN_MODULES.k()
+
+        __ANTIBRAIN_MODULES.c()
+
+        local player = Services.Players.LocalPlayer
+
+        local function getGun()
+            local ok, res = pcall(function()
+                return require(player.PlayerScripts.Modules.ItemTypes.Gun)
+            end)
+            return ok and res or nil
+        end
+
+        local Tools = {}
+
+        function Tools.rapidFire(run, getDelay)
+            local ok, lib = pcall(function()
+                return require(Services.ReplicatedStorage.Modules.ItemLibrary)
+            end)
+            if not ok or type(lib) ~= 'table' or type(lib.Items) ~= 'table' then return end
+            local items = lib.Items
+            local saved = {}
+            for name, data in pairs(items) do
+                if typeof(data) == 'table' then
+                    local entry = {}
+                    if data.ShootCooldown ~= nil then entry.ShootCooldown = data.ShootCooldown end
+                    if data.ShootBurstCooldown ~= nil then entry.ShootBurstCooldown = data.ShootBurstCooldown end
+                    if data.ShootSpread ~= nil then entry.ShootSpread = data.ShootSpread end
+                    if data.ShootAccuracy ~= nil then entry.ShootAccuracy = data.ShootAccuracy end
+                    if data.ShootRecoil ~= nil then entry.ShootRecoil = data.ShootRecoil end
+                    if next(entry) then saved[name] = entry end
+                end
+            end
+            local lastDelay = nil
+            local function apply()
+                local delaySec = (getDelay() or 1) / 1000
+                lastDelay = delaySec
+                for name, data in pairs(items) do
+                    if typeof(data) == 'table' and saved[name] then
+                        data.ShootCooldown      = delaySec
+                        data.ShootBurstCooldown = delaySec
+                        data.ShootSpread        = 0
+                        data.ShootAccuracy      = 0
+                        data.ShootRecoil        = 0
+                    end
+                end
+            end
+            apply()
+            run:connect(Services.RunService.Heartbeat, function()
+                local d = (getDelay() or 1) / 1000
+                if d ~= lastDelay then apply() end
+            end)
+            run:add(function()
+                for name, entry in pairs(saved) do
+                    local data = items[name]
+                    if data then
+                        for k, v in pairs(entry) do data[k] = v end
+                    end
+                end
+            end)
+        end
+
+        function Tools.instantAds(run)
+            local Gun = getGun()
+            if not Gun then return end
+            local origStart = Gun.StartAiming
+            local origSpeed = Gun.GetAimSpeed
+            Gun.StartAiming = function(self)
+                self:SetReplicate('IsAiming', true)
+                self.StopSprinting:Fire()
+                self.ViewModel:SetAiming(true)
+                self:SetReplicate('FOVOffset', self.Info.AimFOVOffset)
+                if self.ViewModel.CurrentAimValue then self.ViewModel.CurrentAimValue = 1 end
+                return true, 'StartAiming'
+            end
+            Gun.GetAimSpeed = function() return 999 end
+            run:add(function()
+                Gun.StartAiming = origStart
+                Gun.GetAimSpeed = origSpeed
+            end)
+        end
+
+        function Tools.noEquipAnim(run)
+            local Gun = getGun()
+            if not Gun then return end
+            local orig = Gun.Equip
+            if type(orig) ~= 'function' then return end
+            Gun.Equip = function(self, ...)
+                local r = {orig(self, ...)}
+                if self.ViewModel then
+                    pcall(function() self.ViewModel:StopAnimation('Equip') end)
+                    pcall(function() self.ViewModel:StopAnimation('EquipEmpty') end)
+                end
+                return table.unpack(r)
+            end
+            run:add(function()
+                Gun.Equip = orig
+            end)
+        end
+
+        function Tools.noShootAnim(run)
+            local Gun = getGun()
+            if not Gun then return end
+            local origShoot  = Gun.StartShooting
+            local origFinish = Gun.FinishShooting
+            local origBurst  = Gun.ShootBurst
+            local stops = {'Shoot','Fire','ShootBurst','Shoot_ADS','ShootHip','ShootEmpty','ShootADS','Burst'}
+            if origShoot then
+                Gun.StartShooting = function(self, ...)
+                    local vm = self.ViewModel
+                    local savedPlay
+                    if vm then savedPlay = vm.PlayAnimation; vm.PlayAnimation = function() end end
+                    local r = {origShoot(self, ...)}
+                    if vm and savedPlay then
+                        vm.PlayAnimation = savedPlay
+                        for _, name in ipairs(stops) do
+                            pcall(function() vm:StopAnimation(name) end)
+                        end
+                    end
+                    return table.unpack(r)
+                end
+            end
+            if origFinish then
+                Gun.FinishShooting = function(self, ...)
+                    local vm = self.ViewModel
+                    local savedPlay
+                    if vm then savedPlay = vm.PlayAnimation; vm.PlayAnimation = function() end end
+                    local r = {origFinish(self, ...)}
+                    if vm and savedPlay then
+                        vm.PlayAnimation = savedPlay
+                        pcall(function() vm:StopAnimation('Shoot') end)
+                        pcall(function() vm:StopAnimation('Fire')  end)
+                    end
+                    return table.unpack(r)
+                end
+            end
+            if origBurst then
+                Gun.ShootBurst = function(self, ...)
+                    local vm = self.ViewModel
+                    local savedPlay
+                    if vm then savedPlay = vm.PlayAnimation; vm.PlayAnimation = function() end end
+                    local r = {origBurst(self, ...)}
+                    if vm and savedPlay then
+                        vm.PlayAnimation = savedPlay
+                        for _, name in ipairs(stops) do
+                            pcall(function() vm:StopAnimation(name) end)
+                        end
+                    end
+                    return table.unpack(r)
+                end
+            end
+            run:add(function()
+                Gun.StartShooting  = origShoot
+                Gun.FinishShooting = origFinish
+                Gun.ShootBurst     = origBurst
+            end)
+        end
+
+        function Tools.noSpread(run)
+            local Gun = getGun()
+            local origGun = Gun and Gun.GetSpread
+            if Gun and origGun then
+                Gun.GetSpread = function() return Vector2.new(0, 0) end
+            end
+            local GU
+            local ok, res = pcall(function()
+                return require(Services.ReplicatedStorage.Modules.GameplayUtility)
+            end)
+            if ok then GU = res end
+            local origGU = GU and GU.GetSpread
+            if GU and origGU then
+                GU.GetSpread = function() return CFrame.identity end
+            end
+            run:add(function()
+                if Gun and origGun then Gun.GetSpread = origGun end
+                if GU  and origGU  then GU.GetSpread  = origGU  end
+            end)
+        end
+
+        function Tools.noSmoke(run)
+            local SmokeScreen, SmokeCloud
+            local ok1, r1 = pcall(function()
+                return require(player.PlayerScripts.Modules.ClientReplicatedClasses
+                    .ClientFighter.FighterInterface.SmokeScreen)
+            end)
+            if ok1 then SmokeScreen = r1 end
+            local ok2, r2 = pcall(function()
+                return require(player.PlayerScripts.Modules.SmokeCloud)
+            end)
+            if ok2 then SmokeCloud = r2 end
+            local orig1 = SmokeScreen and SmokeScreen.Update
+            local orig2 = SmokeCloud  and SmokeCloud.Update
+            if SmokeScreen and orig1 then
+                SmokeScreen.Update = function(self)
+                    pcall(function()
+                        self._smoke_cloud_spring.Target = 0
+                        self._smoke_cloud_cover.Transparency = 1
+                        if self._smoke_cloud_dof then self._smoke_cloud_dof.Parent = nil end
+                    end)
+                end
+            end
+            if SmokeCloud and orig2 then
+                SmokeCloud.Update = function(self)
+                    if self.Model then self.Model:Destroy() end
+                    return true
+                end
+            end
+            run:add(function()
+                if SmokeScreen and orig1 then SmokeScreen.Update = orig1 end
+                if SmokeCloud  and orig2 then SmokeCloud.Update  = orig2 end
+            end)
+        end
+
+        function Tools.noFlash(run)
+            local Flashed
+            local ok, res = pcall(function()
+                return require(player.PlayerScripts.Modules.ClientReplicatedClasses
+                    .ClientFighter.FighterInterface.Flashed)
+            end)
+            if ok then Flashed = res end
+            local orig = Flashed and Flashed.Flash
+            if Flashed and orig then
+                Flashed.Flash = function() end
+            end
+            run:add(function()
+                if Flashed and orig then Flashed.Flash = orig end
+            end)
+        end
+
+        return table.freeze(Tools)
+    end
+
+    function __ANTIBRAIN_MODULES.bf()
+        local v = __ANTIBRAIN_MODULES.cache.bf
+
+        if not v then
+            v = {
+                c = __modImpl(),
+            }
+            __ANTIBRAIN_MODULES.cache.bf = v
+        end
+
+        return v.c
+    end
+end
     do
         local function __modImpl()
             __ANTIBRAIN_MODULES.b()
@@ -3007,16 +3363,20 @@ end
         end
     end
     do
-        local function __modImpl()
-            local AntiAim = __ANTIBRAIN_MODULES.B()
+        local     return {
+        antiAim = antiAim,
+        antiAimSettings = function()
+            settings.pitch, settings.customPitch = pitch.value or 'disabled', customPitch.value
+            settings.yaw, settings.customYaw = yaw.value or 'disabled', customYaw.value
 
-            __ANTIBRAIN_MODULES.g()
-
-            local Character = {}
-
-            function Character.build(ui)
-                local aiming = ui.tab('character'):groupbox('Right', 'anti aim')
-                local antiAim = aiming:toggle(ui.id('anti-aim'), {
+            return settings
+        end,
+        underground = underground,
+        undergroundActive = function()
+            return undergroundKey:active()
+        end,
+    }
+end
                     text = 'enabled',
                     default = false,
                 })
@@ -3089,6 +3449,119 @@ end
                     end,
                 }
             end
+    local playerBox = characterTab:groupbox('Left', 'player')
+    local speedEnabled = playerBox:toggle(ui.id('player-speed'), {
+        text = 'speed hack',
+        default = false,
+    })
+    local speedSlider = playerBox:dependent(function()
+        return speedEnabled.value
+    end):slider(ui.id('player-speed-value'), {
+        text = 'speed',
+        default = 16,
+        min = 16,
+        max = 500,
+        rounding = 0,
+        suffix = ' studs',
+    })
+    local infJump = playerBox:toggle(ui.id('player-inf-jump'), {
+        text = 'infinite jump',
+        default = false,
+    })
+    local slideBoost = playerBox:toggle(ui.id('player-slide-boost'), {
+        text = 'slide boost',
+        default = false,
+    })
+    local boostSlider = playerBox:dependent(function()
+        return slideBoost.value
+    end):slider(ui.id('player-boost-speed'), {
+        text = 'boost speed',
+        default = 300,
+        min = 100,
+        max = 1000,
+        rounding = 0,
+    })
+    local deviceSpoof = playerBox:toggle(ui.id('player-device-spoof'), {
+        text = 'device spoof',
+        default = false,
+    })
+    local deviceDropdown = playerBox:dependent(function()
+        return deviceSpoof.value
+    end):dropdown(ui.id('player-device-value'), {
+        text = 'spoof as',
+        values = {'VR', 'Touch', 'Gamepad'},
+        default = 'VR',
+    })
+
+    local weaponBox = characterTab:groupbox('Left', 'weapon')
+    local rapidFire = weaponBox:toggle(ui.id('weapon-rapid-fire'), {
+        text = 'rapid fire',
+        default = false,
+    })
+    local delaySlider = weaponBox:dependent(function()
+        return rapidFire.value
+    end):slider(ui.id('weapon-delay'), {
+        text = 'delay',
+        default = 1,
+        min = 1,
+        max = 200,
+        rounding = 0,
+        suffix = 'ms',
+    })
+    local instantAds = weaponBox:toggle(ui.id('weapon-instant-ads'), {
+        text = 'instant ads',
+        default = false,
+    })
+    local noEquipAnim = weaponBox:toggle(ui.id('weapon-no-equip-anim'), {
+        text = 'no equip anim',
+        default = false,
+    })
+    local noShootAnim = weaponBox:toggle(ui.id('weapon-no-shoot-anim'), {
+        text = 'no shoot anim',
+        default = false,
+    })
+    local noSpread = weaponBox:toggle(ui.id('weapon-no-spread'), {
+        text = 'no spread',
+        default = false,
+    })
+    local noSmoke = weaponBox:toggle(ui.id('weapon-no-smoke'), {
+        text = 'no smoke',
+        default = false,
+    })
+    local noFlash = weaponBox:toggle(ui.id('weapon-no-flash'), {
+        text = 'no flash',
+        default = false,
+    })
+
+    return {
+        antiAim = antiAim,
+        antiAimSettings = function()
+            settings.pitch, settings.customPitch = pitch.value or 'disabled', customPitch.value
+            settings.yaw, settings.customYaw = yaw.value or 'disabled', customYaw.value
+
+            return settings
+        end,
+        underground = underground,
+        undergroundActive = function()
+            return undergroundKey:active()
+        end,
+        speed = speedEnabled,
+        speedValue = function() return speedSlider.value end,
+        infiniteJump = infJump,
+        slideBoost = slideBoost,
+        slideBoostSpeed = function() return boostSlider.value end,
+        deviceSpoof = deviceSpoof,
+        deviceValue = function() return deviceDropdown.value end,
+        rapidFire = rapidFire,
+        rapidFireDelay = function() return delaySlider.value end,
+        instantAds = instantAds,
+        noEquipAnim = noEquipAnim,
+        noShootAnim = noShootAnim,
+        noSpread = noSpread,
+        noSmoke = noSmoke,
+        noFlash = noFlash,
+    }
+end
 
             return table.freeze(Character)
         end
@@ -10130,13 +10603,26 @@ end
                 local main = Main.build(context.ui)
                 local counter = CounterControls.build(main.counterBox, context.ui)
                 local visuals = Visuals.build(context.ui)
-                local character = Character.build(context.ui)
-                local ESP = __ANTIBRAIN_MODULES.bd()
+local character = Character.build(context.ui)
+local ESP = __ANTIBRAIN_MODULES.bd()
+local PlayerTools = __ANTIBRAIN_MODULES.be()
+local WeaponTools = __ANTIBRAIN_MODULES.bf()
                 
                 Feature.always(context, 'Pose decoding guard', AntiAim.guardDecoding)
                 Feature.always(context, 'Weapons', Weapons.start, main.weaponSettings)
                 Feature.always(context, 'Indicator', Indicators.start, visuals.indicators, context.services, context.log)
                 Feature.bind(context, visuals.esp, ESP.start, visuals.espSettings)
+                Feature.bind(context, character.speed,         PlayerTools.speed,         character.speedValue)
+Feature.bind(context, character.infiniteJump,  PlayerTools.infiniteJump)
+Feature.bind(context, character.slideBoost,    PlayerTools.slideBoost,    character.slideBoostSpeed)
+Feature.bind(context, character.deviceSpoof,   PlayerTools.deviceSpoof,   character.deviceValue)
+Feature.bind(context, character.rapidFire,     WeaponTools.rapidFire,     character.rapidFireDelay)
+Feature.bind(context, character.instantAds,    WeaponTools.instantAds)
+Feature.bind(context, character.noEquipAnim,   WeaponTools.noEquipAnim)
+Feature.bind(context, character.noShootAnim,   WeaponTools.noShootAnim)
+Feature.bind(context, character.noSpread,      WeaponTools.noSpread)
+Feature.bind(context, character.noSmoke,       WeaponTools.noSmoke)
+Feature.bind(context, character.noFlash,       WeaponTools.noFlash)
                 Feature.always(context, 'Skin changer', SkinChanger.start, visuals.cosmetics, context.ui, context.log, context.services)
                 Feature.bind(context, main.silentAim, SilentAim.start, main.aim, context.log, context.services)
                 Feature.bind(context, main.aimbot, Aimbot.start, main.aim, context.services)
