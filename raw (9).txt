@@ -10162,9 +10162,9 @@ do
     do
         local function __modImpl()
             return table.freeze({
-                name = 'AntiBrain',
+                name = 'Arch Script Premium',
                 version = '0.1.0',
-                folder = 'AntiBrain',
+                folder = 'Arch script ',
             })
         end
 
