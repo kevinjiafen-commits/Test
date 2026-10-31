@@ -911,6 +911,389 @@ do
         return v.c
     end
 end
+do
+    local function __modImpl()
+        local Services = __ANTIBRAIN_MODULES.k()
+
+        __ANTIBRAIN_MODULES.c()
+
+        local player = Services.Players.LocalPlayer
+
+        local function getGun()
+            local ok, res = pcall(function()
+                return require(player.PlayerScripts.Modules.ItemTypes.Gun)
+            end)
+            return ok and res or nil
+        end
+        local function getUtility()
+            local ok, res = pcall(function()
+                return require(Services.ReplicatedStorage.Modules.Utility)
+            end)
+            return ok and res or nil
+        end
+        local function getItemLibrary()
+            local ok, res = pcall(function()
+                return require(Services.ReplicatedStorage.Modules.ItemLibrary)
+            end)
+            return ok and res or nil
+        end
+
+        local Tools = {}
+
+        -- ── 1. Noclip ──────────────────────────────────────
+        function Tools.noclip(run)
+            run:connect(Services.RunService.Stepped, function()
+                local char = player.Character
+                if not char then return end
+                for _, part in ipairs(char:GetDescendants()) do
+                    if part:IsA('BasePart') then part.CanCollide = false end
+                end
+            end)
+        end
+
+        -- ── 2. Fly ─────────────────────────────────────────
+        function Tools.fly(run, getSpeed)
+            local attachment, velocity, align
+            local humanoid, root
+
+            local function setup()
+                local char = player.Character
+                if not char then return end
+                humanoid = char:FindFirstChildOfClass('Humanoid')
+                root = char:FindFirstChild('HumanoidRootPart')
+                if not (humanoid and root) then return end
+                if attachment then attachment:Destroy() end
+                humanoid.PlatformStand = true
+                attachment = Instance.new('Attachment', root)
+                velocity = Instance.new('LinearVelocity', attachment)
+                velocity.MaxForce = 9e9
+                velocity.VectorVelocity = Vector3.zero
+                velocity.Attachment0 = attachment
+                align = Instance.new('AlignOrientation', attachment)
+                align.MaxTorque = 9e9
+                align.Responsiveness = 200
+                align.Mode = Enum.OrientationAlignmentMode.OneAttachment
+                align.Attachment0 = attachment
+            end
+            setup()
+            run:connect(player.CharacterAdded, function()
+                task.wait(0.1)
+                if not run.closed then setup() end
+            end)
+            local controls
+            pcall(function()
+                local pm = require(player.PlayerScripts:WaitForChild('PlayerModule'))
+                controls = pm:GetControls()
+            end)
+            run:connect(Services.RunService.RenderStepped, function()
+                if not (root and velocity and align) then return end
+                local cam = Services.Workspace.CurrentCamera
+                if not cam or not controls then return end
+                local mv = controls:GetMoveVector()
+                local speed = getSpeed()
+                if mv.Magnitude > 0 then
+                    velocity.VectorVelocity = (cam.CFrame.LookVector * -mv.Z + cam.CFrame.RightVector * mv.X).Unit * speed
+                else
+                    velocity.VectorVelocity = Vector3.zero
+                end
+                align.CFrame = cam.CFrame
+            end)
+            run:add(function()
+                if humanoid then humanoid.PlatformStand = false end
+                if attachment then attachment:Destroy() end
+            end)
+        end
+
+        -- ── 3. Scythe（镰刀冷却归零）──────────────────────
+        function Tools.scythe(run)
+            local lib = getItemLibrary()
+            if not lib or type(lib.Items) ~= 'table' then return end
+            local saved = {}
+            for name, item in pairs(lib.Items) do
+                if type(item) == 'table' and string.lower(item.Name or name) == 'scythe' then
+                    if item.DashCooldown ~= nil then
+                        table.insert(saved, {item, 'DashCooldown', item.DashCooldown})
+                        item.DashCooldown = 0
+                    elseif item.AbilityCooldown ~= nil then
+                        table.insert(saved, {item, 'AbilityCooldown', item.AbilityCooldown})
+                        item.AbilityCooldown = 0
+                    end
+                end
+            end
+            run:add(function()
+                for _, e in ipairs(saved) do e[1][e[2]] = e[3] end
+            end)
+        end
+
+        -- ── 4. Wallbang ────────────────────────────────────
+        function Tools.wallbang(run)
+            local Gun = getGun()
+            local Utility = getUtility()
+            if not (Gun and Utility) then return end
+            local original = Gun.StartShooting
+            local target = nil
+
+            local function findTarget()
+                local myChar = player.Character
+                if not myChar then return nil end
+                local myRoot = myChar:FindFirstChild('HumanoidRootPart')
+                if not myRoot then return nil end
+                local closest, closestDist = nil, math.huge
+                local myTeam = player:GetAttribute('TeamID')
+                for _, p in ipairs(Services.Players:GetPlayers()) do
+                    if p ~= player and p:GetAttribute('TeamID') ~= myTeam then
+                        local c = p.Character
+                        if c then
+                            local r = c:FindFirstChild('HumanoidRootPart')
+                            local h = c:FindFirstChildWhichIsA('Humanoid')
+                            if r and h and h.Health > 0 then
+                                local d = (myRoot.Position - r.Position).Magnitude
+                                if d < closestDist then closest, closestDist = p, d end
+                            end
+                        end
+                    end
+                end
+                return closest
+            end
+
+            local heartbeat = Services.RunService.Heartbeat:Connect(function()
+                if not run.closed then target = findTarget() end
+            end)
+            run:add(function() heartbeat:Disconnect() end)
+
+            Gun.StartShooting = function(self, ...)
+                if run.closed or not self.ClientFighter or not self.ClientFighter.IsLocalPlayer then
+                    return original(self, ...)
+                end
+                local results = {original(self, ...)}
+                local data = results[3]
+                if not data or typeof(data) ~= 'table' then return table.unpack(results) end
+                results[4] = true
+                local t = target
+                if not t or not t.Character then return table.unpack(results) end
+                local head = t.Character:FindFirstChild('Head')
+                if not head then return table.unpack(results) end
+                local headPos = head.Position
+                local below = headPos - Vector3.new(0, 5, 0)
+                local cf = CFrame.lookAt(below, headPos)
+                pcall(function()
+                    data[utf8.char(0)] = Utility:EncodeCFrame(CFrame.new(below, headPos) * CFrame.Angles(cf:ToOrientation()))
+                    data[utf8.char(1)] = Utility:EncodeCFrame(CFrame.new(headPos) * CFrame.Angles(cf:ToOrientation()))
+                    data[utf8.char(2)] = head
+                    data[utf8.char(3)] = Utility:EncodeCFrame(CFrame.new())
+                end)
+                return table.unpack(results)
+            end
+            run:add(function() Gun.StartShooting = original end)
+        end
+
+        -- ── 5. Wallbang Head ──────────────────────────────
+        function Tools.wallbangHead(run)
+            local Gun = getGun()
+            local Utility = getUtility()
+            if not (Gun and Utility) then return end
+            local original = Gun.StartShooting
+            local target = nil
+
+            local function findTarget()
+                local myChar = player.Character
+                if not myChar then return nil end
+                local myRoot = myChar:FindFirstChild('HumanoidRootPart')
+                if not myRoot then return nil end
+                local closest, closestDist = nil, math.huge
+                local myTeam = player:GetAttribute('TeamID')
+                for _, p in ipairs(Services.Players:GetPlayers()) do
+                    if p ~= player and p:GetAttribute('TeamID') ~= myTeam then
+                        local c = p.Character
+                        if c then
+                            local r = c:FindFirstChild('HumanoidRootPart')
+                            local h = c:FindFirstChildWhichIsA('Humanoid')
+                            if r and h and h.Health > 0 then
+                                local d = (myRoot.Position - r.Position).Magnitude
+                                if d < closestDist then closest, closestDist = p, d end
+                            end
+                        end
+                    end
+                end
+                return closest
+            end
+
+            local heartbeat = Services.RunService.Heartbeat:Connect(function()
+                if not run.closed then target = findTarget() end
+            end)
+            run:add(function() heartbeat:Disconnect() end)
+
+            Gun.StartShooting = function(self, ...)
+                if run.closed or not self.ClientFighter or not self.ClientFighter.IsLocalPlayer then
+                    return original(self, ...)
+                end
+                local results = {original(self, ...)}
+                local data = results[3]
+                if not data or typeof(data) ~= 'table' then return table.unpack(results) end
+                results[4] = true
+                local t = target
+                if not t or not t.Character then return table.unpack(results) end
+                local head = t.Character:FindFirstChild('Head')
+                if not head then return table.unpack(results) end
+                local headPos = head.Position
+                local headCF = head.CFrame
+                local offset = headCF:ToObjectSpace(CFrame.new(headPos + Vector3.new(math.random()*0.1, math.random()*0.1, math.random()*0.1)))
+                pcall(function()
+                    data[utf8.char(0)] = Utility:EncodeCFrame(CFrame.new(headPos, headPos + headCF.LookVector))
+                    data[utf8.char(1)] = Utility:EncodeCFrame(CFrame.new(headPos))
+                    data[utf8.char(2)] = head
+                    data[utf8.char(3)] = Utility:EncodeCFrame(offset)
+                end)
+                return table.unpack(results)
+            end
+            run:add(function() Gun.StartShooting = original end)
+        end
+
+        return table.freeze(Tools)
+    end
+
+    function __ANTIBRAIN_MODULES.bg()
+        local v = __ANTIBRAIN_MODULES.cache.bg
+        if not v then
+            v = { c = __modImpl() }
+            __ANTIBRAIN_MODULES.cache.bg = v
+        end
+        return v.c
+    end
+end
+do
+    local function __modImpl()
+        local Services = __ANTIBRAIN_MODULES.k()
+
+        __ANTIBRAIN_MODULES.c()
+
+        local player = Services.Players.LocalPlayer
+
+        local function getRoot()
+            local char = player.Character
+            return char and char:FindFirstChild('HumanoidRootPart')
+        end
+
+        local State = {
+            framecounter = 0,
+            smoothyaw    = 0,
+            smoothpitch  = 0,
+            smoothroll   = 0,
+        }
+
+        local Tools = {}
+
+        local function getrandom(min, max)
+            return min + math.random() * (max - min)
+        end
+
+        local function calculateYaw(s)
+            local yaw = 0
+            local t = tick()
+            if s.yawtype == 'jitter' then
+                local mn = math.rad(s.minangle)
+                local mx = math.rad(s.maxangle)
+                if s.randomangle then
+                    yaw = getrandom(-mx, mx)
+                else
+                    yaw = math.random() > 0.5 and mn or -mn
+                end
+            elseif s.yawtype == 'spinbot' then
+                local speed = getrandom(s.minspeed / 10, s.maxspeed / 10)
+                yaw = (t * speed) % (2 * math.pi)
+            elseif s.yawtype == 'random' then
+                if State.framecounter % 30 == 0 then
+                    yaw = getrandom(-math.rad(s.maxangle), math.rad(s.maxangle))
+                else
+                    yaw = State.smoothyaw
+                end
+            end
+            State.smoothyaw = yaw
+            return yaw
+        end
+
+        local function calculatePitch(s)
+            local pitch = 0
+            if s.pitchtype == 'jitter' then
+                local mn = math.rad(s.minangle)
+                local mx = math.rad(s.maxangle)
+                if s.randomangle then
+                    pitch = getrandom(-mx, mx)
+                else
+                    pitch = math.random() > 0.5 and mn or -mn
+                end
+            elseif s.pitchtype == 'spinbot' then
+                pitch = math.sin(tick() * (s.maxspeed / 10)) * math.rad(s.maxangle)
+            elseif s.pitchtype == 'random' then
+                if State.framecounter % 20 == 0 then
+                    pitch = getrandom(math.rad(-89), math.rad(89))
+                else
+                    pitch = State.smoothpitch
+                end
+            end
+            State.smoothpitch = pitch
+            return pitch
+        end
+
+        local function calculateRoll(s)
+            local roll = 0
+            if s.angletype == 'tilt 45' then
+                roll = math.rad(45)
+            elseif s.angletype == 'tilt 90' then
+                roll = math.rad(90)
+            elseif s.angletype == 'upside down' then
+                roll = math.rad(180)
+            elseif s.angletype == 'custom' then
+                roll = math.rad(s.customangle)
+            end
+            State.smoothroll = roll
+            return roll
+        end
+
+        function Tools.antiAim(run, getSettings)
+            run:connect(Services.RunService.Heartbeat, function()
+                local s = getSettings()
+                if not s.enabled then return end
+                if s.yawtype == 'none' and s.pitchtype == 'none' and s.angletype == 'none' then return end
+                local root = getRoot()
+                if not root then return end
+                State.framecounter = State.framecounter + 1
+                local y = calculateYaw(s)
+                local p = calculatePitch(s)
+                local r = calculateRoll(s)
+                root.CFrame = root.CFrame * CFrame.Angles(p, y, r)
+            end)
+            run:connect(Services.RunService.Stepped, function()
+                local s = getSettings()
+                if not s.irregularMove then return end
+                local root = getRoot()
+                if not root then return end
+                if root.Velocity.Magnitude > 1 then
+                    local rx = math.random(-3, 3) / 10
+                    local rz = math.random(-3, 3) / 10
+                    root.CFrame = root.CFrame * CFrame.new(rx, 0, rz)
+                end
+            end)
+            run:add(function()
+                State.framecounter = 0
+                State.smoothyaw    = 0
+                State.smoothpitch  = 0
+                State.smoothroll   = 0
+            end)
+        end
+
+        return table.freeze(Tools)
+    end
+
+    function __ANTIBRAIN_MODULES.bh()
+        local v = __ANTIBRAIN_MODULES.cache.bh
+        if not v then
+            v = { c = __modImpl() }
+            __ANTIBRAIN_MODULES.cache.bh = v
+        end
+        return v.c
+    end
+end
     do
         local function __modImpl()
             __ANTIBRAIN_MODULES.b()
@@ -3532,7 +3915,110 @@ local aiming = characterTab:groupbox('Right', 'anti aim')
         text = 'no flash',
         default = false,
     })
+local movementBox = characterTab:groupbox('Left', 'movement')
+local noclipToggle = movementBox:toggle(ui.id('noclip'), {
+    text = 'noclip',
+    default = false,
+})
+local flyToggle = movementBox:toggle(ui.id('fly'), {
+    text = 'fly',
+    default = false,
+})
+local flySpeedSlider = movementBox:dependent(function()
+    return flyToggle.value
+end):slider(ui.id('fly-speed'), {
+    text = 'fly speed',
+    default = 50,
+    min = 16,
+    max = 200,
+    rounding = 0,
+    suffix = ' studs',
+})
 
+local combatBox = characterTab:groupbox('Left', 'combat')
+local scytheToggle = combatBox:toggle(ui.id('scythe'), {
+    text = 'scythe',
+    default = false,
+})
+local wallbangToggle = combatBox:toggle(ui.id('wallbang'), {
+    text = 'wallbang',
+    default = false,
+})
+local wallbangHeadToggle = combatBox:toggle(ui.id('wallbang-head'), {
+    text = 'wallbang head',
+    default = false,
+})
+
+local aa2Box = characterTab:groupbox('Right', 'anti aim 2')
+local aa2Toggle = aa2Box:toggle(ui.id('anti-aim-2'), {
+    text = 'enabled',
+    default = false,
+    tooltip = 'independent local anti aim (rootpart rotation), does not touch the server-side anti aim above',
+})
+local aa2Options = aa2Box:dependent(function()
+    return aa2Toggle.value
+end)
+local aa2Yaw = aa2Options:dropdown(ui.id('anti-aim-2-yaw'), {
+    text = 'yaw type',
+    values = {'none', 'jitter', 'spinbot', 'random'},
+    default = 'none',
+})
+local aa2Pitch = aa2Options:dropdown(ui.id('anti-aim-2-pitch'), {
+    text = 'pitch type',
+    values = {'none', 'jitter', 'spinbot', 'random'},
+    default = 'none',
+})
+local aa2Angle = aa2Options:dropdown(ui.id('anti-aim-2-angle'), {
+    text = 'angle type',
+    values = {'none', 'tilt 45', 'tilt 90', 'upside down', 'custom'},
+    default = 'none',
+})
+local aa2CustomAngle = aa2Options:slider(ui.id('anti-aim-2-custom-angle'), {
+    text = 'custom angle',
+    default = 0,
+    min = 0,
+    max = 360,
+    rounding = 0,
+    suffix = '\u{b0}',
+})
+local aa2MinSpeed = aa2Options:slider(ui.id('anti-aim-2-min-speed'), {
+    text = 'min speed',
+    default = 10,
+    min = 1,
+    max = 100,
+    rounding = 0,
+})
+local aa2MaxSpeed = aa2MinSpeed:slider(ui.id('anti-aim-2-max-speed'), {
+    text = 'max speed',
+    default = 20,
+    min = 1,
+    max = 100,
+    rounding = 0,
+})
+local aa2MinAngle = aa2Options:slider(ui.id('anti-aim-2-min-angle'), {
+    text = 'min angle',
+    default = 30,
+    min = 1,
+    max = 180,
+    rounding = 0,
+    suffix = '\u{b0}',
+})
+local aa2MaxAngle = aa2MinAngle:slider(ui.id('anti-aim-2-max-angle'), {
+    text = 'max angle',
+    default = 60,
+    min = 1,
+    max = 180,
+    rounding = 0,
+    suffix = '\u{b0}',
+})
+local aa2RandomAngle = aa2Options:toggle(ui.id('anti-aim-2-random'), {
+    text = 'random angle (jitter)',
+    default = false,
+})
+local aa2Irregular = aa2Options:toggle(ui.id('anti-aim-2-irregular'), {
+    text = 'irregular move',
+    default = false,
+})
     return {
         antiAim = antiAim,
         antiAimSettings = function()
@@ -3560,6 +4046,28 @@ local aiming = characterTab:groupbox('Right', 'anti aim')
         noSpread = noSpread,
         noSmoke = noSmoke,
         noFlash = noFlash,
+        noclip = noclipToggle,
+fly = flyToggle,
+flySpeed = function() return flySpeedSlider.value end,
+scythe = scytheToggle,
+wallbang = wallbangToggle,
+wallbangHead = wallbangHeadToggle,
+antiAim2 = aa2Toggle,
+antiAim2Settings = function()
+    return {
+        enabled       = aa2Toggle.value,
+        yawtype       = aa2Yaw.value or 'none',
+        pitchtype     = aa2Pitch.value or 'none',
+        angletype     = aa2Angle.value or 'none',
+        customangle   = aa2CustomAngle.value,
+        minspeed      = aa2MinSpeed.value,
+        maxspeed      = aa2MaxSpeed.value,
+        minangle      = aa2MinAngle.value,
+        maxangle      = aa2MaxAngle.value,
+        randomangle   = aa2RandomAngle.value,
+        irregularMove = aa2Irregular.value,
+    }
+end,
     }
 end
 
@@ -10607,6 +11115,8 @@ end
                 local ESP = __ANTIBRAIN_MODULES.bd()
                 local PlayerTools = __ANTIBRAIN_MODULES.be()
                 local WeaponTools = __ANTIBRAIN_MODULES.bf()
+                local MovementTools = __ANTIBRAIN_MODULES.bg()
+                local AATools = __ANTIBRAIN_MODULES.bh()
 
                 Feature.always(context, 'Pose decoding guard', AntiAim.guardDecoding)
                 Feature.always(context, 'Weapons', Weapons.start, main.weaponSettings)
@@ -10623,6 +11133,12 @@ Feature.bind(context, character.noShootAnim,  WeaponTools.noShootAnim)
 Feature.bind(context, character.noSpread,     WeaponTools.noSpread)
 Feature.bind(context, character.noSmoke,      WeaponTools.noSmoke)
 Feature.bind(context, character.noFlash,      WeaponTools.noFlash)
+Feature.bind(context, character.noclip,       MovementTools.noclip)
+Feature.bind(context, character.fly,          MovementTools.fly,        character.flySpeed)
+Feature.bind(context, character.scythe,       MovementTools.scythe)
+Feature.bind(context, character.wallbang,     MovementTools.wallbang)
+Feature.bind(context, character.wallbangHead, MovementTools.wallbangHead)
+Feature.bind(context, character.antiAim2,     AATools.antiAim,          character.antiAim2Settings)
                 Feature.always(context, 'Skin changer', SkinChanger.start, visuals.cosmetics, context.ui, context.log, context.services)
                 Feature.bind(context, main.silentAim, SilentAim.start, main.aim, context.log, context.services)
                 Feature.bind(context, main.aimbot, Aimbot.start, main.aim, context.services)
