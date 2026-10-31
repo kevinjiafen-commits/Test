@@ -334,7 +334,6 @@ do
 
             local pool = {}
 
-            local pool = {}
 
 for index = 1, MAX_ESP do
     local box = Instance.new('Frame')
@@ -353,12 +352,17 @@ for index = 1, MAX_ESP do
     fill.Parent                 = box
 
     local outline = Instance.new('Frame')
-                outline.Size                   = UDim2.new(1, 2, 1, 2)
-                outline.Position               = UDim2.new(0, -1, 0, -1)
-                outline.BackgroundTransparency = 1
-                outline.BorderSizePixel        = 2
-                outline.BorderColor3           = Color3.new(1, 1, 1)
-                outline.Parent                 = box
+outline.Size                   = UDim2.new(1, 2, 1, 2)
+outline.Position               = UDim2.new(0, -1, 0, -1)
+outline.BackgroundTransparency = 1
+outline.BorderSizePixel        = 0
+outline.ZIndex                 = 2
+outline.Parent                 = box
+
+local outlineStroke = Instance.new('UIStroke')
+outlineStroke.Color = Color3.new(1, 1, 1)
+outlineStroke.Thickness = 2
+outlineStroke.Parent = outline
 
                 local nameLabel = Instance.new('TextLabel')
                 nameLabel.BackgroundTransparency = 1
@@ -388,12 +392,24 @@ for index = 1, MAX_ESP do
                 hpFill.BackgroundColor3 = Color3.new(0, 1, 0)
                 hpFill.Parent           = hpBar
 
-                box.Parent = gui
+local headMark = Instance.new('TextLabel')
+headMark.BackgroundTransparency = 1
+headMark.Text          = '\u{25BC}'
+headMark.TextSize      = 14
+headMark.TextColor3    = Color3.new(1, 1, 1)
+headMark.Font          = Enum.Font.SourceSansBold
+headMark.Size          = UDim2.fromOffset(20, 20)
+headMark.ZIndex        = 3
+headMark.Visible       = false
+headMark.Parent        = box
 
-                pool[index] = {
+box.Parent = gui
+
+                                pool[index] = {
     box = box, outline = outline, fill = fill,
     name = nameLabel, dist = distLabel,
-    hpBar = hpBar, hpFill = hpFill,
+        hpBar = hpBar, hpFill = hpFill,
+    stroke = outlineStroke, headMark = headMark,
 }
             end
 
@@ -477,13 +493,15 @@ for _, enemy in enemies do
         cell.box.Position = UDim2.new(0, boxX, 0, boxY)
         cell.box.Size     = UDim2.new(0, width, 0, height)
 
-        if options.box then
-            cell.outline.Visible      = true
-            cell.outline.BorderColor3 = options.boxColor or Color3.new(1, 1, 1)
-        else
-            cell.outline.Visible = false
-        end
-
+if options.box then
+    cell.outline.Visible = true
+    cell.stroke.Enabled  = true
+    cell.stroke.Color    = options.boxColor or Color3.new(1, 1, 1)
+    cell.stroke.Thickness = options.boxThickness or 2
+else
+    cell.outline.Visible = false
+    cell.stroke.Enabled  = false
+end
         if options.boxFill then
             cell.fill.Visible                = true
             cell.fill.BackgroundColor3       = options.boxFillColor or Color3.new(0, 0, 0)
@@ -520,11 +538,20 @@ for _, enemy in enemies do
             else
                 cell.hpFill.BackgroundColor3 = options.healthColor or Color3.fromRGB(0, 255, 0)
             end
-        else
-            cell.hpBar.Visible = false
-        end
+else
+    cell.hpBar.Visible = false
+end
 
-        used = used + 1
+if options.headMark then
+    cell.headMark.Visible    = true
+    cell.headMark.Position   = UDim2.new(0.5, -10, 0, -(textSize + 22))
+    cell.headMark.TextSize   = textSize + 2
+    cell.headMark.TextColor3 = options.headMarkColor or Color3.new(1, 1, 1)
+else
+    cell.headMark.Visible = false
+end
+
+used = used + 1
     end
 end
 
@@ -11581,8 +11608,27 @@ local espBoxFillColor = espBoxFill:color(ui.id('esp-box-fill-color'), {
     default      = Color3.new(0, 0, 0),
     transparency = 0.6,
 })
+local espBoxThickness = espShowBox:dependent(function()
+    return espShowBox.value
+end):slider(ui.id('esp-box-thickness'), {
+    text     = 'box thickness',
+    default  = 2,
+    min      = 1,
+    max      = 6,
+    rounding = 0,
+    suffix   = 'px',
+})
 
 -- Name
+local espShowHeadMark = espOptions:toggle(ui.id('esp-head-mark'), {
+    text    = 'head marker',
+    default = true,
+})
+local espHeadMarkColor = espShowHeadMark:color(ui.id('esp-head-mark-color'), {
+    title   = 'head marker color',
+    default = Color3.new(1, 1, 1),
+})
+
 local espShowName = espOptions:toggle(ui.id('esp-name'), {
     text    = 'name',
     default = true,
@@ -11657,8 +11703,11 @@ local espMaxDistance = espOptions:slider(ui.id('esp-max-distance'), {
             boxColor      = espBoxColor.value,
             boxFill       = espBoxFill.value,
             boxFillColor  = espBoxFillColor.value,
+            boxThickness  = espBoxThickness.value,
             name          = espShowName.value,
             nameColor     = espNameColor.value,
+            headMark      = espShowHeadMark.value,
+            headMarkColor = espHeadMarkColor.value,
             distance      = espShowDistance.value,
             distanceColor = espDistanceColor.value,
             health        = espShowHealth.value,
