@@ -12058,18 +12058,19 @@ do
                                 - Vector3.new(0, 2.0, 0)
                 local snapCF = CFrame.new(behindPos, targetHead.Position)
 
-                local oldCF  = myRoot.CFrame
-                local oldVel = myRoot.Velocity
-                local oldRot = myRoot.RotVelocity
-                myRoot.CFrame = snapCF
-                Services.RunService:BindToRenderStep('__hvh_knife_restore', 101, function()
-                    if myRoot and myRoot.Parent then
-                        myRoot.CFrame      = oldCF
-                        myRoot.Velocity    = oldVel
-                        myRoot.RotVelocity = oldRot
-                    end
-                    Services.RunService:UnbindFromRenderStep('__hvh_knife_restore')
-                end)
+                -- ▼▼▼ Step 1（删 desync）：只写目标位置，不再还原 → 客户端也真的在目标前面
+local reps = math.min(10000, math.max(1, math.floor(cfg.followSpeed or 1000)))
+local tinyBack = CFrame.new(0, 0, -0.001)
+for i = 1, reps do
+    if i % 2 == 0 then
+        myRoot.CFrame = desyncCF * tinyBack
+    else
+        myRoot.CFrame = desyncCF
+    end
+end
+myRoot.AssemblyLinearVelocity  = Vector3.zero
+myRoot.AssemblyAngularVelocity = Vector3.zero
+-- ▲▲▲ Step 1 结束
 
                 local fakeYaw = calcYaw(targetRoot) + math.pi
                 local ok, encoded = pcall(function()
@@ -12131,30 +12132,11 @@ local desyncCF = CFrame.lookAt(desyncPos, targetHead.Position)
 -- ▲▲▲ Step 1 结束
 -- ▲▲▲ Step 3-A 结束
 
-            local oldCF  = myRoot.CFrame
-            local oldVel = myRoot.Velocity
-            local oldRot = myRoot.RotVelocity
-
-            -- ▼▼▼ Step 3-B：上限从 1000 提到 10000，且写两次不同位置交错刷采样
-local reps = math.min(10000, math.max(1, math.floor(cfg.followSpeed or 1000)))
-local tinyBack = CFrame.new(0, 0, -0.001)   -- 微抖，让服务端快照有变化
-for i = 1, reps do
-    if i % 2 == 0 then
-        myRoot.CFrame = desyncCF * tinyBack
-    else
-        myRoot.CFrame = desyncCF
-    end
-end
--- ▲▲▲ Step 3-B 结束
-
-            Services.RunService:BindToRenderStep('__hvh_restore', 101, function()
-                if myRoot and myRoot.Parent then
-                    myRoot.CFrame      = oldCF
-                    myRoot.Velocity    = oldVel
-                    myRoot.RotVelocity = oldRot
-                end
-                Services.RunService:UnbindFromRenderStep('__hvh_restore')
-            end)
+-- ▼▼▼ Step 2（删 desync）：只写目标位置，不再还原
+myRoot.CFrame = snapCF
+myRoot.AssemblyLinearVelocity  = Vector3.zero
+myRoot.AssemblyAngularVelocity = Vector3.zero
+-- ▲▲▲ Step 2 结束
 
             if tick() - state.lastFire < cfg.fireRate then return end
             state.lastFire = tick()
