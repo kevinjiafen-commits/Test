@@ -322,7 +322,7 @@ do
         __ANTIBRAIN_MODULES.c()
 
         local MAX_ESP = 60
-▼▼▼
+
 -- ESP 扩展：骨骼表 + 颜色插值工具（来自 Grief.cc）
 local ESP_R15_BONES = {
     {"UpperTorso", "Head"},
