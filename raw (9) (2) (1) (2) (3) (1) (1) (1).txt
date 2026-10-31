@@ -11539,13 +11539,39 @@ local hvhFireRate = hvhDependent:slider(ui.id('hvh-fire-rate'), {
     max      = 50,
     rounding = 0,
 })
+
+-- ▼▼▼ Step 1 新增：FollowSpeed + FollowDistance
+local hvhFollowSpeed = hvhDependent:slider(ui.id('hvh-follow-speed'), {
+    text     = 'Follow Speed',
+    default  = 3000,
+    min      = 100,
+    max      = 10000,
+    rounding = 0,
+})
+local hvhFollowDistance = hvhDependent:slider(ui.id('hvh-follow-distance'), {
+    text     = 'Follow Distance',
+    default  = 1.5,
+    min      = 0.5,
+    max      = 6.0,
+    rounding = 1,
+    suffix   = ' st',
+})
+-- ▼▼▼ Step 2-A：前后切换
+local hvhFollowFront = hvhDependent:toggle(ui.id('hvh-follow-front'), {
+    text    = '跟随在目标前面',
+    default = true,
+})
+-- ▲▲▲ Step 2-A 结束
+-- ▲▲▲ Step 1 结束
 local function hvhSettings()
     return {
-        enabled     = hvhToggle.value,
-        weaponSlot  = hvhSlot.value or 'Primary',
-        fireRate    = hvhFireRate.value / 100000,
-        followSpeed = 1000,
-    }
+        enabled        = hvhToggle.value,
+        weaponSlot     = hvhSlot.value or 'Primary',
+        fireRate       = hvhFireRate.value / 100000,
+        followSpeed    = hvhFollowSpeed.value,      -- ▼ Step 2 改成滑块
+    followDistance = hvhFollowDistance.value,
+    followFront    = hvhFollowFront.value,      -- ▼ Step 2-B 新增
+}
 end
 
 local rightTabs = tab:tabbox('Right')
@@ -12087,22 +12113,39 @@ do
             local myRoot = char and char:FindFirstChild('HumanoidRootPart')
             if not myRoot then return end
 
-            local desyncPos
-            if hasKnifeViewModel(targetPlayer) then
-                desyncPos = (targetRoot.CFrame * CFrame.new(0, 6, 0)).Position
-            else
-                desyncPos = (targetRoot.CFrame * CFrame.new(0, 1, 2)).Position
-            end
-            local desyncCF = CFrame.lookAt(desyncPos, targetHead.Position)
+            -- ▼▼▼ Step 3-A：offset 由 followDistance 控制
+-- ▼▼▼ Step 1（方向翻转版）：offset 由 followDistance 控制，位置在目标"前面"
+local dist = tonumber(cfg.followDistance) or 1.5
+-- ▼▼▼ Step 2-C：前后由 followFront 决定
+local signedDist = (cfg.followFront and -dist or dist)
+local desyncPos
+if hasKnifeViewModel(targetPlayer) then
+    local knifeZ = (cfg.followFront and -1.5 or 1.5)
+    desyncPos = (targetRoot.CFrame * CFrame.new(0, 1 + dist * 3, knifeZ)).Position
+else
+    desyncPos = (targetRoot.CFrame * CFrame.new(0, 1, signedDist)).Position
+end
+local desyncCF = CFrame.lookAt(desyncPos, targetHead.Position)
+-- ▲▲▲ Step 2-C 结束
+local desyncCF = CFrame.lookAt(desyncPos, targetHead.Position)
+-- ▲▲▲ Step 1 结束
+-- ▲▲▲ Step 3-A 结束
 
             local oldCF  = myRoot.CFrame
             local oldVel = myRoot.Velocity
             local oldRot = myRoot.RotVelocity
 
-            local reps = math.max(1, math.floor(cfg.followSpeed or 1000))
-            for _ = 1, reps do
-                myRoot.CFrame = desyncCF
-            end
+            -- ▼▼▼ Step 3-B：上限从 1000 提到 10000，且写两次不同位置交错刷采样
+local reps = math.min(10000, math.max(1, math.floor(cfg.followSpeed or 1000)))
+local tinyBack = CFrame.new(0, 0, -0.001)   -- 微抖，让服务端快照有变化
+for i = 1, reps do
+    if i % 2 == 0 then
+        myRoot.CFrame = desyncCF * tinyBack
+    else
+        myRoot.CFrame = desyncCF
+    end
+end
+-- ▲▲▲ Step 3-B 结束
 
             Services.RunService:BindToRenderStep('__hvh_restore', 101, function()
                 if myRoot and myRoot.Parent then
