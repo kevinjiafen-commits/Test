@@ -382,12 +382,64 @@ for index = 1, MAX_ESP do
                 hpBar.BorderSizePixel  = 0
                 hpBar.Parent           = box
 
-                local hpFill = Instance.new('Frame')
+                                local hpFill = Instance.new('Frame')
                 hpFill.Size             = UDim2.new(-1, 0, -1, 0)
                 hpFill.BorderSizePixel  = 0
                 hpFill.BackgroundColor3 = Color3.new(0, 1, 0)
                 hpFill.Parent           = hpBar
 
+-- ▼▼▼ Step 2-A 新增：weapon / flags / skeleton / arrow / rounded corner + fill gradient
+                local weaponLabel = Instance.new('TextLabel')
+                weaponLabel.BackgroundTransparency = 1
+                weaponLabel.TextSize  = 13
+                weaponLabel.Font      = Enum.Font.SourceSans
+                weaponLabel.TextColor3 = Color3.new(0.85, 0.85, 0.85)
+                weaponLabel.Text      = ''
+                weaponLabel.Visible   = false
+                weaponLabel.Parent    = box
+
+                local flagsLabel = Instance.new('TextLabel')
+                flagsLabel.BackgroundTransparency = 1
+                flagsLabel.TextSize      = 13
+                flagsLabel.Font          = Enum.Font.SourceSans
+                flagsLabel.TextColor3    = Color3.new(1, 1, 1)
+                flagsLabel.TextXAlignment = Enum.TextXAlignment.Left
+                flagsLabel.TextYAlignment = Enum.TextYAlignment.Top
+                flagsLabel.Text          = ''
+                flagsLabel.Visible       = false
+                flagsLabel.Parent        = box
+
+                local skeleton = {}
+                for i = 1, 14 do
+                    local line = Instance.new('Frame')
+                    line.BackgroundColor3 = Color3.new(1, 1, 1)
+                    line.BorderSizePixel  = 0
+                    line.Visible          = false
+                    line.ZIndex           = 3
+                    line.Parent           = gui
+                    skeleton[i] = line
+                end
+
+                local arrow = Instance.new('Frame')
+                arrow.BackgroundColor3 = Color3.new(1, 0, 0)
+                arrow.BorderSizePixel  = 0
+                arrow.AnchorPoint      = Vector2.new(0.5, 0.5)
+                arrow.Visible          = false
+                arrow.ZIndex           = 3
+                arrow.Parent           = gui
+                local arrowCorner = Instance.new('UICorner')
+                arrowCorner.CornerRadius = UDim.new(1, 0)
+                arrowCorner.Parent       = arrow
+
+                local boxCorner = Instance.new('UICorner')
+                boxCorner.CornerRadius = UDim.new(0, 0)
+                boxCorner.Parent       = box
+
+                local fillGrad = Instance.new('UIGradient')
+                fillGrad.Rotation = 90
+                fillGrad.Enabled  = false
+                fillGrad.Parent   = fill
+-- ▲▲▲ Step 2-A 结束
                 box.Parent = gui
 
 -- ▼▼▼ Step 4-A 新增：head dot + tracer
@@ -435,7 +487,15 @@ pool[index] = {
     hpBar = hpBar, hpFill = hpFill,
     headDot = headDot,
     tracer  = tracer,
-    corners = corners,   -- ← 新增
+    corners = corners,
+    -- ▼▼▼ Step 2-A 新增
+    weapon    = weaponLabel,
+    flags     = flagsLabel,
+    skeleton  = skeleton,
+    arrow     = arrow,
+    boxCorner = boxCorner,
+    fillGrad  = fillGrad,
+    -- ▲▲▲
 }
 -- ▲▲▲ Step 4-A 结束
             end
@@ -573,13 +633,30 @@ for _, enemy in enemies do
             for _, cf in cell.corners do cf.Visible = false end
         end
 
-        if options.boxFill then
-            cell.fill.Visible                = true
-            cell.fill.BackgroundColor3       = options.boxFillColor or Color3.new(0, 0, 0)
-            cell.fill.BackgroundTransparency = 0.6
-        else
-            cell.fill.Visible = false
-        end
+-- ▼▼▼ Step 2-B 修改：fill 支持渐变 + 圆角 box
+if options.boxFill then
+    cell.fill.Visible                = true
+    cell.fill.BackgroundColor3       = options.boxFillColor or Color3.new(0, 0, 0)
+    cell.fill.BackgroundTransparency = options.boxFillTransparency or 0.6
+    if options.boxFillGradient and typeof(options.boxFillGradientColor) == 'Color3' then
+        cell.fillGrad.Enabled = true
+        cell.fillGrad.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, options.boxFillColor or Color3.new(0,0,0)),
+            ColorSequenceKeypoint.new(1, options.boxFillGradientColor),
+        })
+    else
+        cell.fillGrad.Enabled = false
+    end
+else
+    cell.fill.Visible = false
+    cell.fillGrad.Enabled = false
+end
+
+if cell.boxCorner then
+    local radius = options.boxStyle == 'rounded' and (options.boxCornerRadius or 4) or 0
+    cell.boxCorner.CornerRadius = UDim.new(0, radius)
+end
+-- ▲▲▲
 
         if options.name then
             cell.name.Text       = enemy.player.Name
@@ -623,35 +700,130 @@ else
 end
 
 if options.tracer then
-    local viewport = camera.ViewportSize
-    local originX  = viewport.X / 2
-    local originY  = viewport.Y
-    local dx       = headPos.X - originX
-    local dy       = headPos.Y - originY
-    local length   = math.sqrt(dx * dx + dy * dy)
-    local angle    = math.deg(math.atan2(dy, dx))
-
-    cell.tracer.Visible          = true
-    cell.tracer.Position         = UDim2.fromOffset(originX, originY)
-    cell.tracer.Size             = UDim2.fromOffset(length, 1)
-    cell.tracer.Rotation         = angle
-    cell.tracer.BackgroundColor3 = options.tracerColor or Color3.new(1, 1, 1)
+    ...
 else
     cell.tracer.Visible = false
 end
 -- ▲▲▲ Step 4-B 结束
 
+-- ▼▼▼ Step 2-B 新增：weapon / flags / skeleton / arrow
+if options.weapon then
+    local tool = enemy.character:FindFirstChildOfClass('Tool')
+    cell.weapon.Text     = tool and tool.Name or ''
+    cell.weapon.TextSize = textSize
+    cell.weapon.TextColor3 = options.weaponColor or Color3.fromRGB(216, 216, 216)
+    cell.weapon.Position = UDim2.new(0.5, 0, 1, textSize + 20)
+    cell.weapon.Visible  = tool ~= nil
+else
+    cell.weapon.Visible = false
+end
+
+if options.flags then
+    local parts = {}
+    if options.flagHealth and enemy.humanoid then
+        parts[#parts+1] = 'HP ' .. math.floor(enemy.humanoid.Health + 0.5)
+    end
+    if options.flagTeam then
+        parts[#parts+1] = 'enemy'
+    end
+    local text = table.concat(parts, '\n')
+    cell.flags.Text      = text
+    cell.flags.TextSize  = textSize - 2
+    cell.flags.TextColor3 = options.flagsColor or Color3.new(1, 1, 1)
+    cell.flags.Position  = UDim2.new(1, 4, 0, 0)
+    cell.flags.Visible   = text ~= ''
+else
+    cell.flags.Visible = false
+end
+
+if options.skeleton then
+    local boneList = enemy.character:FindFirstChild('UpperTorso') and {
+        {'Head','UpperTorso'},{'UpperTorso','LowerTorso'},
+        {'UpperTorso','LeftUpperArm'},{'UpperTorso','RightUpperArm'},
+        {'LeftUpperArm','LeftLowerArm'},{'RightUpperArm','RightLowerArm'},
+        {'LeftLowerArm','LeftHand'},{'RightLowerArm','RightHand'},
+        {'LowerTorso','LeftUpperLeg'},{'LowerTorso','RightUpperLeg'},
+        {'LeftUpperLeg','LeftLowerLeg'},{'RightUpperLeg','RightLowerLeg'},
+        {'LeftLowerLeg','LeftFoot'},{'RightLowerLeg','RightFoot'},
+    } or {
+        {'Head','Torso'},{'Torso','Left Arm'},{'Torso','Right Arm'},
+        {'Torso','Left Leg'},{'Torso','Right Leg'},
+    }
+    local idx = 1
+    for _, pair in ipairs(boneList) do
+        local pa = enemy.character:FindFirstChild(pair[1])
+        local pb = enemy.character:FindFirstChild(pair[2])
+        local line = cell.skeleton[idx]
+        idx = idx + 1
+        if pa and pb and pa:IsA('BasePart') and pb:IsA('BasePart') then
+            local sa = camera:WorldToViewportPoint(pa.Position)
+            local sb = camera:WorldToViewportPoint(pb.Position)
+            if sa.Z > 0 and sb.Z > 0 then
+                local dx, dy = sb.X - sa.X, sb.Y - sa.Y
+                local len  = math.sqrt(dx*dx + dy*dy)
+                local ang  = math.deg(math.atan2(dy, dx))
+                line.Position         = UDim2.fromOffset(sa.X, sa.Y)
+                line.Size             = UDim2.fromOffset(len, 1)
+                line.Rotation         = ang
+                line.BackgroundColor3 = options.skeletonColor or Color3.new(1, 1, 1)
+                line.Visible          = true
+            else
+                line.Visible = false
+            end
+        else
+            if line then line.Visible = false end
+        end
+    end
+    for i = idx, #cell.skeleton do
+        cell.skeleton[i].Visible = false
+    end
+else
+    for _, line in ipairs(cell.skeleton) do line.Visible = false end
+end
+
+if options.arrows and enemy.root then
+    local vp = camera.ViewportSize
+    local sp = camera:WorldToViewportPoint(enemy.root.Position)
+    local cx, cy = vp.X * 0.5, vp.Y * 0.5
+    local onScreen = sp.Z > 0 and sp.X >= 0 and sp.X <= vp.X and sp.Y >= 0 and sp.Y <= vp.Y
+    if not onScreen then
+        local dx, dy = sp.X - cx, sp.Y - cy
+        if sp.Z <= 0 then dx, dy = -dx, -dy end
+        local mag = math.sqrt(dx*dx + dy*dy)
+        if mag < 1 then dx, dy, mag = 0, -1, 1 end
+        dx, dy = dx / mag, dy / mag
+        local r = options.arrowRadius or 90
+        cell.arrow.Position      = UDim2.fromOffset(cx + dx * r, cy + dy * r)
+        cell.arrow.Size          = UDim2.fromOffset(10, 10)
+        cell.arrow.BackgroundColor3 = options.arrowColor or Color3.new(1, 0, 0)
+        cell.arrow.Visible       = true
+    else
+        cell.arrow.Visible = false
+    end
+else
+    cell.arrow.Visible = false
+end
+-- ▲▲▲ Step 2-B 结束
+
 used = used + 1
     end
 end
 
-            for index = used, MAX_ESP do
+for index = used, MAX_ESP do
     local cell = esp.pool[index]
     cell.box.Visible     = false
     -- ▼▼▼ Step 4-C
         if cell.headDot then cell.headDot.Visible = false end
     if cell.tracer  then cell.tracer.Visible  = false end
     for _, cf in cell.corners do cf.Visible = false end
+    -- ▲▲▲
+    -- ▼▼▼ Step 2-B 新增：回收新增部件
+    if cell.weapon then cell.weapon.Visible = false end
+    if cell.flags  then cell.flags.Visible  = false end
+    if cell.arrow  then cell.arrow.Visible  = false end
+    if cell.skeleton then
+        for _, line in ipairs(cell.skeleton) do line.Visible = false end
+    end
     -- ▲▲▲
 end
         end
@@ -11797,7 +11969,7 @@ local espBoxStyle = espOptions:dependent(function()
     return espShowBox.value
 end):dropdown(ui.id('esp-box-style'), {
     text    = 'box style',
-    values  = { 'full box', 'corner box' },
+    values  = { 'full box', 'corner box', 'rounded' },
     default = 'full box',
 })
 
@@ -11856,6 +12028,85 @@ local espTracerColor = espShowTracer:color(ui.id('esp-tracer-color'), {
     default = Color3.new(1, 1, 1),
 })
 -- ▲▲▲ Step 5-A 结束
+
+-- ▼▼▼ Step 3 新增：weapon / flags / skeleton / arrow / box 进阶
+local espShowWeapon = espOptions:toggle(ui.id('esp-weapon'), {
+    text    = 'weapon',
+    default = false,
+})
+local espWeaponColor = espShowWeapon:color(ui.id('esp-weapon-color'), {
+    title   = 'weapon color',
+    default = Color3.fromRGB(216, 216, 216),
+})
+
+local espShowFlags = espOptions:toggle(ui.id('esp-flags'), {
+    text    = 'flags',
+    default = false,
+})
+local espFlagHealth = espShowFlags:toggle(ui.id('esp-flag-health'), {
+    text    = 'health flag',
+    default = true,
+})
+local espFlagTeam = espShowFlags:toggle(ui.id('esp-flag-team'), {
+    text    = 'team flag',
+    default = true,
+})
+local espFlagsColor = espShowFlags:color(ui.id('esp-flags-color'), {
+    title   = 'flags color',
+    default = Color3.new(1, 1, 1),
+})
+
+local espShowSkeleton = espOptions:toggle(ui.id('esp-skeleton'), {
+    text    = 'skeleton',
+    default = false,
+})
+local espSkeletonColor = espShowSkeleton:color(ui.id('esp-skeleton-color'), {
+    title   = 'skeleton color',
+    default = Color3.new(1, 1, 1),
+})
+
+local espShowArrow = espOptions:toggle(ui.id('esp-arrows'), {
+    text    = 'arrows',
+    default = false,
+})
+local espArrowColor = espShowArrow:color(ui.id('esp-arrow-color'), {
+    title   = 'arrow color',
+    default = Color3.fromRGB(255, 80, 80),
+})
+local espArrowRadius = espOptions:slider(ui.id('esp-arrow-radius'), {
+    text     = 'arrow radius',
+    default  = 90,
+    min      = 20,
+    max      = 400,
+    rounding = 0,
+    suffix   = 'px',
+})
+
+local espBoxRadius = espOptions:slider(ui.id('esp-box-radius'), {
+    text     = 'box corner radius',
+    default  = 4,
+    min      = 0,
+    max      = 20,
+    rounding = 0,
+    suffix   = 'px',
+})
+local espBoxFillGradient = espOptions:toggle(ui.id('esp-box-fill-gradient'), {
+    text    = 'fill gradient',
+    default = false,
+})
+local espBoxFillGradientColor = espBoxFillGradient:color(ui.id('esp-box-fill-gradient-color'), {
+    title   = 'gradient color',
+    default = Color3.fromRGB(60, 60, 60),
+})
+local espBoxFillTransparency = espOptions:slider(ui.id('esp-box-fill-transparency'), {
+    text     = 'fill transparency',
+    default  = 60,
+    min      = 0,
+    max      = 100,
+    rounding = 0,
+    suffix   = '%',
+})
+-- ▲▲▲ Step 3 结束
 
 local espTextSize = espOptions:slider(ui.id('esp-text-size'), {
     text     = 'text size',
@@ -11920,6 +12171,23 @@ teamCheck     = espTeamCheck.value,
         tracerColor   = espTracerColor.value,
     boxStyle      = espBoxStyle.value,   -- ← 新增
     -- ▲▲▲
+    -- ▼▼▼ Step 3 新增
+    weapon = espShowWeapon.value,
+    weaponColor = espWeaponColor.value,
+    flags = espShowFlags.value,
+    flagHealth = espFlagHealth.value,
+    flagTeam = espFlagTeam.value,
+    flagsColor = espFlagsColor.value,
+    skeleton = espShowSkeleton.value,
+    skeletonColor = espSkeletonColor.value,
+    arrows = espShowArrow.value,
+    arrowColor = espArrowColor.value,
+    arrowRadius = espArrowRadius.value,
+    boxCornerRadius = espBoxRadius.value,
+    boxFillGradient = espBoxFillGradient.value,
+    boxFillGradientColor = espBoxFillGradientColor.value,
+    boxFillTransparency = (100 - espBoxFillTransparency.value) / 100,
+    -- ▲▲▲ Step 3 结束
 }
     end,
 }
@@ -12290,6 +12558,269 @@ end
 -- ============================================================
 -- ▲▲▲ Step 1 结束
 -- ============================================================
+
+-- ▼▼▼ Step 5 新增：tracer 模块
+do
+    local function __modImpl()
+        local Services = __ANTIBRAIN_MODULES.k()
+        __ANTIBRAIN_MODULES.c()
+
+        local Cfg = {
+            enabled = false,
+            color   = Color3.fromRGB(255, 180, 60),
+            width   = 0.18,
+            life    = 0.35,
+            bright  = 1,
+            replace = true,
+        }
+
+        local folder = Instance.new('Folder')
+        folder.Name = 'arch_tracers'
+        folder.Parent = workspace.CurrentCamera or workspace
+
+        local tracers = {}
+
+        local function spawnTracer(from, to)
+            if not Cfg.enabled then return end
+            local dist = (to - from).Magnitude
+            if dist < 0.5 then return end
+            local part = Instance.new('Part')
+            part.Anchored   = true
+            part.CanCollide = false
+            part.CanQuery   = false
+            part.CanTouch   = false
+            part.Transparency = 1
+            part.Size  = Vector3.new(0.05, 0.05, 0.05)
+            part.CFrame = CFrame.new(from)
+            part.Parent = folder
+
+            local a0 = Instance.new('Attachment'); a0.Parent = part
+            local a1 = Instance.new('Attachment'); a1.Parent = part
+            a0.WorldPosition = from
+            a1.WorldPosition = to
+
+            local beam = Instance.new('Beam')
+            beam.Attachment0 = a0
+            beam.Attachment1 = a1
+            beam.Color        = ColorSequence.new(Cfg.color)
+            beam.Texture      = ''
+            beam.Width0       = Cfg.width
+            beam.Width1       = Cfg.width
+            beam.LightEmission = math.min(Cfg.bright, 1)
+            beam.LightInfluence = 0
+            beam.FaceCamera    = true
+            beam.Segments      = 1
+            beam.Parent        = part
+
+            table.insert(tracers, { part = part, beam = beam, born = os.clock() })
+        end
+
+        Services.RunService.RenderStepped:Connect(function()
+            local now = os.clock()
+            for i = #tracers, 1, -1 do
+                local t = tracers[i]
+                local f = (now - t.born) / Cfg.life
+                if f >= 1 or not t.part.Parent then
+                    pcall(function() t.part:Destroy() end)
+                    tracers[i] = tracers[#tracers]
+                    tracers[#tracers] = nil
+                else
+                    local e = f * f
+                    t.beam.Transparency = NumberSequence.new(e)
+                    t.beam.Width0 = Cfg.width * (1 - e * 0.5)
+                    t.beam.Width1 = Cfg.width * (1 - e * 0.5)
+                    t.beam.Color  = ColorSequence.new(Cfg.color)
+                end
+            end
+        end)
+
+        local T = { Cfg = Cfg }
+        T.spawn = spawnTracer
+        T.setEnabled = function(v) Cfg.enabled = v end
+        return table.freeze(T)
+    end
+    function __ANTIBRAIN_MODULES.bz2()
+        local v = __ANTIBRAIN_MODULES.cache.bz2
+        if not v then v = { c = __modImpl() }; __ANTIBRAIN_MODULES.cache.bz2 = v end
+        return v.c
+    end
+end
+-- ▲▲▲ Step 5 结束
+
+-- ▼▼▼ Step 4 音效模块 bz（Hit / Shoot / Ambience + Echo）
+
+-- ▼▼▼ Step 4 新增：音效模块 bz（Hit / Shoot / Ambience + Echo）
+do
+    local function __modImpl()
+        local Services = __ANTIBRAIN_MODULES.k()
+        __ANTIBRAIN_MODULES.c()
+
+        local HIT_SOUNDS = {
+            BowHit    = 'rbxassetid://1053296915',
+            Click     = 'rbxassetid://1347140027',
+            CSGO      = 'rbxassetid://5764885315',
+            Damage    = 'rbxassetid://8587183599',
+            Explosion = 'rbxassetid://90854697257230',
+            Gamesense = 'rbxassetid://4817809188',
+            Hover     = 'rbxassetid://6333717580',
+            Hitmarker = 'rbxassetid://1129547534',
+            Impact    = 'rbxassetid://6759025689',
+            Ice       = 'rbxassetid://268934012',
+            Minecraft = 'rbxassetid://4018616850',
+            Neverlose = 'rbxassetid://6607204501',
+            Pop       = 'rbxassetid://18803667669',
+            Rust      = 'rbxassetid://5043539486',
+            Sparkle   = 'rbxassetid://132463144859699',
+            Steve     = 'rbxassetid://4965083997',
+            TF2       = 'rbxassetid://8255306220',
+            Windows   = 'rbxassetid://9066167010',
+        }
+        local SHOOT_SOUNDS = {
+            Crossbow      = 'rbxassetid://8616930816',
+            AK47          = 'rbxassetid://801142899',
+            M249          = 'rbxassetid://2934844996',
+            PlasmaPistol  = 'rbxassetid://5312934759',
+            G36c          = 'rbxassetid://4759267374',
+            PlasmaMachine = 'rbxassetid://2605256561',
+            PlasmaShotgun = 'rbxassetid://2605233927',
+            MP40          = 'rbxassetid://103807799095792',
+            Bow           = 'rbxassetid://3442683707',
+        }
+        local AMBIENCE_FILES = {
+            city   = 'https://files.catbox.moe/3tyvqg.mp3',
+            forest = 'https://files.catbox.moe/lo2fio.mp3',
+            rain   = 'https://files.catbox.moe/ak4nc0.mp3',
+            snow   = 'https://files.catbox.moe/8g5veg.mp3',
+        }
+        local Cfg = {
+            hitOn = false, hitName = 'Gamesense', hitVol = 1, hitPitch = 1,
+            muteGameHit = false,
+            shootOn = false, shootName = 'AK47', shootVol = 1, shootPitch = 1,
+            muteGameShoot = false,
+            ambOn = false, ambTrack = 'city', ambVol = 0.55, ambPitch = 1, ambEcho = 0.35,
+        }
+
+        local hitFolder = Instance.new('Folder')
+        hitFolder.Name = 'arch_sfx'
+        hitFolder.Parent = Services.SoundService
+
+        local function playSound(id, vol, pitch, name)
+            if type(id) ~= 'string' or id == '' then return end
+            local snd = Instance.new('Sound')
+            snd.Name       = 'arch_' .. tostring(name or 'sfx')
+            snd.SoundId    = id
+            snd.Volume     = math.clamp(vol or 1, 0, 5)
+            snd.PlaybackSpeed = math.clamp(pitch or 1, 0.1, 3)
+            snd.Parent     = hitFolder
+            snd:Play()
+            task.delay(6, function() pcall(function() snd:Destroy() end) end)
+        end
+
+        local function previewHit()
+            playSound(HIT_SOUNDS[Cfg.hitName] or HIT_SOUNDS.Gamesense,
+                Cfg.hitVol, Cfg.hitPitch, 'hit_preview')
+        end
+        local function previewShoot()
+            playSound(SHOOT_SOUNDS[Cfg.shootName] or SHOOT_SOUNDS.AK47,
+                Cfg.shootVol, Cfg.shootPitch, 'shoot_preview')
+        end
+
+        -- ambience
+        local ambHolder = Instance.new('SoundGroup')
+        ambHolder.Name = 'arch_amb'
+        ambHolder.Parent = Services.SoundService
+
+        local ambSound = Instance.new('Sound')
+        ambSound.Looped = true
+        ambSound.Parent = ambHolder
+
+        local ambEcho = Instance.new('EchoSoundEffect')
+        ambEcho.Name = 'Echo'
+        ambEcho.Parent = ambSound
+
+        local ambCache = {}
+        local ambLoaded = nil
+        local function ensureAmbAsset(track)
+            if ambCache[track] then return ambCache[track] end
+            local ok, body = pcall(function()
+                return game:HttpGet(AMBIENCE_FILES[track])
+            end)
+            if ok and type(body) == 'string' and #body > 64 then
+                local folder = 'arch_amb'
+                if type(isfolder) == 'function' and not isfolder(folder) then
+                    pcall(makefolder, folder)
+                end
+                local path = folder .. '/' .. track .. '.mp3'
+                if type(writefile) == 'function' then
+                    pcall(writefile, path, body)
+                end
+                if type(getcustomasset) == 'function' then
+                    local ok2, asset = pcall(getcustomasset, path)
+                    if ok2 and type(asset) == 'string' then
+                        ambCache[track] = asset
+                        return asset
+                    end
+                end
+            end
+            return nil
+        end
+
+        local function syncAmbience()
+            if not Cfg.ambOn then
+                if ambSound.IsPlaying then ambSound:Stop() end
+                return
+            end
+            local track = Cfg.ambTrack
+            if not AMBIENCE_FILES[track] then track = 'city'; Cfg.ambTrack = 'city' end
+            if ambLoaded ~= track then
+                local asset = ensureAmbAsset(track)
+                if asset then
+                    ambSound.SoundId = asset
+                    ambLoaded = track
+                end
+            end
+            ambSound.Volume         = math.clamp(Cfg.ambVol, 0, 5)
+            ambSound.PlaybackSpeed  = math.clamp(Cfg.ambPitch, 0.1, 3)
+            local wet = math.clamp(Cfg.ambEcho, 0, 1)
+            ambEcho.Enabled     = wet > 0.01
+            ambEcho.WetLevel    = -40 + wet * 40
+            ambEcho.Feedback    = 0.15 + wet * 0.55
+            ambEcho.Delay       = 0.12 + wet * 0.35
+            if ambSound.SoundId ~= '' and not ambSound.IsPlaying then
+                pcall(function() ambSound:Play() end)
+            end
+        end
+
+        local S = {}
+        S.Cfg              = Cfg
+        S.HIT_SOUNDS       = HIT_SOUNDS
+        S.SHOOT_SOUNDS     = SHOOT_SOUNDS
+        S.AMBIENCE_TRACKS  = { 'city', 'forest', 'rain', 'snow' }
+        S.previewHit       = previewHit
+        S.previewShoot     = previewShoot
+        S.syncAmbience     = syncAmbience
+        S.playHit          = function()
+            if not Cfg.hitOn then return end
+            playSound(HIT_SOUNDS[Cfg.hitName] or HIT_SOUNDS.Gamesense, Cfg.hitVol, Cfg.hitPitch, 'hit')
+        end
+        S.playShoot        = function()
+            if not Cfg.shootOn then return end
+            playSound(SHOOT_SOUNDS[Cfg.shootName] or SHOOT_SOUNDS.AK47, Cfg.shootVol, Cfg.shootPitch, 'shoot')
+        end
+
+        return table.freeze(S)
+    end
+
+    function __ANTIBRAIN_MODULES.bz()
+        local v = __ANTIBRAIN_MODULES.cache.bz
+        if not v then
+            v = { c = __modImpl() }
+            __ANTIBRAIN_MODULES.cache.bz = v
+        end
+        return v.c
+    end
+end
+-- ▲▲▲ Step 4 音效模块结束
 
 -- ▼▼▼ bx: Mod Detector
 do
@@ -12669,6 +13200,13 @@ local extrasTabs = extrasTab:tabbox('Left')
 local modPage = extrasTabs:tab('mod detector')
 local luaPage = extrasTabs:tab('lua & servers')
 
+-- ▼▼▼ Step 1 新增：右侧 tabbox（esp+ / sounds / viewmodel）
+local extrasTabsRight = extrasTab:tabbox('Right')
+local espPlusPage    = extrasTabsRight:tab('esp+')
+local soundsPage     = extrasTabsRight:tab('sounds')
+local viewmodelPage  = extrasTabsRight:tab('viewmodel')
+-- ▲▲▲ Step 1 结束
+
 -- Mod detector
 local ModDetector = __ANTIBRAIN_MODULES.bx()
 ModDetector.new(context.scope)
@@ -12695,6 +13233,159 @@ modPage:button({
 })
 
 modPage:label('staff rank threshold loads on first scan', true)
+
+-- ▼▼▼ Step 4-B 新增：sounds 页面 UI
+local Sfx = __ANTIBRAIN_MODULES.bz()
+
+...  (Sfx UI 保持原样)
+
+-- ▼▼▼ Step 5-B 新增：viewmodel 页面 UI（Tracer + 基础 ViewModel + 去除）
+local Trc = __ANTIBRAIN_MODULES.bz2()
+
+viewmodelPage:label('Bullet Tracer')
+
+local trcToggle = viewmodelPage:toggle(context.ui.id('vm-trc-on'), {
+    text = 'bullet tracer', default = false,
+})
+trcToggle:onChanged(function(v) Trc.setEnabled(v) end)
+
+viewmodelPage:color(context.ui.id('vm-trc-color'), {
+    title = 'tracer color', default = Color3.fromRGB(255, 180, 60),
+}):onChanged(function(c) Trc.Cfg.color = c end)
+
+viewmodelPage:slider(context.ui.id('vm-trc-width'), {
+    text = 'width', default = 18, min = 1, max = 80, rounding = 0, suffix = '%',
+}):onChanged(function(v) Trc.Cfg.width = v / 100 end)
+
+viewmodelPage:slider(context.ui.id('vm-trc-life'), {
+    text = 'lifetime', default = 350, min = 50, max = 2000, rounding = 0, suffix = 'ms',
+}):onChanged(function(v) Trc.Cfg.life = v / 1000 end)
+
+viewmodelPage:slider(context.ui.id('vm-trc-bright'), {
+    text = 'brightness', default = 100, min = 0, max = 300, rounding = 0, suffix = '%',
+}):onChanged(function(v) Trc.Cfg.bright = v / 100 end)
+
+viewmodelPage:label('Remove Hands / Gun / Character')
+
+local CfgVM = { removeArms = false, removeGun = false, removeChar = false }
+local function applyVmRemove()
+    local lp = Services.Players.LocalPlayer
+    local char = lp and lp.Character
+    if not char then return end
+    for _, part in char:GetDescendants() do
+        if part:IsA('BasePart') then
+            local n = string.lower(part.Name)
+            local isArm = string.find(n, 'arm', 1, true) or string.find(n, 'hand', 1, true)
+            if CfgVM.removeArms and isArm then part.LocalTransparencyModifier = 1 end
+            if CfgVM.removeChar and not isArm then part.LocalTransparencyModifier = 1 end
+        end
+    end
+end
+
+viewmodelPage:toggle(context.ui.id('vm-rm-arms'), {
+    text = 'remove arms', default = false,
+}):onChanged(function(v) CfgVM.removeArms = v; applyVmRemove() end)
+
+viewmodelPage:toggle(context.ui.id('vm-rm-char'), {
+    text = 'remove character', default = false,
+}):onChanged(function(v) CfgVM.removeChar = v; applyVmRemove() end)
+
+viewmodelPage:label('ViewModel（位置偏移）')
+viewmodelPage:slider(context.ui.id('vm-off-x'), {
+    text = 'offset x', default = 0, min = -5, max = 5, rounding = 2,
+}):onChanged(function(v) Sfx.viewOffX = v end)
+
+viewmodelPage:slider(context.ui.id('vm-off-y'), {
+    text = 'offset y', default = 0, min = -5, max = 5, rounding = 2,
+}):onChanged(function(v) Sfx.viewOffY = v end)
+
+viewmodelPage:slider(context.ui.id('vm-off-z'), {
+    text = 'offset z', default = 0, min = -5, max = 5, rounding = 2,
+}):onChanged(function(v) Sfx.viewOffZ = v end)
+-- ▲▲▲ Step 5-B 结束
+
+local hitToggle = soundsPage:toggle(context.ui.id('sfx-hit-on'), {
+    text    = 'hit sound',
+    default = false,
+})
+hitToggle:onChanged(function(v) Sfx.Cfg.hitOn = v end)
+
+local hitNameList = {}
+for name in Sfx.HIT_SOUNDS do table.insert(hitNameList, name) end
+table.sort(hitNameList)
+soundsPage:dropdown(context.ui.id('sfx-hit-name'), {
+    text   = 'hit sound',
+    values = hitNameList,
+    default = 'Gamesense',
+}):onChanged(function(v) Sfx.Cfg.hitName = v end)
+
+soundsPage:slider(context.ui.id('sfx-hit-vol'), {
+    text = 'hit volume', default = 100, min = 0, max = 200, rounding = 0, suffix = '%',
+}):onChanged(function(v) Sfx.Cfg.hitVol = v / 100 end)
+
+soundsPage:slider(context.ui.id('sfx-hit-pitch'), {
+    text = 'hit pitch', default = 100, min = 10, max = 300, rounding = 0, suffix = '%',
+}):onChanged(function(v) Sfx.Cfg.hitPitch = v / 100 end)
+
+soundsPage:button({
+    text = 'preview hit', callback = Sfx.previewHit,
+})
+
+soundsPage:label('Shoot Sound')
+
+local shootToggle = soundsPage:toggle(context.ui.id('sfx-shoot-on'), {
+    text = 'shoot sound', default = false,
+})
+shootToggle:onChanged(function(v) Sfx.Cfg.shootOn = v end)
+
+local shootNameList = {}
+for name in Sfx.SHOOT_SOUNDS do table.insert(shootNameList, name) end
+table.sort(shootNameList)
+soundsPage:dropdown(context.ui.id('sfx-shoot-name'), {
+    text = 'shoot sound', values = shootNameList, default = 'AK47',
+}):onChanged(function(v) Sfx.Cfg.shootName = v end)
+
+soundsPage:slider(context.ui.id('sfx-shoot-vol'), {
+    text = 'shoot volume', default = 100, min = 0, max = 200, rounding = 0, suffix = '%',
+}):onChanged(function(v) Sfx.Cfg.shootVol = v / 100 end)
+
+soundsPage:slider(context.ui.id('sfx-shoot-pitch'), {
+    text = 'shoot pitch', default = 100, min = 10, max = 300, rounding = 0, suffix = '%',
+}):onChanged(function(v) Sfx.Cfg.shootPitch = v / 100 end)
+
+soundsPage:button({ text = 'preview shoot', callback = Sfx.previewShoot })
+
+soundsPage:label('Ambience')
+
+local ambToggle = soundsPage:toggle(context.ui.id('sfx-amb-on'), {
+    text = 'ambience', default = false,
+})
+ambToggle:onChanged(function(v)
+    Sfx.Cfg.ambOn = v
+    Sfx.syncAmbience()
+end)
+
+soundsPage:dropdown(context.ui.id('sfx-amb-track'), {
+    text = 'track',
+    values = { 'city', 'forest', 'rain', 'snow' },
+    default = 'city',
+}):onChanged(function(v)
+    Sfx.Cfg.ambTrack = v
+    Sfx.syncAmbience()
+end)
+
+soundsPage:slider(context.ui.id('sfx-amb-vol'), {
+    text = 'volume', default = 55, min = 0, max = 200, rounding = 0, suffix = '%',
+}):onChanged(function(v) Sfx.Cfg.ambVol = v / 100; Sfx.syncAmbience() end)
+
+soundsPage:slider(context.ui.id('sfx-amb-pitch'), {
+    text = 'pitch', default = 100, min = 10, max = 300, rounding = 0, suffix = '%',
+}):onChanged(function(v) Sfx.Cfg.ambPitch = v / 100; Sfx.syncAmbience() end)
+
+soundsPage:slider(context.ui.id('sfx-amb-echo'), {
+    text = 'echo', default = 35, min = 0, max = 100, rounding = 0, suffix = '%',
+}):onChanged(function(v) Sfx.Cfg.ambEcho = v / 100; Sfx.syncAmbience() end)
+-- ▲▲▲ Step 4-B 结束
 
 -- Lua & Servers
 local LuaTools = __ANTIBRAIN_MODULES.by()
@@ -12790,6 +13481,33 @@ luaPage:button({
     end,
 })
 -- ▲▲▲ extras 分页
+
+Feature.always(context, 'Pose decoding guard', AntiAim.guardDecoding)
+-- ▼▼▼ Step 5-C 新增：ViewModel CFrame hook（位置偏移）
+Feature.always(context, 'VM CFrame', function(run)
+    local lp = Services.Players.LocalPlayer
+    local viewclass
+    pcall(function()
+        viewclass = require(lp.PlayerScripts.Modules.ClientReplicatedClasses.ClientFighter.ClientItem.ClientViewModel)
+    end)
+    if type(viewclass) ~= 'table' or type(viewclass.SetCFrame) ~= 'function' then
+        return
+    end
+    if viewclass.__archVMHooked then return end
+    viewclass.__archVMHooked = true
+    local old = viewclass.SetCFrame
+    viewclass.SetCFrame = function(self, cf, ...)
+        if type(Sfx) == 'table' and (Sfx.viewOffX or Sfx.viewOffY or Sfx.viewOffZ) then
+            cf = cf * CFrame.new(Sfx.viewOffX or 0, Sfx.viewOffY or 0, Sfx.viewOffZ or 0)
+        end
+        return old(self, cf, ...)
+    end
+    run:add(function()
+        viewclass.SetCFrame = old
+        viewclass.__archVMHooked = nil
+    end)
+end)
+-- ▲▲▲ Step 5-C 结束
 
 Feature.always(context, 'Pose decoding guard', AntiAim.guardDecoding)
                 Feature.always(context, 'Weapons', Weapons.start, main.weaponSettings)
