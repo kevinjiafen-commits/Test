@@ -1649,13 +1649,13 @@ do
             })
             local yourName = nameBox:input(ui.id('spoof-your-name'), {
                 text = 'your spoofed name',
-                placeholder = 'Andy',
-                default = 'Andy',
+                placeholder = 'FDt is my friend',
+                default = 'FDt is my friend',
             })
             local enemyName = nameBox:input(ui.id('spoof-enemy-name'), {
                 text = 'spoofed enemy names',
-                placeholder = 'Johnny',
-                default = 'Johnny',
+                placeholder = 'Arch script premiumis the best',
+                default = 'Arch script premium is the best',
             })
 
             local levelBox = tab:groupbox('Left', 'level spoof')
