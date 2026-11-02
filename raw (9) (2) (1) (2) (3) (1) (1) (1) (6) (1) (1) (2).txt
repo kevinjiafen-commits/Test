@@ -12876,7 +12876,124 @@ local extrasTabs = extrasTab:tabbox('Left')
 local modPage = extrasTabs:tab('mod detector')
 local luaPage = extrasTabs:tab('lua & servers')
 local soundsPage = extrasTabs:tab('sounds')
+-- ▼▼▼ 光照 / 后期 UI
+local extrasRight = extrasTab:tabbox('Right')
+local lightPage = extrasRight:tab('lighting')
+local postPage = extrasRight:tab('postfx')
 
+local LightingSvc = game:GetService('Lighting')
+local lightUndo = { props = setmetatable({}, {__mode = 'k'}), effects = {} }
+local postUndo = { props = setmetatable({}, {__mode = 'k'}), effects = {} }
+
+local function setProp(undo, inst, prop, value)
+    local bag = undo.props[inst] or {}
+    if bag[prop] == nil then
+        local ok, cur = pcall(function() return (inst :: any)[prop] end)
+        if ok then bag[prop] = cur end
+    end
+    undo.props[inst] = bag
+    pcall(function() (inst :: any)[prop] = value end)
+end
+
+local function ensureEffect(undo, class, name)
+    local held = LightingSvc:FindFirstChild(name)
+    if held and not held:IsA(class) then held:Destroy(); held = nil end
+    if not held then
+        held = Instance.new(class)
+        held.Name = name
+        held.Parent = LightingSvc
+        undo.effects[name] = held
+    end
+    return held
+end
+
+local function revertUndo(undo)
+    for inst, bag in undo.props do
+        for prop, value in bag do pcall(function() (inst :: any)[prop] = value end) end
+    end
+    table.clear(undo.props)
+    for _, inst in undo.effects do pcall(function() (inst :: any):Destroy() end) end
+    table.clear(undo.effects)
+end
+-- ▲▲▲ 光照 / 后期 UI
+-- ▼▼▼ 光照控件
+local lightEnabled = lightPage:toggle(context.ui.id('extras-light-enabled'), {
+    text = 'enabled', default = false,
+})
+local lightDep = lightPage:dependent(function() return lightEnabled.value end)
+local timeSlider = lightDep:slider(context.ui.id('extras-light-time'), {
+    text = 'clock time', default = 14, min = 0, max = 24, rounding = 0, suffix = 'h',
+})
+local brightSlider = lightDep:slider(context.ui.id('extras-light-brightness'), {
+    text = 'brightness', default = 2, min = 0, max = 10, rounding = 0,
+})
+local densSlider = lightDep:slider(context.ui.id('extras-light-atmosphere'), {
+    text = 'atmosphere density', default = 35, min = 0, max = 100, rounding = 0, suffix = '%',
+})
+-- ▲▲▲ 光照控件
+-- ▼▼▼ 光照 sync
+local function syncLighting()
+    revertUndo(lightUndo)
+    if not lightEnabled.value then return end
+    setProp(lightUndo, LightingSvc, 'ClockTime', timeSlider.value)
+    setProp(lightUndo, LightingSvc, 'Brightness', brightSlider.value)
+    if densSlider.value > 0 then
+        local a = ensureEffect(lightUndo, 'Atmosphere', '__arch_atm')
+        pcall(function() a.Density = densSlider.value / 100 end)
+    end
+end
+lightEnabled:onChanged(syncLighting)
+timeSlider:onChanged(syncLighting)
+brightSlider:onChanged(syncLighting)
+densSlider:onChanged(syncLighting)
+context.scope:add(function() revertUndo(lightUndo) end)
+-- ▲▲▲ 光照 sync
+-- ▼▼▼ 后期控件
+local ccToggle = postPage:toggle(context.ui.id('extras-post-cc'), {
+    text = 'color correction', default = false,
+})
+local bloomSlider = postPage:slider(context.ui.id('extras-post-bloom'), {
+    text = 'bloom', default = 0, min = 0, max = 100, rounding = 0, suffix = '%',
+})
+local blurSlider = postPage:slider(context.ui.id('extras-post-blur'), {
+    text = 'blur', default = 0, min = 0, max = 56, rounding = 0,
+})
+local dofToggle = postPage:toggle(context.ui.id('extras-post-dof'), {
+    text = 'depth of field', default = false,
+})
+local raysToggle = postPage:toggle(context.ui.id('extras-post-sunrays'), {
+    text = 'sun rays', default = false,
+})
+-- ▲▲▲ 后期控件
+-- ▼▼▼ 后期 sync
+local function syncPost()
+    revertUndo(postUndo)
+    if ccToggle.value then
+        local cc = ensureEffect(postUndo, 'ColorCorrectionEffect', '__arch_cc')
+        pcall(function() cc.Enabled = true end)
+    end
+    if bloomSlider.value > 0 then
+        local b = ensureEffect(postUndo, 'BloomEffect', '__arch_bloom')
+        pcall(function() b.Intensity = bloomSlider.value / 100; b.Enabled = true end)
+    end
+    if blurSlider.value > 0 then
+        local b = ensureEffect(postUndo, 'BlurEffect', '__arch_blur')
+        pcall(function() b.Size = blurSlider.value; b.Enabled = true end)
+    end
+    if dofToggle.value then
+        pcall(function() ensureEffect(postUndo, 'DepthOfFieldEffect', '__arch_dof').Enabled = true end)
+    end
+    if raysToggle.value then
+        pcall(function() ensureEffect(postUndo, 'SunRaysEffect', '__arch_sunrays').Enabled = true end)
+    end
+end
+ccToggle:onChanged(syncPost)
+bloomSlider:onChanged(syncPost)
+blurSlider:onChanged(syncPost)
+dofToggle:onChanged(syncPost)
+raysToggle:onChanged(syncPost)
+context.scope:add(function() revertUndo(postUndo) end)
+-- ▲▲▲ 后期 sync
 -- Mod detector
 local ModDetector = __ANTIBRAIN_MODULES.bx()
 ModDetector.new(context.scope)
