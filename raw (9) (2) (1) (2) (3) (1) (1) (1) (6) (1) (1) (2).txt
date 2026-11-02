@@ -12626,6 +12626,286 @@ do
 end
 -- ▲▲▲ by
 -- ▼▼▼ bz: Sounds (hit / shoot)
+-- ▲▲▲ by
+-- ▼▼▼ bA: Skybox & Weather 运行时
+local SkyWeather = (function()
+    local Lighting = game:GetService("Lighting")
+    local Workspace = game:GetService("Workspace")
+    local RunService = game:GetService("RunService")
+
+    local SKYBOX_CATALOG = {
+        ["Afternoon"] = {
+            StarCount = 3000, SunAngularSize = 21, MoonAngularSize = 11,
+            Up = "rbxassetid://162001926", Dn = "rbxassetid://161998893",
+            Ft = "rbxassetid://162001897", Bk = "rbxassetid://162001887",
+            Lf = "rbxassetid://162001904", Rt = "rbxassetid://162001919",
+        },
+        ["Night"] = {
+            StarCount = 3000, SunAngularSize = 21, MoonAngularSize = 11,
+            Up = "rbxassetid://12064131", Dn = "rbxassetid://12064152",
+            Ft = "rbxassetid://12064121", Bk = "rbxassetid://12064107",
+            Lf = "rbxassetid://12063984", Rt = "rbxassetid://12064115",
+        },
+        ["Sunset"] = {
+            StarCount = 5000, SunAngularSize = 18, MoonAngularSize = 11,
+            Up = "rbxassetid://264907379", Dn = "rbxassetid://264907909",
+            Ft = "rbxassetid://264909420", Bk = "rbxassetid://264908339",
+            Lf = "rbxassetid://264909758", Rt = "rbxassetid://264908886",
+        },
+        ["Storm"] = {
+            StarCount = 3000, SunAngularSize = 21, MoonAngularSize = 11,
+            Up = "rbxassetid://171410789", Dn = "rbxassetid://171410792",
+            Ft = "rbxassetid://171410775", Bk = "rbxassetid://171410784",
+            Lf = "rbxassetid://171410807", Rt = "rbxassetid://171410798",
+        },
+        ["Pink Clouds"] = {
+            StarCount = 1334, SunAngularSize = 21, MoonAngularSize = 11,
+            Up = "rbxassetid://271077958", Dn = "rbxassetid://271077243",
+            Ft = "rbxassetid://271042556", Bk = "rbxassetid://271042516",
+            Lf = "rbxassetid://271042310", Rt = "rbxassetid://271042467",
+        },
+    }
+
+    local NAMES = {}
+    for n in SKYBOX_CATALOG do NAMES[#NAMES + 1] = n end
+    table.sort(NAMES)
+
+    local KICIA_WEATHER = {
+        Snow = {
+            { Texture = "rbxasset://textures/particles/smoke_main.dds", TransparencyMax = 0.22,
+              LifetimeMin = 6, LifetimeMax = 9, BaseRate = 200,
+              SpeedMin = 5, SpeedMax = 9, SizeStart = 0.32, SizeEnd = 0.22,
+              BaseSpread = 0.35, BaseAccelerationY = -0.8 },
+            { Texture = "rbxasset://textures/particles/sparkles_main.dds", TransparencyMax = 0.42,
+              LifetimeMin = 6, LifetimeMax = 9, BaseRate = 48,
+              SpeedMin = 4, SpeedMax = 7, SizeStart = 0.16, SizeEnd = 0.12,
+              BaseSpread = 0.5, BaseAccelerationY = -0.4 },
+        },
+        Rain = {
+            { Texture = "rbxasset://textures/particles/smoke_main.dds", TransparencyMax = 0.4,
+              LifetimeMin = 1.15, LifetimeMax = 1.7, BaseRate = 560,
+              SpeedMin = 68, SpeedMax = 88, SizeStart = 0.1, SizeEnd = 0.08,
+              BaseSpread = 0.04, BaseAccelerationY = -38,
+              RotationMin = 0, RotationMax = 0, RotationSpeedMin = 0, RotationSpeedMax = 0,
+              Orientation = Enum.ParticleOrientation.VelocityParallel },
+        },
+        Blizzard = {
+            { Texture = "rbxasset://textures/particles/smoke_main.dds", TransparencyMax = 0.2,
+              LifetimeMin = 3, LifetimeMax = 5, BaseRate = 620,
+              SpeedMin = 16, SpeedMax = 26, SizeStart = 0.26, SizeEnd = 0.18,
+              BaseSpread = 0.7, BaseAccelerationY = -5 },
+            { Texture = "rbxasset://textures/particles/smoke_main.dds", TransparencyMax = 0.82,
+              LifetimeMin = 3, LifetimeMax = 5, BaseRate = 90,
+              SpeedMin = 12, SpeedMax = 20, SizeStart = 2.4, SizeEnd = 4.2,
+              BaseSpread = 0.9, BaseAccelerationY = -1.6 },
+        },
+    }
+
+    local State = {
+        skyEnabled = false, skyName = "Afternoon", skyInstance = nil, stashed = {},
+        weatherEnabled = false, weatherType = "Snow",
+        weatherIntensity = 100, weatherHeight = 40, weatherSize = 1, weatherSpeed = 1,
+        weatherColor = Color3.new(1, 1, 1),
+        weatherPart = nil, weatherEmitters = {}, lastWeatherType = "", hbConn = nil,
+    }
+
+    local function skyAssetId(v)
+        if type(v) ~= "string" then return "rbxassetid://" .. tostring(v) end
+        if string.find(v, "rbxasset", 1, true) or string.find(v, "http", 1, true) then return v end
+        return "rbxassetid://" .. v
+    end
+
+    local function stashOthers()
+        for _, c in Lighting:GetChildren() do
+            if c:IsA("Sky") and c.Name ~= "sonata_skybox" then
+                table.insert(State.stashed, c)
+                pcall(function() c.Parent = nil end)
+            end
+        end
+    end
+
+    local function restoreStashed()
+        for _, s in State.stashed do
+            pcall(function() if s and s.Parent == nil then s.Parent = Lighting end end)
+        end
+        table.clear(State.stashed)
+    end
+
+    local function applySkybox(enabled, name)
+        State.skyEnabled = enabled == true
+        State.skyName = name or State.skyName
+        local ours = Lighting:FindFirstChild("sonata_skybox")
+        if not State.skyEnabled then
+            if ours then pcall(function() ours:Destroy() end) end
+            restoreStashed()
+            return
+        end
+        local entry = SKYBOX_CATALOG[State.skyName]
+        if not entry then return end
+        stashOthers()
+        local sky = ours
+        if not sky or not sky:IsA("Sky") then
+            sky = Instance.new("Sky"); sky.Name = "sonata_skybox"; sky.Parent = Lighting
+        end
+        sky.SkyboxUp = skyAssetId(entry.Up)
+        sky.SkyboxDn = skyAssetId(entry.Dn)
+        sky.SkyboxFt = skyAssetId(entry.Ft)
+        sky.SkyboxBk = skyAssetId(entry.Bk)
+        sky.SkyboxLf = skyAssetId(entry.Lf)
+        sky.SkyboxRt = skyAssetId(entry.Rt)
+        sky.StarCount = entry.StarCount or 3000
+        if entry.SunAngularSize then sky.SunAngularSize = entry.SunAngularSize end
+        if entry.MoonAngularSize then sky.MoonAngularSize = entry.MoonAngularSize end
+        sky.CelestialBodiesShown = (entry.SunAngularSize or 21) > 0 or (entry.MoonAngularSize or 11) > 0
+        sky.Parent = Lighting
+        State.skyInstance = sky
+    end
+
+    local function fadeSeq(peak)
+        peak = math.clamp(peak, 0, 1)
+        local mid = peak + (1 - peak) * 0.22
+        return NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(0.1, mid),
+            NumberSequenceKeypoint.new(0.22, peak),
+            NumberSequenceKeypoint.new(0.78, peak),
+            NumberSequenceKeypoint.new(0.9, mid),
+            NumberSequenceKeypoint.new(1, 1),
+        })
+    end
+
+    local function destroyWeather()
+        for _, e in State.weatherEmitters do pcall(function() e:Destroy() end) end
+        table.clear(State.weatherEmitters)
+        if State.weatherPart then
+            pcall(function() State.weatherPart:Destroy() end)
+            State.weatherPart = nil
+        end
+        State.lastWeatherType = ""
+    end
+
+    local function ensureWeather()
+        local kind = string.lower(State.weatherType or "Snow")
+        local kindMap = { snow = "Snow", rain = "Rain", blizzard = "Blizzard" }
+        local resolved = kindMap[kind] or "Snow"
+        if State.weatherPart and State.weatherPart.Parent and State.lastWeatherType == resolved then
+            return State.weatherPart
+        end
+        destroyWeather()
+        local part = Instance.new("Part")
+        part.Name = "WeatherEmitter"
+        part.Anchored = true; part.CanCollide = false; part.CanQuery = false; part.CanTouch = false
+        part.Transparency = 1; part.Size = Vector3.new(148, 2, 148)
+        part.CastShadow = false; part.Massless = true; part.Parent = Workspace
+        local specs = KICIA_WEATHER[resolved] or KICIA_WEATHER.Snow
+        for _, spec in specs do
+            local em = Instance.new("ParticleEmitter")
+            em.Name = "Weather"
+            em.Shape = Enum.ParticleEmitterShape.Box
+            em.EmissionDirection = Enum.NormalId.Bottom
+            em.Enabled = true
+            em.Texture = spec.Texture
+            em.Transparency = fadeSeq(spec.TransparencyMax)
+            em.Lifetime = NumberRange.new(spec.LifetimeMin, spec.LifetimeMax)
+            em.Rotation = NumberRange.new(spec.RotationMin or 0, spec.RotationMax or 360)
+            em.RotSpeed = NumberRange.new(spec.RotationSpeedMin or -40, spec.RotationSpeedMax or 40)
+            em.LightInfluence = 0; em.LockedToPart = false
+            if spec.Orientation then em.Orientation = spec.Orientation end
+            em.Parent = part
+            table.insert(State.weatherEmitters, em)
+        end
+        State.weatherPart = part
+        State.lastWeatherType = resolved
+        return part
+    end
+
+    local function paintWeather(part)
+        local kind = string.lower(State.weatherType or "Snow")
+        local kindMap = { snow = "Snow", rain = "Rain", blizzard = "Blizzard" }
+        local resolved = kindMap[kind] or "Snow"
+        local specs = KICIA_WEATHER[resolved] or KICIA_WEATHER.Snow
+        local intensity = math.clamp(State.weatherIntensity / 100, 0, 3)
+        local size = math.clamp(State.weatherSize, 0.05, 6)
+        local speed = math.clamp(State.weatherSpeed, 0.05, 8)
+        local tint = typeof(State.weatherColor) == "Color3" and State.weatherColor or Color3.new(1, 1, 1)
+        local color = ColorSequence.new(tint)
+        for i, em in State.weatherEmitters do
+            local spec = specs[i] or specs[1]
+            em.Rate = spec.BaseRate * intensity
+            em.Speed = NumberRange.new(spec.SpeedMin * speed, spec.SpeedMax * speed)
+            em.Size = NumberSequence.new(spec.SizeStart * size, spec.SizeEnd * size)
+            em.Transparency = fadeSeq(spec.TransparencyMax)
+            em.Drag = (resolved == "Rain") and 0 or 1.15
+            em.SpreadAngle = Vector2.new(spec.BaseSpread, spec.BaseSpread)
+            em.Color = color
+            em.Acceleration = Vector3.new(0, spec.BaseAccelerationY, 0)
+            em.Enabled = intensity > 0
+        end
+    end
+
+    local function syncWeather()
+        if not State.weatherEnabled then
+            if State.weatherPart then destroyWeather() end
+            return
+        end
+        local part = ensureWeather()
+        if not part then return end
+        local cam = Workspace.CurrentCamera
+        if not cam then return end
+        local h = math.clamp(State.weatherHeight, 8, 160)
+        part.CFrame = CFrame.new(cam.CFrame.Position + Vector3.new(0, h, 0))
+        paintWeather(part)
+    end
+
+    local function startHeartbeat()
+        if State.hbConn then return end
+        State.hbConn = RunService.Heartbeat:Connect(function() pcall(syncWeather) end)
+    end
+
+    local function stopHeartbeat()
+        if State.hbConn then
+            pcall(function() State.hbConn:Disconnect() end)
+            State.hbConn = nil
+        end
+    end
+
+    local API = {}
+    API.NAMES = NAMES
+    API.CATALOG = SKYBOX_CATALOG
+
+    function API.setSkybox(enabled, name) pcall(applySkybox, enabled, name) end
+
+    function API.setWeather(enabled, opts)
+        State.weatherEnabled = enabled == true
+        if type(opts) == "table" then
+            if type(opts.type) == "string" then State.weatherType = opts.type end
+            if type(opts.intensity) == "number" then State.weatherIntensity = opts.intensity end
+            if type(opts.height) == "number" then State.weatherHeight = opts.height end
+            if type(opts.size) == "number" then State.weatherSize = opts.size end
+            if type(opts.speed) == "number" then State.weatherSpeed = opts.speed end
+            if typeof(opts.color) == "Color3" then State.weatherColor = opts.color end
+        end
+        if enabled then startHeartbeat() end
+    end
+
+    function API.start() startHeartbeat() end
+    function API.stop()
+        stopHeartbeat()
+        destroyWeather()
+        State.weatherEnabled = false
+        State.skyEnabled = false
+        local ours = Lighting:FindFirstChild("sonata_skybox")
+        if ours then pcall(function() ours:Destroy() end) end
+        restoreStashed()
+    end
+
+    return API
+end)()
+-- ▲▲▲ bA
+-- ▼▼▼ bz: Sounds (hit / shoot)
+do
+    local function __modImpl()
+        local Services = __ANTIBRAIN_MODULES.k()
 do
     local function __modImpl()
         local Services = __ANTIBRAIN_MODULES.k()
@@ -12881,6 +13161,8 @@ local extrasRight = extrasTab:tabbox('Right')
 local lightPage = extrasRight:tab('lighting')
 local postPage = extrasRight:tab('postfx')
 
+local skyPage = extrasRight:tab('skybox')
+local weatherPage = extrasRight:tab('weather')
 local LightingSvc = game:GetService('Lighting')
 local lightUndo = { props = setmetatable({}, {__mode = 'k'}), effects = {} }
 local postUndo = { props = setmetatable({}, {__mode = 'k'}), effects = {} }
@@ -12993,6 +13275,63 @@ blurSlider:onChanged(syncPost)
 dofToggle:onChanged(syncPost)
 raysToggle:onChanged(syncPost)
 context.scope:add(function() revertUndo(postUndo) end)
+-- ▼▼▼ skybox 控件
+local skyEnabled = skyPage:toggle(context.ui.id('extras-sky-enabled'), {
+    text = 'enabled', default = false,
+})
+local skyDep = skyPage:dependent(function() return skyEnabled.value end)
+local skyPicker = skyDep:dropdown(context.ui.id('extras-sky-pick'), {
+    text = 'skybox', values = SkyWeather.NAMES, default = 'Afternoon',
+})
+local function applySky()
+    SkyWeather.setSkybox(skyEnabled.value, skyPicker.value or 'Afternoon')
+end
+skyEnabled:onChanged(applySky)
+skyPicker:onChanged(applySky)
+context.scope:add(function() SkyWeather.setSkybox(false) end)
+-- ▲▲▲ skybox 控件
+-- ▼▼▼ weather 控件
+local wEnabled = weatherPage:toggle(context.ui.id('extras-weather-enabled'), {
+    text = 'enabled', default = false,
+})
+local wDep = weatherPage:dependent(function() return wEnabled.value end)
+local wType = wDep:dropdown(context.ui.id('extras-weather-type'), {
+    text = 'preset', values = {'Snow', 'Rain', 'Blizzard'}, default = 'Snow',
+})
+local wIntensity = wDep:slider(context.ui.id('extras-weather-intensity'), {
+    text = 'intensity', default = 100, min = 0, max = 300, rounding = 0, suffix = '%',
+})
+local wHeight = wDep:slider(context.ui.id('extras-weather-height'), {
+    text = 'height', default = 40, min = 8, max = 160, rounding = 0,
+})
+local wSize = wDep:slider(context.ui.id('extras-weather-size'), {
+    text = 'size', default = 1, min = 0.1, max = 4, rounding = 1,
+})
+local wSpeed = wDep:slider(context.ui.id('extras-weather-speed'), {
+    text = 'speed', default = 1, min = 0.1, max = 6, rounding = 1,
+})
+local wColor = wDep:color(context.ui.id('extras-weather-color'), {
+    title = 'weather color', default = Color3.new(1, 1, 1),
+})
+local function applyWeather()
+    SkyWeather.setWeather(wEnabled.value, {
+        type = wType.value or 'Snow',
+        intensity = wIntensity.value,
+        height = wHeight.value,
+        size = wSize.value,
+        speed = wSpeed.value,
+        color = wColor.value,
+    })
+end
+for _, ctl in {wEnabled, wType, wIntensity, wHeight, wSize, wSpeed, wColor} do
+    ctl:onChanged(applyWeather)
+end
+context.scope:add(function() SkyWeather.setWeather(false) end)
+-- ▲▲▲ weather 控件
+-- ▼▼▼ 天气心跳 + 卸载
+SkyWeather.start()
+context.scope:add(function() SkyWeather.stop() end)
+-- ▲▲▲ 天气心跳 + 卸载
 -- ▲▲▲ 后期 sync
 -- Mod detector
 local ModDetector = __ANTIBRAIN_MODULES.bx()
