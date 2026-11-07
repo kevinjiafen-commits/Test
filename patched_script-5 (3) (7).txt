@@ -429,13 +429,37 @@ for _, cname in CORNER_NAMES do
 end
 -- ▲▲▲
 
+-- ▼▼▼ ASBP-S1：新增视觉元素
+local healthText = Instance.new('TextLabel')
+healthText.BackgroundTransparency = 1
+healthText.TextSize               = 13
+healthText.Font                   = Enum.Font.SourceSans
+healthText.TextColor3             = Color3.new(1, 1, 1)
+healthText.Text                   = ''
+healthText.Visible                = false
+healthText.TextXAlignment         = Enum.TextXAlignment.Center
+healthText.Parent                 = box
+
+local weaponLabel = Instance.new('TextLabel')
+weaponLabel.BackgroundTransparency = 1
+weaponLabel.TextSize               = 13
+weaponLabel.Font                   = Enum.Font.SourceSans
+weaponLabel.TextColor3             = Color3.fromRGB(255, 220, 100)
+weaponLabel.Text                   = ''
+weaponLabel.Visible                = false
+weaponLabel.TextXAlignment         = Enum.TextXAlignment.Center
+weaponLabel.Parent                 = box
+-- ▲▲▲ ASBP-S1
+
 pool[index] = {
     box = box, outline = outline, fill = fill,
     name = nameLabel, dist = distLabel,
     hpBar = hpBar, hpFill = hpFill,
     headDot = headDot,
     tracer  = tracer,
-    corners = corners,   -- ← 新增
+    corners = corners,
+    healthText  = healthText,
+    weaponLabel = weaponLabel,
 }
 -- ▲▲▲ Step 4-A 结束
             end
@@ -444,12 +468,14 @@ pool[index] = {
         end
 
                 local function hideAll(esp)
-            for index = 1, MAX_ESP do
-                local cell = esp.pool[index]
-                cell.box.Visible = false
-                for _, cf in cell.corners do cf.Visible = false end
-            end
-        end
+    for index = 1, MAX_ESP do
+        local cell = esp.pool[index]
+        cell.box.Visible = false
+        for _, cf in cell.corners do cf.Visible = false end
+        if cell.healthText  then cell.healthText.Visible  = false end
+        if cell.weaponLabel then cell.weaponLabel.Visible = false end
+    end
+end
 
         local function update(esp, settings)
             local options = settings()
@@ -641,6 +667,78 @@ else
 end
 -- ▲▲▲ Step 4-B 结束
 
+-- ▼▼▼ ASBP-S3A：血量文字 + 武器名
+if options.healthText then
+    local hp    = math.floor(enemy.humanoid.Health)
+    local maxHp = math.floor(math.max(enemy.humanoid.MaxHealth, 1))
+    cell.healthText.Text       = string.format('%d / %d', hp, maxHp)
+    cell.healthText.TextSize   = textSize
+    cell.healthText.TextColor3 = options.healthTextColor or Color3.new(1, 1, 1)
+    cell.healthText.Position   = UDim2.new(0.5, 0, 1, textSize + 2)
+    cell.healthText.Visible    = true
+else
+    cell.healthText.Visible = false
+end
+
+if options.weaponDisplay then
+    local vmFolder = Services.Workspace:FindFirstChild('ViewModels')
+    local wName    = ''
+    if vmFolder then
+        local pname = enemy.player.Name
+        for _, child in vmFolder:GetChildren() do
+            if string.sub(child.Name, 1, #pname) == pname then
+                wName = string.sub(child.Name, #pname + 2)
+                break
+            end
+        end
+    end
+    cell.weaponLabel.Text       = wName ~= '' and ('[' .. wName .. ']') or ''
+    cell.weaponLabel.TextSize   = textSize
+    cell.weaponLabel.TextColor3 = options.weaponColor or Color3.fromRGB(255, 220, 100)
+    cell.weaponLabel.Position   = UDim2.new(0.5, 0, 0, -(textSize * 2 + 4))
+    cell.weaponLabel.Visible    = wName ~= ''
+else
+    cell.weaponLabel.Visible = false
+end
+-- ▲▲▲ ASBP-S3A
+
+-- ▼▼▼ ASBP-S3B：可见检测 + 警报 + 框线粗细
+if options.visCheck and options.box then
+    local vcParams = RaycastParams.new()
+    vcParams.FilterType = Enum.RaycastFilterType.Exclude
+    local excl = {}
+    for _, p in Services.Players:GetPlayers() do
+        if p.Character then table.insert(excl, p.Character) end
+    end
+    local vmf = Services.Workspace:FindFirstChild('ViewModels')
+    if vmf then table.insert(excl, vmf) end
+    vcParams.FilterDescendantsInstances = excl
+    local rayHit = Services.Workspace:Raycast(
+        camera.CFrame.Position,
+        enemy.head.Position - camera.CFrame.Position,
+        vcParams)
+    if rayHit then
+        local hcol = options.hiddenColor or Color3.fromRGB(255, 80, 80)
+        if cell.outline.Enabled  then cell.outline.Color = hcol end
+        for _, cf in cell.corners do
+            if cf.Visible then cf.BackgroundColor3 = hcol end
+        end
+    end
+end
+
+if options.alertDist and options.alertDist > 0 and worldDistance <= options.alertDist then
+    if math.floor(tick() * 8) % 2 == 0 then
+        if cell.outline.Enabled then
+            cell.outline.Color = Color3.fromRGB(255, 40, 40)
+        end
+    end
+end
+
+if options.boxThickness and options.boxThickness ~= 2 then
+    cell.outline.Thickness = options.boxThickness
+end
+-- ▲▲▲ ASBP-S3B
+
 used = used + 1
     end
 end
@@ -648,10 +746,12 @@ end
             for index = used, MAX_ESP do
     local cell = esp.pool[index]
     cell.box.Visible     = false
-    -- ▼▼▼ Step 4-C
+        -- ▼▼▼ Step 4-C
         if cell.headDot then cell.headDot.Visible = false end
     if cell.tracer  then cell.tracer.Visible  = false end
     for _, cf in cell.corners do cf.Visible = false end
+    if cell.healthText  then cell.healthText.Visible  = false end
+    if cell.weaponLabel then cell.weaponLabel.Visible = false end
     -- ▲▲▲
 end
         end
@@ -12388,6 +12488,37 @@ local espTeamCheck = espOptions:toggle(ui.id('esp-team-check'), {
     default = true,
     tooltip = 'only show players not on your team',
 })
+-- ▼▼▼ ASBP-S5A：新增 ESP UI 控件
+local espHealthText = espOptions:toggle(ui.id('esp-health-text'), {
+    text = 'health text', default = false,
+    tooltip = 'show HP numbers below the health bar',
+})
+local espHealthTextColor = espHealthText:color(ui.id('esp-health-text-color'), {
+    title = 'health text color', default = Color3.new(1, 1, 1),
+})
+local espWeapon = espOptions:toggle(ui.id('esp-weapon'), {
+    text = 'weapon name', default = false,
+    tooltip = 'show enemy held weapon name above the box',
+})
+local espWeaponColor = espWeapon:color(ui.id('esp-weapon-color'), {
+    title = 'weapon color', default = Color3.fromRGB(255, 220, 100),
+})
+local espVisCheck = espOptions:toggle(ui.id('esp-vis-check'), {
+    text = 'visibility check', default = false,
+    tooltip = 'tints box red when enemy is behind a wall',
+})
+local espHiddenColor = espVisCheck:color(ui.id('esp-hidden-color'), {
+    title = 'hidden color', default = Color3.fromRGB(255, 80, 80),
+})
+local espBoxThickness = espOptions:slider(ui.id('esp-box-thickness'), {
+    text = 'box thickness', default = 2, min = 1, max = 6, rounding = 0,
+})
+local espAlertDist = espOptions:slider(ui.id('esp-alert-dist'), {
+    text = 'alert distance', default = 0, min = 0, max = 300,
+    rounding = 0, suffix = ' m',
+    tooltip = '0 = off; flashes box red when enemy is within range',
+})
+-- ▲▲▲ ASBP-S5A
                 return {
                     indicators = function()
                         settings.manipulated, settings.manipulatedColor = manipulated.value, manipulatedColor.value
@@ -12427,10 +12558,19 @@ teamCheck     = espTeamCheck.value,
     -- ▼▼▼ Step 5-B 新增
     headDot       = espShowHeadDot.value,
     headDotColor  = espHeadDotColor.value,
-    tracer        = espShowTracer.value,
-        tracerColor   = espTracerColor.value,
-    boxStyle      = espBoxStyle.value,   -- ← 新增
-    -- ▲▲▲
+                tracer        = espShowTracer.value,
+                tracerColor   = espTracerColor.value,
+            boxStyle      = espBoxStyle.value,
+-- ▼▼▼ ASBP-S5B：新返回键值
+            healthText      = espHealthText.value,
+            healthTextColor = espHealthTextColor.value,
+            weaponDisplay   = espWeapon.value,
+            weaponColor     = espWeaponColor.value,
+            visCheck        = espVisCheck.value,
+            hiddenColor     = espHiddenColor.value,
+            boxThickness    = espBoxThickness.value,
+            alertDist       = espAlertDist.value,
+-- ▲▲▲ ASBP-S5B
 }
     end,
 }
