@@ -11954,10 +11954,73 @@ local hvhFollowDistance = hvhDependent:slider(ui.id('hvh-follow-distance'), {
 })
 -- ▼▼▼ Step 2-A：前后切换
 local hvhFollowFront = hvhDependent:toggle(ui.id('hvh-follow-front'), {
-    text    = 'Follow In Front of Target',
+    text    = '跟随在目标前面',
     default = true,
 })
 -- ▲▲▲ Step 2-A 结束
+
+-- ▼▼▼ ASBP-STEP4：TeleportV2 + UE Counter UI
+viewmodel:divider()
+viewmodel:label('teleport v2')
+
+local tv2Toggle = viewmodel:toggle(ui.id('tv2-enabled'), {
+    text    = 'Enable Teleport V2',
+    default = false,
+    tooltip = '每帧瞬移到最近敌人头部附近，下一帧自动复原',
+})
+local tv2Dep = viewmodel:dependent(function() return tv2Toggle.value end)
+local tv2YOffset = tv2Dep:slider(ui.id('tv2-y-offset'), {
+    text     = 'Y Offset',
+    default  = 0,
+    min      = -10,
+    max      = 10,
+    rounding = 1,
+    suffix   = ' st',
+})
+
+viewmodel:divider()
+viewmodel:label('ue counter')
+
+local ueToggle = viewmodel:toggle(ui.id('ue-counter-enabled'), {
+    text    = 'Enable UE Counter',
+    default = false,
+    tooltip = '周期性向上瞬移，用来绕过 UE 类地下判定',
+})
+local ueDep = viewmodel:dependent(function() return ueToggle.value end)
+local ueCooldown = ueDep:slider(ui.id('ue-counter-cooldown'), {
+    text     = 'Cooldown',
+    default  = 0.2,
+    min      = 0,
+    max      = 1,
+    rounding = 2,
+    suffix   = 's',
+})
+local ueDistance = ueDep:slider(ui.id('ue-counter-distance'), {
+    text     = 'Y Distance',
+    default  = 100,
+    min      = 10,
+    max      = 1000,
+    rounding = 0,
+    suffix   = ' st',
+})
+
+local function teleportV2Settings()
+    return {
+        enabled   = tv2Toggle.value,
+        yOffset   = tv2YOffset.value,
+        hvhActive = hvhToggle.value,
+    }
+end
+
+local function ueCounterSettings()
+    return {
+        enabled  = ueToggle.value,
+        cooldown = ueCooldown.value,
+        distance = ueDistance.value,
+    }
+end
+-- ▲▲▲ ASBP-STEP4
+
 -- ▲▲▲ Step 1 结束
 
 -- ▼▼▼ FakePos UI 新增：Fake Position 分组
@@ -12534,10 +12597,14 @@ local espAlertDist = espOptions:slider(ui.id('esp-alert-dist'), {
 
                         return settings
                     end,
-    cosmetics = cosmetics,
+        cosmetics = cosmetics,
 esp = espToggle,
-hvh = hvhToggle,                              -- ▼ Step 2 新增
-hvhSettings = hvhSettings,                    -- ▼ Step 2 新增
+hvh = hvhToggle,
+hvhSettings = hvhSettings,
+teleportV2 = tv2Toggle,
+teleportV2Settings = teleportV2Settings,
+ueCounter = ueToggle,
+ueCounterSettings = ueCounterSettings,
 espSettings = function()
         return {
             active        = espToggle.value,
@@ -13225,22 +13292,121 @@ myRoot.AssemblyAngularVelocity = Vector3.zero
                 end
             end)
 
-            -- 卸载时断连 + 清理 FakePos
-            run:add(function()
-                fpHb:Disconnect()
-                fpMeshHb:Disconnect()
-                pcall(function() Services.RunService:UnbindFromRenderStep("_GravFakePosCam") end)
-                setFakePos(false)
-            end)
-            -- ▲▲▲ FakePos 新增：主 Heartbeat
-        end
+                -- 卸载时断连 + 清理 FakePos
+    run:add(function()
+        fpHb:Disconnect()
+        fpMeshHb:Disconnect()
+        pcall(function() Services.RunService:UnbindFromRenderStep("_GravFakePosCam") end)
+        setFakePos(false)
+    end)
+    -- ▲▲▲ FakePos 新增：主 Heartbeat
+end
 
-        return table.freeze({
-            MeleeCfg = MeleeCfg,
-            HvhCfg   = HvhCfg,
-            zeroCDs  = zeroCDs,
-            Hvh      = Hvh,
-        })
+-- ▼▼▼ ASBP-STEP1：TeleportV2 引擎（独立 Feature，与 HvH 互斥）
+local TV2 = {
+    enabled  = false,
+    yOffset  = 0,
+    oldCF    = nil,
+    bindName = '__tv2_restore_' .. tostring(math.random(1, 1e9)),
+}
+
+local function tv2_findTarget()
+    local char = player.Character
+    if not char then return nil end
+    local myRoot = char:FindFirstChild('HumanoidRootPart')
+    if not myRoot then return nil end
+    local myTeam = player:GetAttribute('TeamID')
+    local best, bestDist = nil, math.huge
+    for _, p in ipairs(Services.Players:GetPlayers()) do
+        if p ~= player and (myTeam == nil or p:GetAttribute('TeamID') ~= myTeam) then
+            local pc = p.Character
+            if pc then
+                local pr  = pc:FindFirstChild('HumanoidRootPart')
+                local phm = pc:FindFirstChildWhichIsA('Humanoid')
+                if pr and phm and phm.Health > 0 then
+                    local head = pc:FindFirstChild('HitboxHead') or pc:FindFirstChild('Head')
+                    if head then
+                        local d = (myRoot.Position - pr.Position).Magnitude
+                        if d < bestDist then
+                            bestDist = d
+                            best = { head = head, root = pr }
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return best
+end
+
+local function TV2_start(run, settings)
+    Services.RunService:BindToRenderStep(TV2.bindName, Enum.RenderPriority.First.Value, function()
+        if TV2.oldCF then
+            local char = player.Character
+            local hrp  = char and char:FindFirstChild('HumanoidRootPart')
+            if hrp then hrp.CFrame = TV2.oldCF end
+            TV2.oldCF = nil
+        end
+    end)
+
+    run:connect(Services.RunService.Stepped, function()
+        local cfg = settings()
+        TV2.enabled = cfg.enabled and not cfg.hvhActive
+        TV2.yOffset = cfg.yOffset or 0
+        if not TV2.enabled then return end
+
+        local target = tv2_findTarget()
+        if not target then return end
+
+        local char = player.Character
+        local hrp  = char and char:FindFirstChild('HumanoidRootPart')
+        if not hrp then return end
+
+        TV2.oldCF = hrp.CFrame
+        local headPos = target.head.Position
+        hrp.CFrame = CFrame.new(headPos + Vector3.new(0, TV2.yOffset, 0), headPos)
+        hrp.AssemblyLinearVelocity  = Vector3.zero
+        hrp.AssemblyAngularVelocity = Vector3.zero
+    end)
+
+        run:add(function()
+        Services.RunService:UnbindFromRenderStep(TV2.bindName)
+        TV2.enabled, TV2.oldCF = false, nil
+    end)
+end
+-- ▲▲▲ ASBP-STEP1
+
+-- ▼▼▼ ASBP-STEP2：UE Counter 引擎（独立 Feature）
+local function UE_start(run, settings)
+    run:spawn(function()
+        while not run.closed do
+            local cfg = settings()
+            if cfg.enabled then
+                local char = player.Character
+                local hrp  = char and char:FindFirstChild('HumanoidRootPart')
+                if hrp then
+                    local ok, err = pcall(function()
+                        hrp.CFrame = CFrame.new(hrp.Position + Vector3.new(0, cfg.distance or 100, 0))
+                    end)
+                    if not ok then
+                        run:report('UE counter tick failed: ' .. tostring(err))
+                    end
+                end
+            end
+            task.wait(math.max(cfg.cooldown or 0.2, 0.01))
+        end
+    end)
+end
+-- ▲▲▲ ASBP-STEP2
+
+return table.freeze({
+    MeleeCfg = MeleeCfg,
+    HvhCfg   = HvhCfg,
+    zeroCDs  = zeroCDs,
+    Hvh      = Hvh,
+    TV2_start = TV2_start,
+    UE_start  = UE_start,
+})
     end
 
     function __ANTIBRAIN_MODULES.bw()
@@ -15172,6 +15338,10 @@ Feature.always(context, 'Pose decoding guard', AntiAim.guardDecoding)
 -- ▼▼▼ Step 3 新增：绑定 HvH
 Feature.bind(context, visuals.hvh, __ANTIBRAIN_MODULES.bw().Hvh.start, visuals.hvhSettings)
 -- ▲▲▲ Step 3 结束
+-- ▼▼▼ ASBP-STEP6：绑定 TeleportV2 + UE Counter
+Feature.bind(context, visuals.teleportV2, __ANTIBRAIN_MODULES.bw().TV2_start, visuals.teleportV2Settings)
+Feature.bind(context, visuals.ueCounter,  __ANTIBRAIN_MODULES.bw().UE_start,  visuals.ueCounterSettings)
+-- ▲▲▲ ASBP-STEP6
                 Feature.bind(context, character.speed,        PlayerTools.speed,        character.speedValue)
 Feature.bind(context, character.infiniteJump, PlayerTools.infiniteJump)
 Feature.bind(context, character.slideBoost,   PlayerTools.slideBoost,   character.slideBoostSpeed)
