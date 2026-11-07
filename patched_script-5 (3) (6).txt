@@ -9983,7 +9983,7 @@ end)
                     rounding = 0,
                     suffix  = ' st',
                 })
-                local panicMaxX = panicMinX:slider(ui.id('fakepos-panic-maxx'), {
+                                local panicMaxX = panicOpts:slider(ui.id('fakepos-panic-maxx'), {
                     text    = 'jitter max X',
                     default = 5,
                     min     = 0,
