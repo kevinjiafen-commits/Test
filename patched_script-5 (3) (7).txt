@@ -11996,6 +11996,112 @@ panicZ:onChanged(function(v)
 end)
 -- ▲▲▲ FakePos UI 新增
 
+-- ▼▼▼ Evasion UI 新增：Evasion 分组
+viewmodel:divider()
+viewmodel:label('evasion')
+
+local evModeDropdown = viewmodel:dropdown(ui.id('ev-mode'), {
+    text    = 'Evasion Mode',
+    values  = { 'Off', 'Random', 'ProjectileBreaker' },
+    default = 'Off',
+})
+
+local evDependent = viewmodel:dependent(function()
+    return evModeDropdown.value ~= 'Off'
+end)
+
+-- Random 参数
+local evRandomRadius = evDependent:slider(ui.id('ev-random-radius'), {
+    text     = 'Random Base Radius',
+    default  = 100,
+    min      = 5,
+    max      = 10000,
+    rounding = 0,
+})
+local evRandomFactor = evDependent:slider(ui.id('ev-random-factor'), {
+    text     = 'Random Factor',
+    default  = 0.5,
+    min      = 0,
+    max      = 1,
+    rounding = 2,
+})
+local evRandomCharOrigin = evDependent:toggle(ui.id('ev-random-char-origin'), {
+    text    = 'Character Origin',
+    default = false,
+    tooltip = '以自身角色为圆心而非地图中心',
+})
+
+-- ProjectileBreaker 参数
+local evPBDepFwdMin = evDependent:slider(ui.id('ev-pb-fwd-min'), {
+    text     = 'PB Forward Depth Min',
+    default  = 0,
+    min      = 0,
+    max      = 10,
+    rounding = 1,
+})
+local evPBDepFwdMax = evDependent:slider(ui.id('ev-pb-fwd-max'), {
+    text     = 'PB Forward Depth Max',
+    default  = 4,
+    min      = 0,
+    max      = 10,
+    rounding = 1,
+})
+local evPBFwdFreq = evDependent:slider(ui.id('ev-pb-fwd-freq'), {
+    text     = 'PB Forward Frequency',
+    default  = 5,
+    min      = 0,
+    max      = 20,
+    rounding = 1,
+})
+local evPBDepUpMin = evDependent:slider(ui.id('ev-pb-up-min'), {
+    text     = 'PB Up Depth Min',
+    default  = 0,
+    min      = 0,
+    max      = 10,
+    rounding = 1,
+})
+local evPBDepUpMax = evDependent:slider(ui.id('ev-pb-up-max'), {
+    text     = 'PB Up Depth Max',
+    default  = 5.5,
+    min      = 0,
+    max      = 10,
+    rounding = 1,
+})
+local evPBUpFreq = evDependent:slider(ui.id('ev-pb-up-freq'), {
+    text     = 'PB Up Frequency',
+    default  = 5,
+    min      = 0,
+    max      = 20,
+    rounding = 1,
+})
+local evPBReposInterval = evDependent:slider(ui.id('ev-pb-repos'), {
+    text     = 'PB Reposition Interval',
+    default  = 0.3,
+    min      = 0.05,
+    max      = 2,
+    rounding = 2,
+    suffix   = 's',
+})
+local evPBFallbackRadius = evDependent:slider(ui.id('ev-pb-fallback-radius'), {
+    text     = 'PB Fallback Radius',
+    default  = 100,
+    min      = 5,
+    max      = 100000,
+    rounding = 0,
+})
+local evPBFallbackFactor = evDependent:slider(ui.id('ev-pb-fallback-factor'), {
+    text     = 'PB Fallback Random Factor',
+    default  = 0.5,
+    min      = 0,
+    max      = 1,
+    rounding = 2,
+})
+local evPBFallbackCharOrigin = evDependent:toggle(ui.id('ev-pb-fallback-char-origin'), {
+    text    = 'PB Fallback Char Origin',
+    default = false,
+})
+-- ▲▲▲ Evasion UI 新增
+
 local function hvhSettings()
     return {
         enabled        = hvhToggle.value,
@@ -12018,9 +12124,27 @@ local function hvhSettings()
         panic           = panicToggle.value,
         panicMinX       = panicMinX.value,
         panicMaxX       = panicMaxX.value,
-        panicZ          = panicZ.value,
+                panicZ          = panicZ.value,
     },
     -- ▲▲▲ FakePos 新增
+    -- ▼▼▼ Evasion 新增：把 UI 读值打包进 settings
+    evasion = {
+        mode                   = evModeDropdown.value,
+        randomRadius           = evRandomRadius.value,
+        randomFactor           = evRandomFactor.value,
+        randomCharOrigin       = evRandomCharOrigin.value,
+        pbDepFwdMin            = evPBDepFwdMin.value,
+        pbDepFwdMax            = evPBDepFwdMax.value,
+        pbFwdFreq              = evPBFwdFreq.value,
+        pbDepUpMin             = evPBDepUpMin.value,
+        pbDepUpMax             = evPBDepUpMax.value,
+        pbUpFreq               = evPBUpFreq.value,
+        pbReposInterval        = evPBReposInterval.value,
+        pbFallbackRadius       = evPBFallbackRadius.value,
+        pbFallbackFactor       = evPBFallbackFactor.value,
+        pbFallbackCharOrigin   = evPBFallbackCharOrigin.value,
+    },
+    -- ▲▲▲ Evasion 新增
 }
 end
 
@@ -12828,7 +12952,25 @@ myRoot.AssemblyAngularVelocity = Vector3.zero
             local slotMap = { Primary = 1, Secondary = 2, Melee = 3, ['beat ue'] = 3 }
             equipSlot(slotMap[cfg.weaponSlot] or 1)
 
+                        local EvEngine = __ANTIBRAIN_MODULES.bz()
+            EvEngine.resetEvasion()
+
             local conn = Services.RunService.Stepped:Connect(function()
+                -- ▼▼▼ Evasion Hook 新增
+                local evCfg = settings().evasion
+                if evCfg and evCfg.mode ~= 'Off' then
+                    local root = player.Character
+                        and player.Character:FindFirstChild('HumanoidRootPart')
+                    if root then
+                        local evCF = EvEngine.computeEvasion(root, evCfg, nil)
+                        if evCF then
+                            pcall(function()
+                                root.CFrame = evCF
+                            end)
+                        end
+                    end
+                end
+                -- ▲▲▲ Evasion Hook 新增
                 local ok, err = pcall(attackStep, settings)
                 if not ok then
                     run:report(string.format('HvH step failed: %s', tostring(err)))
@@ -12973,6 +13115,183 @@ end
 -- ============================================================
 -- ▲▲▲ Step 1 结束
 -- ============================================================
+
+-- ▼▼▼ Evasion Engine 新增：独立引擎模块 __ANTIBRAIN_MODULES.bz
+do
+    local function __modImpl()
+        local Services = __ANTIBRAIN_MODULES.k()
+        local Random   = Random.new()
+
+        -- ── 辅助：正弦振荡深度 ────────────────────────────
+        local function oscillate(minV, maxV, freq)
+            local n = 6.283185307 * freq
+            return minV + (maxV - minV) * (math.sin(os.clock() * n) + 1) * 0.5
+        end
+
+        -- ── Random Evasion：极值轴传送 ────────────────────
+        local function computeRandom(rootPos, cfg)
+            local baseR   = cfg.randomRadius
+            local n       = baseR + baseR * cfg.randomFactor
+            local anchor  = cfg.randomCharOrigin
+                            and rootPos
+                            or  Vector3.new(0, rootPos.Y, 0)
+            local offset  = Random:NextUnitVector() * (baseR + Random:NextNumber() * (n - baseR))
+            local pt      = anchor + offset
+            -- 始终极值化 Y（高空），避免触碰地面 OOB
+            return CFrame.new(pt.X, 1073741824, pt.Z)
+        end
+
+        -- ── ProjectileBreaker：表面藏身 ───────────────────
+        local _pbPool       = {}
+        local _pbProcessed  = {}
+        local _pbNextCooldown = -1
+        local _pbLastSurface  = nil
+        local _overlapParams  = OverlapParams.new()
+        _overlapParams.FilterType = Enum.RaycastFilterType.Exclude
+        _overlapParams.BruteForceAllSlow = true
+
+        local function isKillGeometry(part)
+            return part.Name == "Barriers"
+                or part:HasTag("OutOfBoundsPart")
+                or part:HasTag("KillBrick")
+        end
+
+        local function overlapsKill(pos)
+            for _, p in workspace:GetPartBoundsInBox(
+                CFrame.new(pos), Vector3.new(5,5,5), _overlapParams) do
+                if isKillGeometry(p) then return true end
+            end
+            return false
+        end
+
+        local function tryGetSurface(part)
+            if part.Transparency == 1 then return nil end
+            local sz = part.Size
+            if sz.X * sz.Y * sz.Z < 64 then return nil end
+            local n = sz.Magnitude + 1000
+            for _ = 1, 5 do
+                local origin = part.Position + Random:NextUnitVector() * n
+                local result = workspace:Raycast(origin, part.Position - origin)
+                if result and result.Normal.Y >= 0.98 then
+                    local normal = result.Normal
+                    local hit    = result.Position
+                    local refV   = part.Position - hit
+                    local sideV  = refV - normal * refV:Dot(normal)
+                    if sideV.Magnitude < 0.0001 then
+                        sideV = part.CFrame.LookVector
+                        sideV = sideV - normal * sideV:Dot(normal)
+                    end
+                    local right   = sideV.Unit:Cross(normal).Unit
+                    local forward = normal:Cross(right).Unit
+                    return { pos = hit, up = normal, right = right, forward = forward }
+                end
+            end
+            return nil
+        end
+
+        local function pbComputeCFrame(surf, cfg)
+            local depUp  = oscillate(cfg.pbDepUpMin,  cfg.pbDepUpMax,  cfg.pbUpFreq)
+            local depFwd = oscillate(cfg.pbDepFwdMin, cfg.pbDepFwdMax, cfg.pbFwdFreq)
+            local origin = surf.pos
+                         - surf.up * 0.01
+                         - surf.up * depUp
+                         + surf.forward * depFwd
+            return CFrame.fromMatrix(origin, surf.right, surf.up, -surf.forward)
+        end
+
+        local function pbFallback(rootPos, cfg)
+            local baseR  = cfg.pbFallbackRadius
+            local n      = baseR + baseR * cfg.pbFallbackFactor
+            local anchor = cfg.pbFallbackCharOrigin
+                           and rootPos
+                           or  Vector3.new(0, rootPos.Y, 0)
+            local offset = Random:NextUnitVector() * (baseR + Random:NextNumber() * (n - baseR))
+            local pt     = anchor + offset
+            local axis   = Random:NextInteger(1, 3)
+            local x, y, z = pt.X, pt.Y, pt.Z
+            if axis == 1 then x = 1073741824
+            elseif axis == 2 then y = 1073741824
+            else z = 1073741824 end
+            return CFrame.new(x, y, z)
+        end
+
+        local function pbScanParts(envTag)
+            local CS   = game:GetService("CollectionService")
+            local count = 0
+            for _, part in CS:GetTagged("RaycastWhitelist" .. tostring(envTag)) do
+                if isKillGeometry(part) then continue end
+                if _pbProcessed[part] then continue end
+                _pbProcessed[part] = true
+                count += 1
+                local surf = tryGetSurface(part)
+                if surf then
+                    table.insert(_pbPool, surf)
+                end
+                if count >= 64 or #_pbPool >= 30 then return end
+                for _, child in part:GetDescendants() do
+                    if isKillGeometry(child) then continue end
+                    if _pbProcessed[child] then continue end
+                    if not child:IsA("BasePart") then continue end
+                    _pbProcessed[child] = true
+                    count += 1
+                    local csurf = tryGetSurface(child)
+                    if csurf then table.insert(_pbPool, csurf) end
+                    if count >= 64 or #_pbPool >= 30 then return end
+                end
+            end
+        end
+
+        -- ── 公开 Compute ───────────────────────────────────
+        local function computeEvasion(rootPart, cfg, envTag)
+            local mode = cfg.mode
+            if mode == 'Off' or not mode then return nil end
+
+            if mode == 'Random' then
+                return computeRandom(rootPart.Position, cfg)
+            end
+
+            if mode == 'ProjectileBreaker' then
+                local now = os.clock()
+                if now < _pbNextCooldown and _pbLastSurface then
+                    return pbComputeCFrame(_pbLastSurface, cfg)
+                end
+                if #_pbPool < 30 and envTag then
+                    pbScanParts(envTag)
+                end
+                if #_pbPool >= 30 then
+                    _pbNextCooldown = now + cfg.pbReposInterval
+                    _pbLastSurface  = _pbPool[Random:NextInteger(1, #_pbPool)]
+                    return pbComputeCFrame(_pbLastSurface, cfg)
+                end
+                return pbFallback(rootPart.Position, cfg)
+            end
+
+            return nil
+        end
+
+        local function resetEvasion()
+            _pbPool          = {}
+            _pbProcessed     = {}
+            _pbNextCooldown  = -1
+            _pbLastSurface   = nil
+        end
+
+        return table.freeze({
+            computeEvasion = computeEvasion,
+            resetEvasion   = resetEvasion,
+        })
+    end
+
+    function __ANTIBRAIN_MODULES.bz()
+        local v = __ANTIBRAIN_MODULES.cache.bz
+        if not v then
+            v = { c = __modImpl() }
+            __ANTIBRAIN_MODULES.cache.bz = v
+        end
+        return v.c
+    end
+end
+-- ▲▲▲ Evasion Engine 新增
 
 -- ▼▼▼ bx: Mod Detector
 do
