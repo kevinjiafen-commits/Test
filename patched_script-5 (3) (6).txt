@@ -9908,7 +9908,15 @@ end
                     allowNull = true,
                 })
                                 -- ── Fake Position ─────────────────────────────────────────
-                local fakePosBox = rage:dependent(function() return true end)
+                -- 改成这样 —— 挂在原始 rageBox 上，不受 ragebot enabled 控制
+local fakePosToggle = rageBox:toggle(ui.id('fakepos-enabled'), {
+    text    = 'fake position',
+    default = false,
+    tooltip = 'sends your character underground; server CFrame desyncs from client',
+})
+local fakePosOpts = rageBox:dependent(function()
+    return fakePosToggle.value
+end)
 
                 local fakePosToggle = fakePosBox:toggle(ui.id('fakepos-enabled'), {
                     text    = 'fake position',
