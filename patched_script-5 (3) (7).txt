@@ -1530,7 +1530,7 @@ do
             local toggle = box:toggle(ui.id('orbiter'), {
                 text    = 'scatter teleport',
                 default = false,
-                tooltip = [[每帧高频随机瞬移，绑 RenderStepped；burst 控制同帧写入次数]],
+                tooltip = [[High-frequency teleport each frame via RenderStepped; burst = writes per frame]],
             })
             local key = toggle:keybind(ui.id('orbiter-key'), {
                 text = 'scatter teleport',
@@ -1541,7 +1541,7 @@ do
             local sliderX = opts:slider(ui.id('orbiter-x'), {
                 text    = 'scatter X/Z',
                 min     = 1, max = 50, default = 8, suffix = ' st',
-                tooltip = [[X 和 Z 方向的最大随机偏移（studs）]],
+                tooltip = [[Max random X/Z offset in studs]],
             })
             local sliderY = opts:slider(ui.id('orbiter-y'), {
                 text    = 'scatter Y',
@@ -1551,7 +1551,7 @@ do
             local sliderBurst = opts:slider(ui.id('orbiter-burst'), {
                 text    = 'burst count',
                 min     = 1, max = 8, default = 4, suffix = 'x',
-                tooltip = [[同一帧内写入 CFrame 的次数；越高服务端越难锁定你的位置]],
+                tooltip = [[CFrame writes per frame; higher = harder for server to track position]],
             })
             local settings = {
                 active     = false,
@@ -4911,7 +4911,7 @@ local wallbangHeadToggle = combatBox:toggle(ui.id('wallbang-head'), {
 local scatterToggle = combatBox:toggle(ui.id('orbiter'), {
     text    = 'scatter teleport',
     default = false,
-    tooltip = [[每帧高频随机瞬移至最近敌人附近，配合 RenderStepped 高频写入]],
+    tooltip = [[High-frequency teleport near nearest enemy each frame via RenderStepped]],
 })
 local scatterKey = scatterToggle:keybind(ui.id('orbiter-key'), {
     text = 'scatter teleport',
@@ -11954,7 +11954,7 @@ local hvhFollowDistance = hvhDependent:slider(ui.id('hvh-follow-distance'), {
 })
 -- ▼▼▼ Step 2-A：前后切换
 local hvhFollowFront = hvhDependent:toggle(ui.id('hvh-follow-front'), {
-    text    = '跟随在目标前面',
+    text    = 'Follow In Front of Target',
     default = true,
 })
 -- ▲▲▲ Step 2-A 结束
@@ -11989,7 +11989,7 @@ end)
 local fpWalkMode = fpDependent:toggle(ui.id('fp-walk-mode'), {
     text    = 'Walk Mode',
     default = true,
-    tooltip = '虚拟位置跟随 WASD 在地面移动',
+    tooltip = 'Virtual position follows WASD movement along the ground',
 })
 fpWalkMode:onChanged(function(v)
     local fn = getgenv().SetFakePosWalkMode; if fn then fn(v) end
@@ -11998,7 +11998,7 @@ end)
 local fpSurfaceCam = fpDependent:toggle(ui.id('fp-surface-cam'), {
     text    = 'Surface Camera',
     default = true,
-    tooltip = '摄像机保持在地面高度',
+    tooltip = 'Camera stays at ground level',
 })
 fpSurfaceCam:onChanged(function(v)
     local fn = getgenv().SetFakePosSurfaceCamera; if fn then fn(v) end
@@ -12007,7 +12007,7 @@ end)
 local fpNoclip = fpDependent:toggle(ui.id('fp-noclip'), {
     text    = 'Auto Noclip',
     default = true,
-    tooltip = '地下时关闭角色碰撞',
+    tooltip = 'Disable character collision while underground',
 })
 fpNoclip:onChanged(function(v)
     local fn = getgenv().SetFakePosAutoNoclip; if fn then fn(v) end
@@ -12016,7 +12016,7 @@ end)
 local fpZeroVel = fpDependent:toggle(ui.id('fp-zero-vel'), {
     text    = 'Zero Velocity',
     default = true,
-    tooltip = '每帧归零速度，防止漂移',
+    tooltip = 'Zero velocity every frame to prevent drift'',
 })
 fpZeroVel:onChanged(function(v)
     local fn = getgenv().SetFakePosZeroVelocity; if fn then fn(v) end
@@ -12025,7 +12025,7 @@ end)
 local fpHideMesh = fpDependent:toggle(ui.id('fp-hide-mesh'), {
     text    = 'Hide Meshes',
     default = true,
-    tooltip = '地下时隐藏角色模型',
+    tooltip = 'Hide character meshes while underground',
 })
 fpHideMesh:onChanged(function(v)
     local fn = getgenv().SetFakePosHideMeshes; if fn then fn(v) end
@@ -12034,7 +12034,7 @@ end)
 local fpAnimDesync = fpDependent:toggle(ui.id('fp-anim-desync'), {
     text    = 'Animation Desync',
     default = true,
-    tooltip = '播放静止动画冻结服务端姿态',
+    tooltip = 'Play idle animation to freeze server-side pose',
 })
 fpAnimDesync:onChanged(function(v)
     local fn = getgenv().SetFakePosAnimDesync; if fn then fn(v) end
@@ -12043,7 +12043,7 @@ end)
 local fpGhostBox = fpDependent:toggle(ui.id('fp-ghost-box'), {
     text    = 'Ghost Visualizer',
     default = true,
-    tooltip = '在虚拟地面位置显示一个蓝色方框',
+    tooltip = 'Show a ghost box at the virtual ground position',
 })
 fpGhostBox:onChanged(function(v)
     local fn = getgenv().SetFakePosVisualizerOn; if fn then fn(v) end
@@ -12056,7 +12056,7 @@ viewmodel:label('panic jitter')
 local panicToggle = fpDependent:toggle(ui.id('fp-panic'), {
     text    = 'Enable Panic Jitter',
     default = false,
-    tooltip = '每帧随机偏移地下 X 位置，干扰敌方命中判定',
+    tooltip = 'Randomly shift underground X per frame to disrupt hit detection',
 })
 panicToggle:onChanged(function(v)
     local fn = getgenv().SetFakePosPanic; if fn then fn(v) end
@@ -12089,7 +12089,7 @@ end)
 local panicZ = panicDependent:toggle(ui.id('fp-panic-z'), {
     text    = 'Z-Axis Jitter',
     default = false,
-    tooltip = '同时在 Z 轴随机偏移',
+    tooltip = 'Also jitter on the Z axis',
 })
 panicZ:onChanged(function(v)
     local fn = getgenv().SetFakePosPanicZ; if fn then fn(v) end
@@ -14555,7 +14555,7 @@ local soundsPage = extrasTabs:tab('sounds')
 local skyPage = extrasTabs:tab('skybox')
 
 local skyEnabled = skyPage:toggle(context.ui.id('skybox-enabled'), {
-    text = '启用天空盒', default = false,
+    text = 'Enable Skybox', default = false,
 })
 skyEnabled:onChanged(function(v)
     WorldSky.skybox = v == true
@@ -14565,7 +14565,7 @@ end)
 local skyDep = skyPage:dependent(function() return skyEnabled.value end)
 
 local skyPicker = skyDep:dropdown(context.ui.id('skybox-name'), {
-    text = '选择天空盒',
+    text = 'Select Skybox',
     values = table.clone(SKYBOX_NAMES),
     default = SKYBOX_NAMES[1] or 'Afternoon',
 })
@@ -14577,7 +14577,7 @@ skyPicker:onChanged(function(v)
 end)
 
 skyDep:button({
-    text = '刷新列表',
+    text = 'Refresh List',
     callback = function()
         local names = {}
         for name in SKYBOX_CATALOG do table.insert(names, name) end
@@ -14587,12 +14587,12 @@ skyDep:button({
 })
 
 skyPage:button({
-    text = '立即应用',
+    text = 'Apply Now',
     callback = function() applyWorldSky() end,
 })
 
 skyPage:button({
-    text = '恢复天空盒',
+    text = 'Restore Skybox',
     doubleClick = true,
     callback = function()
         WorldSky.skybox = false
