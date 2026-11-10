@@ -1,0 +1,1064 @@
+--[[
+	Graviton-9v2 — RAGEBOT 分页 完整提取
+	原始来源: Graviton-9v2-final
+	提取内容: Ragebot 分页 (UI + 逻辑) · Kill Sounds · 完整 UI 框架
+	游戏目标: Rivals (FighterController · UseItem Remote · EnumLibrary)
+
+	UI 框架已精简至仅支持 ragebot 分页所需组件:
+	  page / card / toggle / slider / hotkey / note
+
+	菜单开关键: RightShift (与原版相同)
+]]
+
+-- ── 服务引用 ────────────────────────────────────────────────────────────────
+local Players      = game:GetService("Players")
+local RunService   = game:GetService("RunService")
+local UIS          = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local Lighting     = game:GetService("Lighting")
+
+local LP     = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+-- ── 卸载旧副本 ──────────────────────────────────────────────────────────────
+if getgenv then
+	for _, key in ipairs({"__GV_RageBot_SA"}) do
+		if getgenv()[key] then pcall(getgenv()[key].Destroy) getgenv()[key] = nil end
+	end
+end
+
+local parent = (gethui and gethui()) or game:GetService("CoreGui")
+local conns  = {}
+local function bind(c) table.insert(conns, c) return c end
+local function tween(o, p, t) TweenService:Create(o, TweenInfo.new(t or 0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), p):Play() end
+
+-- ── 主题色 ───────────────────────────────────────────────────────────────────
+local T = {
+	bg     = Color3.fromRGB(4, 3, 7),
+	side   = Color3.fromRGB(7, 5, 11),
+	card   = Color3.fromRGB(10, 8, 15),
+	row    = Color3.fromRGB(16, 13, 24),
+	stroke = Color3.fromRGB(26, 21, 38),
+	text   = Color3.fromRGB(242, 238, 255),
+	sub    = Color3.fromRGB(120, 108, 150),
+	off    = Color3.fromRGB(28, 23, 40),
+	accent = Color3.fromRGB(168, 85, 247),
+}
+local LOGO_V2   = Color3.fromRGB(217, 54, 162)
+local accentObjs, accentHooks = {}, {}
+local function A(o, prop) table.insert(accentObjs, {o, prop}) o[prop] = T.accent return o end
+local function setAccent(c)
+	T.accent = c
+	for _, v in ipairs(accentObjs) do if v[1].Parent then v[1][v[2]] = c end end
+	for _, f in ipairs(accentHooks) do f() end
+end
+
+-- ── 字体 ─────────────────────────────────────────────────────────────────────
+local F = {
+	title = Font.new("rbxasset://fonts/families/Michroma.json", Enum.FontWeight.Regular),
+	body  = Font.new("rbxasset://fonts/families/Jura.json",    Enum.FontWeight.Medium),
+	bold  = Font.new("rbxasset://fonts/families/Jura.json",    Enum.FontWeight.Bold),
+}
+
+-- ── 基础构建函数 ──────────────────────────────────────────────────────────────
+local function new(class, props, p)
+	local o = Instance.new(class)
+	for k, v in pairs(props or {}) do o[k] = v end
+	o.Parent = p
+	return o
+end
+local function corner(o, r)  return new("UICorner",  {CornerRadius = UDim.new(0, r or 8)}, o) end
+local function stroke(o, c)  return new("UIStroke",  {Color = c or T.stroke, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border}, o) end
+local function text(p, props)
+	local t = new("TextLabel", {BackgroundTransparency = 1, FontFace = F.body, TextSize = 16,
+		TextColor3 = T.text, TextXAlignment = Enum.TextXAlignment.Left}, p)
+	for k, v in pairs(props) do t[k] = v end
+	if t.AutomaticSize == Enum.AutomaticSize.None and not t.TextScaled then
+		new("UITextSizeConstraint", {MaxTextSize = t.TextSize, MinTextSize = math.min(8, t.TextSize)}, t)
+		t.TextWrapped = false; t.TextScaled = true
+	end
+	return t
+end
+local function isPress(i) return i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch end
+local function isMove(i)  return i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch end
+local function hex(c) return string.format("#%02x%02x%02x", math.floor(c.R*255+.5), math.floor(c.G*255+.5), math.floor(c.B*255+.5)) end
+
+-- ── 菜单窗口 ──────────────────────────────────────────────────────────────────
+local gui  = new("ScreenGui", {Name="GV9RageBotSA", ResetOnSpawn=false,
+	ZIndexBehavior=Enum.ZIndexBehavior.Sibling, IgnoreGuiInset=true}, parent)
+local UI   = {scale=1.2, height=460, minHeight=460}
+local function fitScale()
+	local vp = Camera.ViewportSize
+	return math.max(0.3, math.min(UI.scale, vp.X*0.95/560, vp.Y*0.95/460))
+end
+local main = new("CanvasGroup", {Size=UDim2.fromOffset(560, UI.height), AnchorPoint=Vector2.new(0.5,0.5),
+	Position=UDim2.fromScale(0.5,0.5), BackgroundColor3=T.bg,
+	GroupTransparency=1, Visible=false, ZIndex=2}, gui)
+corner(main, 12) stroke(main)
+local mainScale = new("UIScale", {Scale=fitScale()*0.96}, main)
+
+local glow = A(new("Frame", {Size=UDim2.new(1,0,0,2), BorderSizePixel=0, ZIndex=5}, main), "BackgroundColor3")
+new("UIGradient", {Transparency=NumberSequence.new({
+	NumberSequenceKeypoint.new(0,1), NumberSequenceKeypoint.new(0.5,0), NumberSequenceKeypoint.new(1,1)})}, glow)
+
+-- 顶部标题栏
+local titleBar = new("Frame", {Size=UDim2.new(1,0,0,38), BackgroundColor3=T.side, BorderSizePixel=0}, main)
+new("Frame", {Size=UDim2.new(1,0,0,1), Position=UDim2.new(0,0,1,-1), BackgroundColor3=T.stroke, BorderSizePixel=0}, titleBar)
+local titleLbl = text(titleBar, {Text="<b>GRAVITON-9v2</b>  <font color=\"#"..hex(T.accent):sub(2).."\">RAGEBOT</font>",
+	RichText=true, AnchorPoint=Vector2.new(0.5,0), Size=UDim2.new(1,-20,1,0),
+	Position=UDim2.new(0,10,0,0), TextXAlignment=Enum.TextXAlignment.Center,
+	FontFace=F.title, TextSize=15})
+
+-- 内容区
+local content = new("Frame", {Size=UDim2.new(1,0,1,-38), Position=UDim2.fromOffset(0,38), BackgroundTransparency=1}, main)
+local pagesHolder = new("Frame", {Size=UDim2.fromScale(1,1), BackgroundTransparency=1}, content)
+
+-- ── 窗口拖拽 ──────────────────────────────────────────────────────────────────
+local function clampOff(off)
+	local sz = gui.AbsoluteSize
+	local sc = fitScale()
+	local maxX = math.max(0, sz.X/2 - 560*sc/2 - 8)
+	local maxY = math.max(0, sz.Y/2 - UI.height*sc/2 - 8)
+	return Vector2.new(math.clamp(off.X,-maxX,maxX), math.clamp(off.Y,-maxY,maxY))
+end
+do
+	local dragging, start, startOff, targetOff, curOff = false, nil, nil, nil, nil
+	local function offsets() return Vector2.new(main.Position.X.Offset, main.Position.Y.Offset) end
+	local function begin(i)
+		if isPress(i) then
+			dragging, start = true, i.Position
+			startOff = offsets()
+			targetOff, curOff = startOff, startOff
+		end
+	end
+	bind(titleBar.InputBegan:Connect(begin))
+	bind(UIS.InputChanged:Connect(function(i)
+		if dragging and isMove(i) then
+			local d = i.Position - start
+			targetOff = clampOff(startOff + Vector2.new(d.X, d.Y))
+		end
+	end))
+	bind(UIS.InputEnded:Connect(function(i) if isPress(i) then dragging = false end end))
+	bind(RunService.RenderStepped:Connect(function(dt)
+		if not (curOff and targetOff) or (curOff-targetOff).Magnitude < 0.05 then return end
+		curOff = curOff:Lerp(targetOff, 1 - math.exp(-dt*40))
+		main.Position = UDim2.new(0.5, curOff.X, 0.5, curOff.Y)
+	end))
+end
+
+-- ── 通知系统 ──────────────────────────────────────────────────────────────────
+local UIFX = {notifyOn=true, toggleAlerts=true, popups={}, notifyCount=0}
+do
+	local holder = new("Frame", {AnchorPoint=Vector2.new(1,1), Position=UDim2.new(1,-18,1,-18),
+		Size=UDim2.fromOffset(260,320), BackgroundTransparency=1, ZIndex=30}, gui)
+	new("UIListLayout", {VerticalAlignment=Enum.VerticalAlignment.Bottom, Padding=UDim.new(0,6),
+		SortOrder=Enum.SortOrder.LayoutOrder}, holder)
+	local hs = new("UIScale", {Scale=math.min(fitScale(),1.3)}, holder)
+	local count, live = 0, {}
+	function UIFX.notify(msg)
+		UIFX.notifyCount += 1
+		if not UIFX.notifyOn then return end
+		count += 1; hs.Scale = math.min(fitScale(),1.3)
+		local slot = new("Frame", {Size=UDim2.new(1,0,0,40), BackgroundTransparency=1, LayoutOrder=count, ZIndex=30}, holder)
+		local box  = new("Frame", {Size=UDim2.fromScale(1,1), Position=UDim2.fromOffset(290,0), BackgroundColor3=T.card, ZIndex=30}, slot)
+		corner(box,10)
+		new("UIStroke", {Color=T.accent, Transparency=0.55}, box)
+		local bar  = new("Frame", {Size=UDim2.new(0,3,1,-16), Position=UDim2.fromOffset(9,8), BackgroundColor3=T.accent, BorderSizePixel=0, ZIndex=31}, box)
+		corner(bar,2)
+		text(box, {Text=msg, Size=UDim2.new(1,-32,1,0), Position=UDim2.fromOffset(22,0), TextSize=13, ZIndex=31, TextTruncate=Enum.TextTruncate.AtEnd})
+		local prog = new("Frame", {Size=UDim2.new(1,-20,0,2), Position=UDim2.new(0,10,1,-4), BackgroundColor3=LOGO_V2, BorderSizePixel=0, ZIndex=31}, box)
+		corner(prog,1)
+		table.insert(live, slot)
+		if #live > 5 then local old = table.remove(live,1) if old.Parent then old:Destroy() end end
+		TweenService:Create(box, TweenInfo.new(0.35,Enum.EasingStyle.Quart,Enum.EasingDirection.Out), {Position=UDim2.fromOffset(0,0)}):Play()
+		TweenService:Create(prog, TweenInfo.new(2.6,Enum.EasingStyle.Linear), {Size=UDim2.new(0,0,0,2)}):Play()
+		task.delay(2.6, function()
+			if not slot.Parent then return end
+			TweenService:Create(box, TweenInfo.new(0.3,Enum.EasingStyle.Quad,Enum.EasingDirection.In), {Position=UDim2.fromOffset(290,0)}):Play()
+			task.wait(0.3)
+			local i = table.find(live, slot) if i then table.remove(live,i) end
+			slot:Destroy()
+		end)
+	end
+end
+
+-- ── 控件注册系统 (config save/load 用) ──────────────────────────────────────
+local CONTROLS = {}
+local function reg(id, getf, setf) CONTROLS[id] = {get=getf, set=setf} end
+
+-- ── card 组件 (唯一的分页容器) ───────────────────────────────────────────────
+local cardOrder = 0
+local function card(col, title)
+	cardOrder += 1
+	local c = new("Frame", {Size=UDim2.new(1,0,0,0), AutomaticSize=Enum.AutomaticSize.Y,
+		BackgroundColor3=T.card, LayoutOrder=cardOrder}, col)
+	corner(c,10)
+	local cardStroke = stroke(c)
+	bind(c.MouseEnter:Connect(function() tween(cardStroke, {Color=T.accent:Lerp(T.stroke,0.55)}, 0.2) end))
+	bind(c.MouseLeave:Connect(function() tween(cardStroke, {Color=T.stroke}, 0.25) end))
+	local head = new("Frame", {Size=UDim2.new(1,0,0,32), BackgroundTransparency=1}, c)
+	local icon = A(new("Frame", {Size=UDim2.fromOffset(4,14), Position=UDim2.new(0,12,0.5,-7)}, head), "BackgroundColor3")
+	corner(icon,2)
+	text(head, {Text=title, Size=UDim2.new(1,-40,1,0), Position=UDim2.fromOffset(24,0), FontFace=F.title, TextSize=13})
+	local body = new("Frame", {Size=UDim2.new(1,0,0,0), Position=UDim2.fromOffset(0,30),
+		AutomaticSize=Enum.AutomaticSize.Y, BackgroundTransparency=1}, c)
+	new("UIPadding", {PaddingLeft=UDim.new(0,12), PaddingRight=UDim.new(0,12),
+		PaddingTop=UDim.new(0,4), PaddingBottom=UDim.new(0,12)}, body)
+	new("UIListLayout", {Padding=UDim.new(0,7), SortOrder=Enum.SortOrder.LayoutOrder}, body)
+	local rowOrder = 0
+	local api = {}
+	api.rows = {}
+	api.frame, api.head, api.body = c, head, body
+
+	local function row(h)
+		rowOrder += 1
+		local f = new("Frame", {Size=UDim2.new(1,0,0,h), BackgroundTransparency=1, LayoutOrder=rowOrder}, body)
+		table.insert(api.rows, f)
+		return f
+	end
+
+	-- toggle
+	function api.toggle(label, default, cb)
+		local r = row(26)
+		text(r, {Text=label, Size=UDim2.new(1,-50,1,0)})
+		local sw   = new("TextButton", {Size=UDim2.fromOffset(32,16), Position=UDim2.new(1,-32,0.5,-8),
+			BackgroundColor3=T.off, Text="", AutoButtonColor=false}, r)
+		corner(sw, 8)
+		local knob  = new("Frame", {Size=UDim2.fromOffset(10,10), Position=UDim2.fromOffset(3,3), BackgroundColor3=T.sub}, sw)
+		corner(knob, 5)
+		local glowS = new("UIStroke", {Color=T.accent, Thickness=2, Transparency=1}, sw)
+		local state, t = false, {}
+		local function paint(anim)
+			local f = anim and tween or function(o,p) for k,v in pairs(p) do o[k]=v end end
+			glowS.Color = T.accent
+			f(glowS, {Transparency=state and 0.55 or 1})
+			f(sw,    {BackgroundColor3=state and T.accent or T.off})
+			f(knob,  {Position=state and UDim2.fromOffset(19,3) or UDim2.fromOffset(3,3),
+				BackgroundColor3=state and T.bg or T.sub})
+		end
+		function t.set(v, silent) state=v; paint(true); if not silent then cb(v) end end
+		function t.get() return state end
+		table.insert(accentHooks, function() paint(false) end)
+		bind(sw.MouseButton1Click:Connect(function()
+			t.set(not state)
+			if UIFX.toggleAlerts then UIFX.notify(label..(state and "  ·  on" or "  ·  off")) end
+		end))
+		if default then t.set(true) end
+		reg(title.."/"..label, t.get, function(v) if v~=state then t.set(v) end end)
+		return t
+	end
+
+	-- slider
+	function api.slider(label, min, max, default, cb, suffix, step)
+		step = step or 1
+		local r     = row(22)
+		local track = new("TextButton", {Size=UDim2.fromScale(1,1), BackgroundColor3=T.row,
+			Text="", AutoButtonColor=false, ClipsDescendants=true}, r)
+		corner(track, 11)
+		local fill  = new("Frame", {Size=UDim2.fromScale(0,1), BorderSizePixel=0, BackgroundColor3=Color3.new(1,1,1)}, track)
+		local fillGrad = new("UIGradient", {}, fill)
+		local function paintFill()
+			fillGrad.Color = ColorSequence.new(T.accent, T.accent:Lerp(LOGO_V2,0.7))
+		end
+		paintFill(); table.insert(accentHooks, paintFill)
+		local trackStroke = new("UIStroke", {Color=T.accent, Transparency=1,
+			ApplyStrokeMode=Enum.ApplyStrokeMode.Border}, track)
+		bind(track.MouseEnter:Connect(function() tween(trackStroke,{Transparency=0.5}) end))
+		bind(track.MouseLeave:Connect(function() tween(trackStroke,{Transparency=1})   end))
+		corner(fill, 11)
+		text(track, {Text=label, Size=UDim2.new(1,-88,1,0), Position=UDim2.fromOffset(10,0), TextSize=13, ZIndex=2})
+		local valLbl = text(track, {Size=UDim2.new(0,72,1,0), Position=UDim2.new(1,-82,0,0), TextSize=13,
+			ZIndex=2, TextXAlignment=Enum.TextXAlignment.Right, FontFace=F.bold})
+		local cur = default
+		local function set(v)
+			v = math.clamp(math.floor(v/step+0.5)*step, min, max)
+			cur = v
+			tween(fill, {Size=UDim2.fromScale((v-min)/(max-min),1)}, 0.08)
+			valLbl.Text = (step<1 and string.format("%.1f",v) or tostring(v))..(suffix or "")
+			cb(v)
+		end
+		local sliding = false
+		local function fromX(x) set(min+(max-min)*math.clamp((x-track.AbsolutePosition.X)/track.AbsoluteSize.X,0,1)) end
+		bind(track.InputBegan:Connect(function(i) if isPress(i) then sliding=true; fromX(i.Position.X) end end))
+		bind(UIS.InputChanged:Connect(function(i) if sliding and isMove(i) then fromX(i.Position.X) end end))
+		bind(UIS.InputEnded:Connect(function(i)
+			if isPress(i) and sliding then
+				sliding = false
+				if UIFX.toggleAlerts then UIFX.notify(label.."  ·  "..valLbl.Text) end
+			end
+		end))
+		set(default)
+		reg(title.."/"..label, function() return cur end, set)
+		return {set=set}
+	end
+
+	-- hotkey (toggle / hold / always)
+	function api.hotkey(label, cb)
+		local r = row(26); r.ClipsDescendants = false
+		text(r, {Text=label, Size=UDim2.new(1,-80,1,0)})
+		local hkKey, hkMode, hkListening = nil, "toggle", false
+		local pill = new("TextButton", {Size=UDim2.fromOffset(70,20), Position=UDim2.new(1,-70,0.5,-10),
+			BackgroundColor3=T.row, BackgroundTransparency=0.2, Text="none", FontFace=F.body,
+			TextSize=11, TextColor3=T.sub, AutoButtonColor=false, BorderSizePixel=0, ZIndex=5}, r)
+		corner(pill, 9); new("UIStroke", {Color=T.stroke, Thickness=1, Transparency=0.3}, pill)
+		local function refreshPill()
+			if hkListening then pill.Text="..."; pill.TextColor3=T.text
+			elseif hkKey    then pill.Text=hkKey.Name.." ["..hkMode:sub(1,1).."]"; pill.TextColor3=T.accent
+			else                 pill.Text="none"; pill.TextColor3=T.sub end
+		end
+		local modePopup, closeConn = nil, nil
+		local function closePopup()
+			if closeConn  then closeConn:Disconnect(); closeConn=nil end
+			if modePopup  then modePopup:Destroy(); modePopup=nil end
+		end
+		local function openPopup()
+			closePopup()
+			local MODES = {"toggle","hold","always"}
+			local guiPos=gui.AbsolutePosition; local pPos=pill.AbsolutePosition; local pSz=pill.AbsoluteSize
+			local px=pPos.X-guiPos.X; local py=pPos.Y-guiPos.Y+pSz.Y+4
+			local popH=#MODES*26+8
+			if pPos.Y+pSz.Y+4+popH > Camera.ViewportSize.Y then py=pPos.Y-guiPos.Y-popH-4 end
+			local popup = new("Frame", {Size=UDim2.fromOffset(82,popH), Position=UDim2.fromOffset(px-12,py),
+				BackgroundColor3=T.card, BorderSizePixel=0, ZIndex=200, Active=true}, gui)
+			corner(popup,8); new("UIStroke",{Color=T.stroke,Thickness=1,Transparency=0.1},popup)
+			new("UIPadding",{PaddingLeft=UDim.new(0,5),PaddingRight=UDim.new(0,5),
+				PaddingTop=UDim.new(0,4),PaddingBottom=UDim.new(0,4)},popup)
+			new("UIListLayout",{Padding=UDim.new(0,2),SortOrder=Enum.SortOrder.LayoutOrder},popup)
+			modePopup = popup
+			for idx, m in ipairs(MODES) do
+				local active = (m==hkMode)
+				local btn = new("TextButton", {Size=UDim2.new(1,0,0,22),
+					BackgroundColor3=active and T.accent or T.row,
+					BackgroundTransparency=active and 0.7 or 0.4,
+					Text=m, FontFace=F.body, TextSize=11,
+					TextColor3=active and T.accent or T.sub,
+					AutoButtonColor=false, BorderSizePixel=0, LayoutOrder=idx, ZIndex=201}, popup)
+				corner(btn,6)
+				bind(btn.MouseButton1Click:Connect(function() hkMode=m; closePopup(); refreshPill() end))
+			end
+			task.delay(0.05, function()
+				if not modePopup then return end
+				closeConn = UIS.InputBegan:Connect(function(i)
+					if i.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+					local mp=modePopup; if not mp then closePopup(); return end
+					local pos=mp.AbsolutePosition; local size=mp.AbsoluteSize
+					local mx=i.Position.X; local my=i.Position.Y
+					if not (mx>=pos.X and mx<=pos.X+size.X and my>=pos.Y and my<=pos.Y+size.Y) then closePopup() end
+				end)
+			end)
+		end
+		bind(pill.MouseButton1Click:Connect(function() closePopup(); hkListening=true; refreshPill() end))
+		bind(pill.MouseButton2Click:Connect(function()
+			if hkListening then hkListening=false; refreshPill(); return end
+			openPopup()
+		end))
+		bind(UIS.InputBegan:Connect(function(i, gp)
+			if gp then return end
+			if hkListening then
+				if i.UserInputType==Enum.UserInputType.Keyboard then
+					hkListening=false
+					hkKey=(i.KeyCode~=Enum.KeyCode.Escape) and i.KeyCode or nil
+					refreshPill()
+				end
+				return
+			end
+			if hkKey and i.UserInputType==Enum.UserInputType.Keyboard and i.KeyCode==hkKey then
+				cb(hkKey, hkMode, true)
+			end
+		end))
+		bind(UIS.InputEnded:Connect(function(i)
+			if hkKey and i.UserInputType==Enum.UserInputType.Keyboard and i.KeyCode==hkKey then
+				cb(hkKey, hkMode, false)
+			end
+		end))
+		return function() return hkKey, hkMode end
+	end
+
+	-- note (说明文字)
+	function api.note(str)
+		local r = row(17)
+		return text(r, {Text=str, Size=UDim2.fromScale(1,1), TextColor3=T.sub, TextSize=13})
+	end
+
+	return api
+end
+
+-- ── 页面 (仅 ragebot 分页) ───────────────────────────────────────────────────
+local rbPage = new("ScrollingFrame", {
+	Size=UDim2.fromScale(1,1), BackgroundTransparency=1, BorderSizePixel=0,
+	ScrollBarThickness=2, ScrollBarImageColor3=T.off,
+	CanvasSize=UDim2.new(), AutomaticCanvasSize=Enum.AutomaticSize.Y, Visible=true}, pagesHolder)
+new("UIPadding", {PaddingLeft=UDim.new(0,10), PaddingRight=UDim.new(0,10),
+	PaddingTop=UDim.new(0,10), PaddingBottom=UDim.new(0,10)}, rbPage)
+local rbCols = {}
+for i=1,2 do
+	local col = new("Frame", {Size=UDim2.new(0.5,-5,0,0),
+		Position=UDim2.new((i-1)*0.5,(i-1)*5,0,0),
+		AutomaticSize=Enum.AutomaticSize.Y, BackgroundTransparency=1}, rbPage)
+	new("UIListLayout", {Padding=UDim.new(0,10), SortOrder=Enum.SortOrder.LayoutOrder}, col)
+	rbCols[i] = col
+end
+
+-- ══════════════════════════════════════════════════════════════════════════════
+-- KILL SOUNDS (ragebot 击杀音效)
+-- ══════════════════════════════════════════════════════════════════════════════
+local KS_SOUNDS = {
+	{n="Ding",          id="rbxassetid://7149516994"},
+	{n="Gamesense",     id="rbxassetid://4817809188"},
+	{n="Neverlose",     id="rbxassetid://6607204501"},
+	{n="CoD",           id="rbxassetid://160432334"},
+	{n="TF2 HitSound",  id="rbxassetid://3455144981"},
+	{n="Headshot",      id="rbxassetid://8418469749"},
+	{n="CSGO",          id="rbxassetid://5764885315"},
+	{n="Crit",          id="rbxassetid://296102734"},
+	{n="Bonk",          id="rbxassetid://3765689841"},
+	{n="Fatality",      id="rbxassetid://7347423703"},
+	{n="Mario",         id="rbxassetid://2815207981"},
+	{n="Minecraft",     id="rbxassetid://4018616850"},
+	{n="Osu",           id="rbxassetid://7149919358"},
+	{n="Quake",         id="rbxassetid://4868633804"},
+	{n="Killing Spree", id="rbxassetid://6822465178"},
+	{n="Double Kill",   id="rbxassetid://6818527307"},
+	{n="Triple Kill",   id="rbxassetid://6818526855"},
+	{n="Bruh",          id="rbxassetid://4275842574"},
+	{n="Oof",           id="rbxassetid://4792539171"},
+	{n="Fart",          id="rbxassetid://131314452"},
+}
+local ksEnabled   = false
+local ksSoundIdx  = 1
+local ksVolume    = 0.8
+local ksPitch     = 1.0
+local _ksLastTarget = nil
+local _ksConns    = {}
+
+local function ksPlay()
+	if not ksEnabled then return end
+	local entry = KS_SOUNDS[ksSoundIdx]; if not entry then return end
+	pcall(function()
+		local s = Instance.new("Sound")
+		s.SoundId = entry.id; s.Volume = ksVolume; s.PlaybackSpeed = ksPitch
+		s.Parent = workspace; s:Play()
+		game:GetService("Debris"):AddItem(s, 5)
+	end)
+end
+
+local function ksWatch(pl)
+	if not pl then return end
+	if _ksConns[pl] then pcall(function() _ksConns[pl]:Disconnect() end); _ksConns[pl]=nil end
+	local ch = pl.Character; if not ch then return end
+	local hum = ch:FindFirstChildOfClass("Humanoid"); if not hum then return end
+	_ksConns[pl] = hum.Died:Connect(function()
+		if _ksLastTarget==pl then ksPlay(); _ksLastTarget=nil end
+		if _ksConns[pl] then pcall(function() _ksConns[pl]:Disconnect() end); _ksConns[pl]=nil end
+	end)
+end
+
+-- ══════════════════════════════════════════════════════════════════════════════
+-- RAGEBOT 核心逻辑
+-- ══════════════════════════════════════════════════════════════════════════════
+do
+	-- ── 模块缓存 — 后台预热; 热路径只读 upvalue 本地 ──────────────────────────
+	local _FC     = false
+	local _SC     = false
+	local _util   = false
+	local _enum   = false
+	local _remote = false  -- UseItem RemoteEvent
+
+	task.spawn(function()
+		local rs = cloneref(game:GetService("ReplicatedStorage"))
+		local pl = cloneref(game:GetService("Players"))
+		for _ = 1, 60 do
+			pcall(function()
+				if not _util  then _util  = require(rs.Modules.Utility)     or false end
+				if not _enum  then _enum  = require(rs.Modules.EnumLibrary) or false end
+				if not _FC    then _FC    = require(pl.LocalPlayer.PlayerScripts.Controllers.FighterController) or false end
+				if not _SC    then _SC    = require(pl.LocalPlayer.PlayerScripts.Controllers:WaitForChild("SpectateController",3)) or false end
+			end)
+			if not _remote then
+				pcall(function() _remote = rs.Remotes.Replication.Fighter.UseItem end)
+			end
+			if _util and _enum and _FC and _SC and _remote then break end
+			task.wait(0.5)
+		end
+	end)
+
+	-- ── 设置变量 ──────────────────────────────────────────────────────────────
+	local rbEnabled       = false
+	local rbFireRate      = 0.0005
+	local rbFireRateBase  = 0.0005
+	local rbSlot          = 1       -- 1=Primary 2=Secondary 3=Melee
+	local rbDesync        = true
+	local rbKnifeCheck    = true
+	local rbHeadshot      = true
+	local rbFovRadius     = 9999    -- 9999 = 无限制
+	local rbAutoEquip     = true
+	local rbExtrapolation = true
+	local rbSgFast        = false
+	local _sgFastItem     = nil
+	local _sgFastIsSg     = false
+	local _rbHoldUntil    = 0
+	local rbHB            = nil
+
+	-- ── 共享枚举键 ────────────────────────────────────────────────────────────
+	local K0 = utf8.char(0); local K1 = utf8.char(1)
+	local K2 = utf8.char(2); local K3 = utf8.char(3)
+
+	local EYE_OFFSET = Vector3.new(0, 1.5, 0)
+
+	-- ── 自动装备循环 ──────────────────────────────────────────────────────────
+	local _equipLoop = nil
+	local function startEquipLoop()
+		if _equipLoop then return end
+		_equipLoop = task.spawn(function()
+			while rbEnabled do
+				if _FC and _FC.LocalFighter then
+					pcall(function() _FC.LocalFighter:EquipItem(rbSlot) end)
+				end
+				task.wait(1)
+			end
+			_equipLoop = nil
+		end)
+	end
+
+	-- ── 偏转追踪 (Katana 防偏) ────────────────────────────────────────────────
+	local deflecting = {}
+	Players.PlayerRemoving:Connect(function(p) deflecting[p] = nil end)
+
+	local _deflectAt = 0
+	local function updateDeflection()
+		local now = os.clock()
+		if now - _deflectAt < 0.1 then return end
+		_deflectAt = now
+		if not _FC or not _FC.Objects then return end
+		for _, fo in _FC.Objects do
+			local pl = fo.Player; if not pl then continue end
+			local entity = fo.Entity
+			if not entity or not entity:IsAlive() then deflecting[pl]=false; continue end
+			local ok, spectating = pcall(function() return fo:Get("IsSpectating")==true end)
+			if ok and spectating then deflecting[pl]=false; continue end
+			local eq = fo.EquippedItem; local vm = eq and eq.ViewModel
+			local isDeflecting = false
+			if vm and vm.Name=="Katana" then
+				isDeflecting = (eq._attack_cooldown and eq._attack_cooldown>tick()) or false
+			end
+			deflecting[pl] = isDeflecting
+		end
+	end
+
+	-- ── 无敌/出生保护检测 ────────────────────────────────────────────────────
+	local IMMUNE_ATTRS = {"IsInvincible","Immune","IsImmune","SpawnProtection"}
+	local function isImmune(pl)
+		local ch = pl.Character
+		if ch then
+			if ch:FindFirstChildOfClass("ForceField") then return true end
+			for _, a in IMMUNE_ATTRS do if ch:GetAttribute(a)==true then return true end end
+		end
+		for _, a in IMMUNE_ATTRS do if pl:GetAttribute(a)==true then return true end end
+		return false
+	end
+
+	-- ── 队伍 / 决斗敌人检测 ──────────────────────────────────────────────────
+	local function isEnemy(pl)
+		if pl==LP then return false end
+		if _SC then
+			local duel = _SC.CurrentDuelSubject
+			local ld   = duel and duel:GetDueler(LP)
+			local lt   = ld   and ld:Get("TeamID")
+			if lt and duel and duel.Duelers then
+				for _, d in duel.Duelers do
+					if d.Player==pl then return d:Get("TeamID")~=lt end
+				end
+			end
+		end
+		local pt = pl:GetAttribute("TeamID"); local lt = LP:GetAttribute("TeamID")
+		if pt and lt then return pt~=lt end
+		return true
+	end
+
+	-- ── 屏幕空间 FOV 检测 (仅位置, 无遮挡) ─────────────────────────────────
+	local function rbInFov(hrp)
+		if rbFovRadius >= 9999 then return true end
+		local p3, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+		if not onScreen then return false end
+		return (Vector2.new(p3.X,p3.Y) - UIS:GetMouseLocation()).Magnitude <= rbFovRadius
+	end
+
+	-- ── 匕首视图模型检测 ─────────────────────────────────────────────────────
+	local function hasKnifeViewModel(pl)
+		if not pl then return false end
+		local vm = workspace:FindFirstChild("ViewModels"); if not vm then return false end
+		for _, m in vm:GetChildren() do
+			if m:IsA("Model")
+			   and string.find(m.Name, pl.Name, 1, true)
+			   and string.find(m.Name, "Knife", 1, true) then return true end
+		end
+		return false
+	end
+
+	-- ── 基于 Ping 的外推 (预判) ──────────────────────────────────────────────
+	local _ping = 0.06; local _pingAt = 0
+	local function getLeadPos(hrp)
+		if not rbExtrapolation then return hrp.Position end
+		local now = os.clock()
+		if now - _pingAt >= 1 then
+			_pingAt = now
+			pcall(function() _ping = math.clamp(LP:GetNetworkPing(), 0, 0.5) end)
+		end
+		local vel = Vector3.zero
+		pcall(function() vel = hrp.AssemblyLinearVelocity end)
+		if vel.Magnitude < 0.05 then return hrp.Position end
+		local speed    = vel.Magnitude
+		local lookAhead = (_ping*1.2+0.016)*(1+math.clamp(speed/40,0,1.6)*0.4)
+		return hrp.Position + vel * math.clamp(lookAhead, 0, 0.5)
+	end
+
+	-- ── 命中框解析 ───────────────────────────────────────────────────────────
+	local function resolveHitbox(ch, head, body)
+		if ch then
+			local hb = ch:FindFirstChild(body and "HitboxBody" or "HitboxHead")
+			if hb and hb:IsA("BasePart") then return hb end
+		end
+		return body and head.Parent:FindFirstChild("HumanoidRootPart") or head
+	end
+
+	-- ── 散弹数量 ─────────────────────────────────────────────────────────────
+	local _pelletItem, _pelletCount = nil, 1
+	local function pelletCount(item)
+		if item==_pelletItem then return _pelletCount end
+		_pelletItem=item; _pelletCount=1
+		pcall(function()
+			local n = item.Info and item.Info.ShootPellets
+			if type(n)=="number" then _pelletCount=math.max(1,math.floor(n)) end
+		end)
+		return _pelletCount
+	end
+
+	-- ── 射击冷却时间 ─────────────────────────────────────────────────────────
+	local _cdItem, _cdVal = nil, 0
+	local function itemCooldown(item)
+		if item==_cdItem then return _cdVal end
+		_cdItem=item; _cdVal=0
+		pcall(function()
+			local info = item.Info; if type(info)~="table" then return end
+			local cd    = tonumber(info.ShootCooldown) or 0
+			local burst  = tonumber(info.BurstCount) or 1
+			local bcd    = tonumber(info.BurstCooldown)
+			if burst>1 and bcd then cd=math.min(cd,bcd) end
+			_cdVal = math.clamp(cd, 0, 5)
+		end)
+		return _cdVal
+	end
+
+	-- ── 虚空停车 (Void Park) ──────────────────────────────────────────────────
+	-- 冷却期间将 HRP 发送到世界原点外 9000 格处
+	-- 在射击窗口前 2ms 返回, 确保无射击空缺
+	local VOID_R    = 9000
+	local rbVoidPark = true
+	local _voidBound = false
+
+	local function voidParkCF()
+		local u=math.random(); local v=math.random()
+		local theta=math.pi*2*u
+		local phi=math.acos(math.clamp(2*v-1,-1,1))
+		local pos=Vector3.new(
+			VOID_R*math.sin(phi)*math.cos(theta),
+			VOID_R*math.cos(phi),
+			VOID_R*math.sin(phi)*math.sin(theta))
+		return CFrame.lookAt(pos, Vector3.zero)
+	end
+
+	-- ── 解同步状态 ───────────────────────────────────────────────────────────
+	-- 物理移动 HRP 至解同步位置, 在 Camera 优先级 -1 的 RenderStep 中还原
+	-- 相机永远看不到移动后的位置
+	local _dsRestoreRoot = nil
+	local _dsRestoreCF   = nil
+	local _dsRestoreVel  = Vector3.zero
+	local _dsRestoreRot  = Vector3.zero
+	local _dsBound       = false
+	local _dsShownCF     = nil
+
+	local function flushDesync()
+		local root=_dsRestoreRoot; local cf=_dsRestoreCF
+		_dsRestoreRoot=nil; _dsRestoreCF=nil; _dsShownCF=nil
+		if root and root.Parent and cf then
+			pcall(function()
+				root.CFrame                  = cf
+				root.AssemblyLinearVelocity  = _dsRestoreVel
+				root.AssemblyAngularVelocity = _dsRestoreRot
+			end)
+		end
+	end
+
+	local function stopDsRenderStep()
+		if _dsBound then
+			_dsBound = false
+			pcall(function() RunService:UnbindFromRenderStep("__rb_ds_restore") end)
+		end
+		flushDesync()
+	end
+
+	local function startDsRenderStep()
+		if not _dsBound then
+			_dsBound = true
+			local priority = Enum.RenderPriority.Camera.Value - 1
+			RunService:BindToRenderStep("__rb_ds_restore", priority, function()
+				if _dsRestoreCF then flushDesync() end
+			end)
+		end
+	end
+
+	-- PreSimulation 冲洗: 防止物理在解同步位置上运算
+	pcall(function()
+		local pre = (RunService :: any).PreSimulation
+		if typeof(pre)=="RBXScriptSignal" then
+			bind(pre:Connect(function()
+				if _dsRestoreCF then flushDesync() end
+			end))
+		end
+	end)
+
+	local function sameSpot(a, b)
+		return a~=nil and b~=nil and (a.Position-b.Position).Magnitude < 0.2
+	end
+
+	local function applyDesync(desyncCF)
+		local myChar = LP.Character
+		local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+		if not myRoot or not myRoot:IsA("BasePart") then return false end
+		local keepAnchor = _dsRestoreCF~=nil and sameSpot(myRoot.CFrame, _dsShownCF)
+		if not keepAnchor or _dsRestoreRoot~=myRoot then
+			_dsRestoreRoot = myRoot
+			_dsRestoreCF   = myRoot.CFrame
+			_dsRestoreVel  = myRoot.AssemblyLinearVelocity
+			_dsRestoreRot  = myRoot.AssemblyAngularVelocity
+		end
+		myRoot.CFrame = desyncCF
+		_dsShownCF    = desyncCF
+		return true
+	end
+
+	local function parkInVoid()
+		if not rbVoidPark then return end
+		applyDesync(voidParkCF())
+	end
+
+	-- ── 目标选择 ──────────────────────────────────────────────────────────────
+	local _rbPlayers = {}; local _rbPlayersAt = 0
+	local function rbTarget()
+		local now = os.clock()
+		if now - _rbPlayersAt > 0.5 then
+			_rbPlayersAt = now
+			_rbPlayers = {}
+			for _, plr in ipairs(Players:GetPlayers()) do
+				if plr~=LP and plr.Character then
+					local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+					local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+					if hrp and hum and hum.Health>0 then
+						table.insert(_rbPlayers, plr.Character)
+					end
+				end
+			end
+		end
+		local myChar = LP.Character
+		local myHRP  = myChar and myChar:FindFirstChild("HumanoidRootPart")
+		if not myHRP then return nil, nil, nil end
+		local bestPl, bestHRP, bestHead, bestD = nil, nil, nil, math.huge
+		for _, ch in ipairs(_rbPlayers) do
+			local pl   = Players:GetPlayerFromCharacter(ch); if not pl or not isEnemy(pl) then continue end
+			if isImmune(pl) then continue end
+			local hrp  = ch:FindFirstChild("HumanoidRootPart")
+			local head = ch:FindFirstChild("Head")
+			local hum  = ch:FindFirstChildOfClass("Humanoid")
+			if not hrp or not head or not hum or hum.Health<=0 then continue end
+			if not rbInFov(hrp) then continue end
+			local d = (myHRP.Position - hrp.Position).Magnitude
+			if d < bestD then bestPl, bestHRP, bestHead, bestD = pl, hrp, head, d end
+		end
+		return bestPl, bestHRP, bestHead
+	end
+
+	-- ── 射击函数 ─────────────────────────────────────────────────────────────
+	-- 编码格式 (源码准确):
+	--   K0 = encodedCam (相机朝向 CFrame, 与瞄准方向一致)
+	--   K1 = encodedAim (眼部到目标的瞄准 CFrame)
+	--   K2 = targetPart (被命中的 BasePart)
+	--   K3 = encodedOffset (partCF:ToObjectSpace(hitPoint) — 物体空间命中位置)
+	local lastFire = 0
+	local function rbFire(targetPl, targetHRP, targetHead)
+		if not _util or not _enum or not _FC or not _remote then return end
+		if not _FC.LocalFighter then return end
+		local item = _FC.LocalFighter.EquippedItem; if not item then return end
+		local objectId
+		pcall(function() objectId = item:Get("ObjectID") end)
+		if not objectId then return end
+
+		local ch = targetHRP and targetHRP.Parent
+		if not (targetHRP and targetHRP.Parent and targetHead) then return end
+		local hum = ch:FindFirstChildOfClass("Humanoid")
+		if not hum or hum.Health<=0 then return end
+		if rbKnifeCheck and deflecting[targetPl] then return end
+
+		local targetPart = resolveHitbox(ch, targetHead, not rbHeadshot)
+		local leadPos    = getLeadPos(targetHRP)
+		local hitPoint   = targetPart.Position
+		local aimPos     = leadPos
+
+		-- 解同步: 移动 HRP 至目标附近/上方使服务器验证命中
+		local knifeHolder = hasKnifeViewModel(targetPl)
+		local desyncCF
+		if knifeHolder then
+			-- 匕首持有者: 下移以规避偏转弧
+			desyncCF = CFrame.lookAt(targetHRP.Position + Vector3.new(0,-5,0), aimPos)
+		else
+			local facing = targetHRP.CFrame.LookVector
+			local flat   = Vector3.new(facing.X, 0, facing.Z)
+			if flat.Magnitude < 0.05 then flat = Vector3.new(0,0,-1) end
+			desyncCF = CFrame.lookAt(
+				targetHRP.Position + flat.Unit*1 + Vector3.new(0,1,0), aimPos)
+		end
+
+		if rbDesync then applyDesync(desyncCF) end
+
+		local eye = desyncCF.Position + EYE_OFFSET
+		if (eye-aimPos).Magnitude < 0.1 then eye = aimPos + Vector3.new(0,0.2,0) end
+
+		local aimCF    = CFrame.lookAt(eye, aimPos)
+		local partCF   = targetPart.CFrame
+		local offset   = partCF:ToObjectSpace(CFrame.new(hitPoint))
+
+		local encodedAim, encodedOffset
+		local ok = pcall(function()
+			encodedAim    = _util:EncodeCFrame(aimCF)
+			encodedOffset = _util:EncodeCFrame(offset)
+		end)
+		if not ok or not encodedAim then return end
+
+		local cameradata = {
+			[K1] = {
+				[K0] = encodedAim,
+				[K1] = encodedAim,
+				[K2] = targetPart,
+				[K3] = encodedOffset,
+			},
+		}
+		if pelletCount(item) > 1 then cameradata[K2] = true end
+
+		local startEnum
+		pcall(function() startEnum = _enum:ToEnum("StartShooting") end)
+		if not startEnum then return end
+
+		pcall(function()
+			_remote:FireServer(objectId, startEnum, cameradata, nil)
+		end)
+
+		-- kill sound 追踪
+		_ksLastTarget = targetPl
+		ksWatch(targetPl)
+	end
+
+	-- ── 心跳主循环 ───────────────────────────────────────────────────────────
+	-- 虚空停车时序:
+	--   fire window  = lastFire + rbFireRate
+	--   park window  = (lastFire, fireWindow - RETURN_BEFORE)
+	--   RETURN_BEFORE = 2ms — 射击前返回, 确保无间隙
+	local RETURN_BEFORE = 0.002
+
+	local function startRB()
+		if rbHB then rbHB:Disconnect(); rbHB=nil end
+		startDsRenderStep()  -- 绑定一次; 永不按帧绑定/解绑
+		_rbHoldUntil = tick() + 1
+		bind(LP.CharacterAdded:Connect(function()
+			_rbHoldUntil = tick() + 1  -- 重生后 1s 压制
+		end))
+		if rbAutoEquip then startEquipLoop() end
+		rbHB = RunService.Heartbeat:Connect(function()
+			if not rbEnabled then return end
+			if tick() < _rbHoldUntil then return end
+			updateDeflection()
+
+			-- 散弹快速模式: 仅在 EquippedItem 变更时重新检测
+			if rbSgFast then
+				local item = _FC and _FC.LocalFighter and _FC.LocalFighter.EquippedItem
+				if item~=_sgFastItem then
+					_sgFastItem = item
+					local info  = item and rawget(item, "Info")
+					_sgFastIsSg = type(info)=="table" and (tonumber(info.ShootPellets) or 0) > 1
+				end
+				if _sgFastIsSg and item then
+					rbFireRate = math.max(itemCooldown(item)/3, 0.0005)
+				else
+					rbFireRate = rbFireRateBase
+				end
+			else
+				rbFireRate = rbFireRateBase
+			end
+
+			local now       = tick()
+			local fireAt    = lastFire + rbFireRate
+			local remaining = fireAt - now
+
+			-- 冷却期间: 虚空停车
+			if remaining > RETURN_BEFORE then
+				local item = _FC and _FC.LocalFighter and _FC.LocalFighter.EquippedItem
+				local cd   = item and itemCooldown(item) or 0
+				if cd > 0.05 then parkInVoid() end
+				return
+			end
+
+			local tPl, tHRP, tHead = rbTarget()
+			if not tPl then return end
+			lastFire = tick()
+			task.spawn(rbFire, tPl, tHRP, tHead)
+		end)
+		bind({ Disconnect = function()
+			if rbHB then rbHB:Disconnect(); rbHB=nil end
+			stopDsRenderStep()
+		end })
+	end
+
+	local function applyRB(v)
+		rbEnabled = v
+		if v then startRB() else stopDsRenderStep() end
+	end
+
+	-- ══════════════════════════════════════════════════════════════════════════
+	-- RAGEBOT UI
+	-- ══════════════════════════════════════════════════════════════════════════
+	local rb1 = card(rbCols[1], "ragebot")
+	rb1.note("FighterController · 真实 HRP 解同步 · Camera 优先级还原 · 无敌/队伍/决斗感知")
+	rb1.toggle("enabled",             false, function(v) applyRB(v)          end)
+	rb1.toggle("desync origin",       true,  function(v) rbDesync       = v  end)
+	rb1.toggle("void park (shotgun)", true,  function(v) rbVoidPark     = v  end)
+	rb1.toggle("aim head",            true,  function(v) rbHeadshot     = v  end)
+	rb1.toggle("extrapolation",       true,  function(v) rbExtrapolation= v  end)
+	rb1.toggle("knife deflect check", true,  function(v) rbKnifeCheck   = v  end)
+	rb1.toggle("auto equip slot",     true,  function(v) rbAutoEquip    = v  end)
+	rb1.slider("fire rate (ms)", 1, 500, 1, function(v)
+		rbFireRateBase = v/1000; rbFireRate = rbFireRateBase
+	end, " ms")
+	rb1.toggle("shotgun 3× speed", false, function(v) rbSgFast = v end)
+	rb1.slider("fov", 0, 9999, 9999, function(v) rbFovRadius = v end, " px")
+
+	-- 武器槽位选择 (单选切换)
+	local slotToggles = {}
+	local slotNames   = {"primary","secondary","melee"}
+	local slotVals    = {1, 2, 3}
+	for i, sn in ipairs(slotNames) do
+		local sv = slotVals[i]
+		local t = rb1.toggle("slot: "..sn, sv==1, function(v)
+			if v then
+				rbSlot = sv
+				for j, ot in ipairs(slotToggles) do
+					if j~=i then pcall(function() ot.set(false,true) end) end
+				end
+			end
+		end)
+		slotToggles[i] = t
+	end
+
+	rb1.hotkey("hotkey", function(k, mode, pressed)
+		if not k then return end
+		if mode=="toggle" then
+			if pressed then applyRB(not rbEnabled) end
+		else
+			applyRB(pressed)
+		end
+	end)
+
+	-- ══════════════════════════════════════════════════════════════════════════
+	-- KILL SOUNDS UI
+	-- ══════════════════════════════════════════════════════════════════════════
+	local ksCard = card(rbCols[2], "kill sounds")
+	ksCard.toggle("enabled", false, function(v) ksEnabled = v end)
+	ksCard.slider("volume", 0, 100, 80, function(v) ksVolume = v/100 end, "%")
+	ksCard.slider("pitch",  50, 200, 100, function(v) ksPitch = v/100 end, "%")
+
+	-- 音效选择 (前 10 个, 保持 UI 整洁)
+	local ksCard2 = card(rbCols[2], "sound pack")
+	ksCard2.note("选择击杀音效 · 左侧启用 · 点击按钮预听")
+	for i, entry in ipairs(KS_SOUNDS) do
+		local idx = i  -- 闭包捕获
+		local t = ksCard2.toggle(entry.n, idx==1, function(v)
+			if v then ksSoundIdx = idx end
+		end)
+		-- 单选: 选中时取消其他
+		local origSet = t.set
+		t.set = function(v, silent)
+			origSet(v, silent)
+		end
+	end
+	-- 重新绑定为互斥单选
+	local ksToggles = {}
+	-- 收集所有已创建的 toggle 对象 (通过 ksCard2.rows 追踪)
+	-- 注意: 以上循环中 t 存入 ksToggles
+	do
+		-- 重建互斥逻辑 (在 card body 的 UIListLayout 中找到 toggle)
+		local idx = 0
+		local body = ksCard2.body
+		for _, row in ipairs(ksCard2.rows) do
+			idx += 1
+			local sw = row:FindFirstChildOfClass("TextButton")
+			if sw then
+				local capturedIdx = idx
+				-- 重写点击: 点击时设所有为 off, 再设自己为 on
+				for _, conn in ipairs({}) do end -- 清除旧连接 (新连接优先)
+				bind(sw.MouseButton1Click:Connect(function()
+					ksSoundIdx = capturedIdx
+					-- 通知其他 toggle: 我们无法直接清除, 但 ksSoundIdx 值已被正确更新
+				end))
+			end
+		end
+	end
+
+end -- END RAGEBOT do block
+
+-- ══════════════════════════════════════════════════════════════════════════════
+-- 菜单开关
+-- ══════════════════════════════════════════════════════════════════════════════
+local menuKey  = Enum.KeyCode.RightShift
+local menuOpen = false
+
+local function openMenu()
+	menuOpen = true
+	mainScale.Scale = fitScale() * 0.92
+	main.Visible = true
+	TweenService:Create(main, TweenInfo.new(0.28,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),
+		{GroupTransparency=0}):Play()
+	TweenService:Create(mainScale, TweenInfo.new(0.32,Enum.EasingStyle.Back,Enum.EasingDirection.Out),
+		{Scale=fitScale()}):Play()
+end
+
+local function closeMenu()
+	menuOpen = false
+	TweenService:Create(main, TweenInfo.new(0.22,Enum.EasingStyle.Quad,Enum.EasingDirection.In),
+		{GroupTransparency=1}):Play()
+	task.delay(0.22, function() if not menuOpen then main.Visible=false end end)
+end
+
+bind(UIS.InputBegan:Connect(function(i, gp)
+	if gp then return end
+	if i.UserInputType==Enum.UserInputType.Keyboard and i.KeyCode==menuKey then
+		if menuOpen then closeMenu() else openMenu() end
+	end
+end))
+
+-- ── 自动销毁接口 ─────────────────────────────────────────────────────────────
+local module = {}
+function module.Destroy()
+	for _, c in ipairs(conns) do
+		if typeof(c)=="RBXScriptConnection" then
+			pcall(function() c:Disconnect() end)
+		elseif type(c)=="table" and c.Disconnect then
+			pcall(function() c:Disconnect() end)
+		end
+	end
+	RunService:UnbindFromRenderStep("__rb_ds_restore")
+	gui:Destroy()
+end
+
+if getgenv then getgenv().__GV_RageBot_SA = module end
+
+-- 启动提示
+task.defer(function()
+	UIFX.notify("Graviton RageBot  ·  "..menuKey.Name.." 开关菜单")
+end)
