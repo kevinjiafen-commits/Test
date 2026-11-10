@@ -11962,10 +11962,10 @@ local hvhFollowFront = hvhDependent:toggle(ui.id('hvh-follow-front'), {
 
 -- ▼▼▼ GV9 Ragebot UI 新增
 viewmodel:divider()
-viewmodel:label('gv9 ragebot (desync + void park)')
+viewmodel:label('hvh ragebot (desync + void park)')
 
 local gvRageToggle = viewmodel:toggle(ui.id('gv9-rage-enabled'), {
-    text    = 'Enable GV9 Ragebot',
+    text    = 'Enable HvH Ragebot',
     default = false,
 })
 local gvRageDep = viewmodel:dependent(function()
