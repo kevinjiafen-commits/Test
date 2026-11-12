@@ -12751,29 +12751,30 @@ local espShowBox = espOptions:toggle(ui.id('esp-box'), {
     text    = 'box',
     default = true,
 })
-local espBoxStyle = espOptions:dependent(function()
+local espBoxStyleBox = espOptions:dependent(function()
     return espShowBox.value
-end):dropdown(ui.id('esp-box-style'), {
+end)
+local espBoxStyle = espBoxStyleBox:dropdown(ui.id('esp-box-style'), {
     text    = 'box style',
     values  = { 'Full Box', 'Corner Brackets' },
     default = 'Full Box',
 })
-local espBoxThickness = espBoxStyle:slider(ui.id('esp-box-thickness'), {
+local espBoxThickness = espBoxStyleBox:slider(ui.id('esp-box-thickness'), {
     text     = 'box thickness',
     default  = 1,
     min      = 1,
     max      = 4,
     rounding = 0,
 })
-local espBoxScale = espBoxStyle:slider(ui.id('esp-box-scale'), {
+local espBoxScale = espBoxStyleBox:slider(ui.id('esp-box-scale'), {
     text     = 'box size',
     default  = 1,
     min      = 0.6,
     max      = 1.6,
     rounding = 2,
 })
-local espCornerLength = espBoxStyle:dependent(function()
-    return espBoxStyle.value == 'Corner Brackets'
+local espCornerLength = espOptions:dependent(function()
+    return espShowBox.value and espBoxStyle.value == 'Corner Brackets'
 end):slider(ui.id('esp-corner-length'), {
     text     = 'corner length %',
     default  = 0.28,
@@ -12781,10 +12782,10 @@ end):slider(ui.id('esp-corner-length'), {
     max      = 0.5,
     rounding = 2,
 })
-local espBoxCol = addColorBlock(espBoxStyle, 'box', 'Box',
+local espBoxCol = addColorBlock(espBoxStyleBox, 'box', 'Box',
     { 'Solid', 'Gradient' },
     { solid = Color3.new(1, 1, 1), a = Color3.fromRGB(255, 59, 78), b = Color3.fromRGB(255, 194, 75) })
-local espBoxFill = espBoxStyle:toggle(ui.id('esp-box-fill'), {
+local espBoxFill = espBoxStyleBox:toggle(ui.id('esp-box-fill'), {
     text    = 'box fill',
     default = false,
 })
@@ -12793,14 +12794,13 @@ local espBoxFillColor = espBoxFill:color(ui.id('esp-box-fill-color'), {
     default      = Color3.fromRGB(255, 59, 78),
     transparency = 0.75,
 })
-local espBoxTransparency = espBoxStyle:slider(ui.id('esp-box-transparency'), {
+local espBoxTransparency = espBoxStyleBox:slider(ui.id('esp-box-transparency'), {
     text     = 'box transparency',
     default  = 0,
     min      = 0,
     max      = 1,
     rounding = 2,
 })
-
 -- ── health & ammo ─────────────────────────────────────────
 espBox:divider()
 local espShowHealth = espOptions:toggle(ui.id('esp-health'), {
@@ -13145,7 +13145,7 @@ end
 local espSettings = function()
     return buildEspCfg()
 end
-                return {
+                                return {
                     indicators = function()
                         settings.manipulated, settings.manipulatedColor = manipulated.value, manipulatedColor.value
                         settings.ragebot, settings.ragebotStyle = ragebot.value, ragebotStyle.value
@@ -13165,7 +13165,7 @@ esp = espToggle,
 hvh = hvhToggle,                              -- ▼ Step 2 Added
 hvhSettings = hvhSettings,                    -- ▼ Step 2 Added
 gv9Rage = gvRageToggle,                       -- ▼ GV9 Added
-
+espSettings = espSettings,
 }
 end
 
