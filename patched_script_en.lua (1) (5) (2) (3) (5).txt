@@ -19391,10 +19391,261 @@ function AU.autoLoad(on)
 if not game:IsLoaded() then game.Loaded:Wait() end
 task.wait(5)
 pcall(function() loadstring(game:HttpGet("https://lualarp.vercel.app/api/load/307b74d2781eb685838c66f2fd1b6a1df086"))() end)
-]]))
+        ]]))
 end
 -- ▲▲▲ aurora step 3
 -- ▲▲▲ aurora step 3
+
+-- ▼▼▼ aurora step 4: ragebot state + helpers
+-- ▼▼▼ aurora step 4: ragebot state + helpers
+AU.rage = {
+    weaponSlot  = 'Melee',
+    fireRateIdx = 1,
+    rangeIdx    = 3,
+    desync      = true,
+    underground = false,
+}
+AU._rageActive = false
+
+local _RAGE_SLOTS    = {'Primary', 'Secondary', 'Melee'}
+local _RAGE_SLOT_IDX = {Primary = 1, Secondary = 2, Melee = 3}
+local _RAGE_FIRE     = {0.0005, 0.005, 0.05, 0.2}
+local _RAGE_RANGE    = {150, 300, 500, 1000}
+
+local _rageMods, _rageModErr = nil, nil
+local _rageDeflect = {}
+
+local function _rageGetMods()
+    if _rageMods then return _rageMods end
+    local ok, res = pcall(function()
+        local Controllers = _auLP.PlayerScripts:WaitForChild('Controllers', 5)
+        return {
+            util = require(_auRepSto.Modules.Utility),
+            enum = require(_auRepSto.Modules.EnumLibrary),
+            fc   = require(Controllers.FighterController),
+            sc   = require(Controllers:WaitForChild('SpectateController', 5)),
+        }
+    end)
+    if ok then
+        _rageMods, _rageModErr = res, nil
+    else
+        _rageModErr = tostring(res)
+    end
+    return _rageMods
+end
+
+local function _rageIsEnemy(player)
+    if player == _auLP then return false end
+    local m = _rageGetMods()
+    local sc = m and m.sc
+    local duel = sc and sc.CurrentDuelSubject
+    local myTeam = nil
+    if duel then
+        local ok, mine = pcall(function() return duel:GetDueler(_auLP) end)
+        if ok and mine then myTeam = mine:Get('TeamID') end
+    end
+    if myTeam and duel and duel.Duelers then
+        for _, d in duel.Duelers do
+            if d.Player == player then return d:Get('TeamID') ~= myTeam end
+        end
+    end
+    local a, b = player:GetAttribute('TeamID'), _auLP:GetAttribute('TeamID')
+    if a and b then return a ~= b end
+    return true
+end
+
+local function _rageUpdateDeflect()
+    local m = _rageGetMods()
+    local fc = m and m.fc
+    if not fc or not fc.Objects then return end
+    for _, obj in fc.Objects do
+        local plr = obj.Player
+        if plr then
+            if not obj.Entity or not obj.Entity:IsAlive() or obj:Get('IsSpectating') then
+                _rageDeflect[plr] = false
+            else
+                local item = obj.EquippedItem
+                local d = false
+                if item and item.ViewModel and item.ViewModel.Name == 'Katana' then
+                    d = (item._attack_cooldown and item._attack_cooldown > tick()) or false
+                end
+                _rageDeflect[plr] = d
+            end
+        end
+    end
+end
+
+local function _ragePickTarget()
+    local char = _auLP.Character
+    local hrp = char and char:FindFirstChild('HumanoidRootPart')
+    if not hrp then return nil, nil, nil end
+    local maxD = _RAGE_RANGE[AU.rage.rangeIdx] or 500
+    local bPl, bHrp, bHead
+    for _, plr in ipairs(game:GetService('Players'):GetPlayers()) do
+        if _rageIsEnemy(plr) then
+            local c = plr.Character
+            if c then
+                local r  = c:FindFirstChild('HumanoidRootPart')
+                local h  = c:FindFirstChild('Head')
+                local hm = c:FindFirstChildWhichIsA('Humanoid')
+                if r and h and hm and hm.Health > 0 then
+                    local d = (hrp.Position - r.Position).Magnitude
+                    if d < maxD then
+                        maxD = d
+                        bPl, bHrp, bHead = plr, r, h
+                    end
+                end
+            end
+        end
+    end
+    return bPl, bHrp, bHead
+end
+
+local function _rageHasKnife(plr)
+    local vm = workspace:FindFirstChild('ViewModels')
+    if not vm then return false end
+    for _, m in vm:GetChildren() do
+        if m:IsA('Model')
+           and string.find(m.Name, plr.Name, 1, true)
+           and string.find(m.Name, 'Knife', 1, true) then
+            return true
+        end
+    end
+    return false
+end
+-- ▲▲▲ aurora step 4
+-- ▲▲▲ aurora step 4
+
+-- ▼▼▼ aurora step 5: ragebot core fire + underground
+-- ▼▼▼ aurora step 5: ragebot core fire + underground
+local _rageLastFire = 0
+
+local function _rageFire()
+    local m = _rageGetMods()
+    if not m then return end
+    _rageUpdateDeflect()
+    local tPl, tHrp, tHead = _ragePickTarget()
+    if not tPl or not tHrp or not tHead then return end
+
+    local aimCF
+    if _rageHasKnife(tPl) then
+        aimCF = CFrame.new((tHrp.CFrame * CFrame.new(0, 6, 0)).Position, tHead.Position)
+    else
+        aimCF = CFrame.new((tHrp.CFrame * CFrame.new(0, 1, 2)).Position, tHead.Position)
+    end
+
+    if AU.rage.desync then
+        local char = _auLP.Character
+        local hrp  = char and char:FindFirstChild('HumanoidRootPart')
+        if hrp then
+            local old = hrp.CFrame
+            local v   = hrp.AssemblyLinearVelocity
+            local av  = hrp.AssemblyAngularVelocity
+            hrp.CFrame = aimCF
+            pcall(function() _auRunSvc:UnbindFromRenderStep('__aurora_rage_restore') end)
+            _auRunSvc:BindToRenderStep('__aurora_rage_restore', 101, function()
+                hrp.CFrame = old
+                hrp.AssemblyLinearVelocity  = v
+                hrp.AssemblyAngularVelocity = av
+                _auRunSvc:UnbindFromRenderStep('__aurora_rage_restore')
+            end)
+        end
+    end
+
+    if _rageDeflect[tPl] then return end
+
+    local lf = m.fc.LocalFighter
+    if not lf or not lf.EquippedItem then return end
+    local item = lf.EquippedItem
+
+    local delay = _RAGE_FIRE[AU.rage.fireRateIdx] or 0.0005
+    if tick() - _rageLastFire < delay then return end
+    _rageLastFire = tick()
+
+    local aim = CFrame.lookAt(aimCF.Position, tHead.Position)
+    local offset = tHead.CFrame:ToObjectSpace(CFrame.new(
+        tHead.Position
+        + Vector3.new((math.random()-0.5)*0.1, (math.random()-0.5)*0.1, (math.random()-0.5)*0.1)
+    ))
+    local payload = {
+        [utf8.char(1)] = {
+            [utf8.char(0)] = m.util:EncodeCFrame(aim),
+            [utf8.char(1)] = m.util:EncodeCFrame(tHead.CFrame),
+            [utf8.char(2)] = tHead,
+            [utf8.char(3)] = m.util:EncodeCFrame(offset),
+        }
+    }
+    _auRepSto.Remotes.Replication.Fighter.UseItem:FireServer(
+        item:Get('ObjectID'), m.enum:ToEnum('StartShooting'), payload, nil
+    )
+end
+
+local _rageUdgConn, _rageRestoreY = nil, nil
+
+local function _rageApplyUnderground()
+    local want = AU._rageActive and AU.rage.underground
+    if want and not _rageUdgConn then
+        _rageUdgConn = _auRunSvc.Heartbeat:Connect(function()
+            local char = _auLP.Character
+            local hrp = char and char:FindFirstChild('HumanoidRootPart')
+            if not hrp then return end
+            _rageRestoreY = _rageRestoreY or hrp.Position.Y
+            hrp.CFrame = CFrame.new(hrp.Position.X, _rageRestoreY - 25, hrp.Position.Z) * hrp.CFrame.Rotation
+            hrp.AssemblyLinearVelocity = Vector3.zero
+        end)
+    elseif not want and _rageUdgConn then
+        _rageUdgConn:Disconnect()
+        _rageUdgConn = nil
+        if _rageRestoreY then
+            local char = _auLP.Character
+            local hrp = char and char:FindFirstChild('HumanoidRootPart')
+            if hrp then
+                hrp.CFrame = CFrame.new(hrp.Position.X, _rageRestoreY, hrp.Position.Z) * hrp.CFrame.Rotation
+                hrp.AssemblyLinearVelocity = Vector3.zero
+            end
+        end
+        _rageRestoreY = nil
+    end
+end
+-- ▲▲▲ aurora step 5
+-- ▲▲▲ aurora step 5
+
+-- ▼▼▼ aurora step 6: ragebot start / stop
+-- ▼▼▼ aurora step 6: ragebot start / stop
+local _rageConn, _rageNum = nil, 0
+
+function AU.setRagebot(on)
+    AU._rageActive = on == true
+    if not on then
+        if _rageConn then _rageConn:Disconnect(); _rageConn = nil end
+        _rageNum = _rageNum + 1
+        _rageApplyUnderground()
+        return
+    end
+    if not _rageGetMods() then
+        warn('[aurora] ragebot modules unavailable: ' .. tostring(_rageModErr))
+        AU._rageActive = false
+        return
+    end
+    _rageNum = _rageNum + 1
+    local mine = _rageNum
+    _rageConn = _auRunSvc.Heartbeat:Connect(function()
+        pcall(_rageFire)
+    end)
+    task.spawn(function()
+        while AU._rageActive and _rageNum == mine do
+            local m = _rageGetMods()
+            local lf = m and m.fc and m.fc.LocalFighter
+            if lf then
+                pcall(function() lf:EquipItem(_RAGE_SLOT_IDX[AU.rage.weaponSlot] or 3) end)
+            end
+            task.wait(1)
+        end
+    end)
+    _rageApplyUnderground()
+end
+-- ▲▲▲ aurora step 6
+-- ▲▲▲ aurora step 6
 
 -- ▼▼▼ extras tab (mod detector + lua & servers)
 local extrasTab = context.ui.tab('extras')
@@ -20267,6 +20518,65 @@ auBox:toggle(context.ui.id('au-autoload'), {
     AU.autoLoad(v)
 end)
 -- ▲▲▲ aurora ui p2
+
+-- ▼▼▼ aurora step 7: ragebot ui
+-- ▼▼▼ aurora step 7: ragebot ui
+local auRagebotToggle = auBox:toggle(context.ui.id('au-ragebot'), {
+    text    = 'ragebot (not recommended)',
+    default = false,
+    tooltip = 'auto aim with desync / underground / fire rate options; use at your own risk',
+})
+auRagebotToggle:onChanged(function(v)
+    AU.setRagebot(v)
+end)
+
+local auRagebotOpts = auBox:dependent(function()
+    return auRagebotToggle.value
+end)
+
+local auRageWeapon = auRagebotOpts:dropdown(context.ui.id('au-rage-weapon'), {
+    text    = 'weapon',
+    values  = table.clone(_RAGE_SLOTS),
+    default = 'Melee',
+})
+auRageWeapon:onChanged(function(v) AU.rage.weaponSlot = v end)
+
+local auRageFire = auRagebotOpts:dropdown(context.ui.id('au-rage-firerate'), {
+    text    = 'fire rate',
+    values  = {'0.0005', '0.005', '0.05', '0.2'},
+    default = '0.0005',
+})
+auRageFire:onChanged(function(v)
+    for i, name in ipairs({'0.0005', '0.005', '0.05', '0.2'}) do
+        if name == v then AU.rage.fireRateIdx = i; return end
+    end
+end)
+
+local auRageRange = auRagebotOpts:dropdown(context.ui.id('au-rage-range'), {
+    text    = 'range',
+    values  = {'150', '300', '500', '1000'},
+    default = '500',
+})
+auRageRange:onChanged(function(v)
+    for i, name in ipairs({'150', '300', '500', '1000'}) do
+        if name == v then AU.rage.rangeIdx = i; return end
+    end
+end)
+
+auRagebotOpts:toggle(context.ui.id('au-rage-desync'), {
+    text    = 'desync',
+    default = true,
+}):onChanged(function(v) AU.rage.desync = v end)
+
+auRagebotOpts:toggle(context.ui.id('au-rage-underground'), {
+    text    = 'underground',
+    default = false,
+}):onChanged(function(v)
+    AU.rage.underground = v
+    _rageApplyUnderground()
+end)
+-- ▲▲▲ aurora step 7
+-- ▲▲▲ aurora step 7
 -- ▲▲▲ aurora ui p2
 
 -- ▲▲▲ extras tab
