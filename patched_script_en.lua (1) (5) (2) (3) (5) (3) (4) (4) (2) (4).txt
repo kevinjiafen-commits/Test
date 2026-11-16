@@ -20849,10 +20849,10 @@ end
     task.spawn(function()
         local ok, katana = pcall(rgLoadModule, rglp.PlayerScripts, {'Modules','Items','Katana'})
         if not ok or type(katana) ~= 'table' or type(katana._StartDeflecting) ~= 'function' then return end
-        local orig = shared._JH_KatanaDeflOrig
+                local orig = shared._RG_KatanaDeflOrig
         if not orig then orig = clonefunction and clonefunction(katana._StartDeflecting) or katana._StartDeflecting end
-        shared._JH_KatanaMod      = katana
-        shared._JH_KatanaDeflOrig = orig
+        shared._RG_KatanaMod      = katana
+        shared._RG_KatanaDeflOrig = orig
         if setreadonly then pcall(setreadonly, katana, false) end
         katana._StartDeflecting = function(self, ...)
             pcall(recordDeflect, self)
@@ -22422,6 +22422,67 @@ end)()
     Rage._polarCoreStop  = PolarCore.stop
 end)()
 -- ▲▲▲ RAGE step 3: Rage engine + PolarCore
+-- ▼▼▼ RAGE step 3b: Gun hook layer
+-- ▼▼▼ RAGE step 3b: Gun hook layer
+local function hookGunModule()
+    if not Rivals.Ready or not Rivals.Gun then return end
+    -- 恢复旧 hook（防重复挂）
+    if shared._RG_GunOrig then
+        pcall(function() Rivals.Gun.StartShooting = shared._RG_GunOrig end)
+    end
+    if shared._RG_MeleeOrig and Rivals.Melee then
+        pcall(function() Rivals.Melee.StartShooting = shared._RG_MeleeOrig end)
+    end
+    if shared._RG_KnifeOrig and Rivals.Knife then
+        pcall(function() Rivals.Knife.StartAiming = shared._RG_KnifeOrig end)
+    end
+    -- 包装 Gun.StartShooting
+    local oldGun = Rivals.Gun.StartShooting
+    shared._RG_GunOrig = oldGun
+    local gunWrapper = function(self, ...)
+        local suppress = (Config.Rage == true and Config.RageDirectFire == true)
+        if suppress then
+            pcall(function()
+                local cf = self.ClientFighter
+                if cf and cf.IsLocalPlayer == false then suppress = false end
+            end)
+        end
+        if suppress then return false end
+        local results = { oldGun(self, ...) }
+        pcall(function()
+            if not self.ClientFighter or not self.ClientFighter.IsLocalPlayer then return end
+            local camData = results[3]
+            if typeof(camData) ~= 'table' then return end
+            Rage._encodeRageShot(camData)
+        end)
+        return table.unpack(results)
+    end
+    if setreadonly then pcall(setreadonly, Rivals.Gun, false) end
+    Rivals.Gun.StartShooting = gunWrapper
+    -- 通用 melee 包装器
+    local function wrapMelee(cls, method, saveKey)
+        if type(cls) ~= 'table' then return end
+        local orig = rawget(cls, method)
+        if type(orig) ~= 'function' then return end
+        shared[saveKey] = shared[saveKey] or orig
+        if setreadonly then pcall(setreadonly, cls, false) end
+        cls[method] = function(selfItem, ...)
+            local results = { orig(selfItem, ...) }
+            pcall(function()
+                if not selfItem.ClientFighter or not selfItem.ClientFighter.IsLocalPlayer then return end
+                if not Config.Rage then return end
+                local camData = results[3]
+                if typeof(camData) ~= 'table' then return end
+                Rage._encodeRageShot(camData)
+            end)
+            return table.unpack(results)
+        end
+    end
+    wrapMelee(Rivals.Melee, 'StartShooting', '_RG_MeleeOrig')
+    wrapMelee(Rivals.Knife, 'StartAiming',   '_RG_KnifeOrig')
+end
+-- ▲▲▲ RAGE step 3b: Gun hook layer
+-- ▲▲▲ RAGE step 3b: Gun hook layer
 -- ▼▼▼ RAGE step 4: UI tab (Core + Defense)
 local rageTab      = context.ui.tab('rage')
 local rgLeftBox    = rageTab:tabbox('Left')
@@ -22800,12 +22861,12 @@ local rgDefTransBox = rgDefTab:groupbox('Left', 'park transport')
 
 rgDefTransBox:dropdown(context.ui.id('rage-restore-mode'), {
     text    = 'Park transport',
-    values  = { 'auto', 'none', 'render', 'kicia' },
-    default = 'auto',
-    tooltip = 'auto: switches kicia ↔ render on round losses to your target',
+    values  = { 'none', 'render', 'kicia' },
+    default = 'kicia',
+    tooltip = 'kicia: 最稳定（推荐）· render: 帧同步恢复 · none: 不恢复',
 }):onChanged(function(v) Config.RageRestoreMode = v end)
 
-rgDefTransBox:label('auto: kicia ↔ render on round losses')
+rgDefTransBox:label('kicia = 推荐 / render = 帧同步 / none = 不恢复')
 
 local rgAttackCont = rgDefTab:groupbox('Right', 'continuity')
 
@@ -22838,6 +22899,47 @@ rgVoidPhase:onChanged(function(v) Config.RageVoidPhase = v end)
 -- ▲▲▲ RAGE step 4: UI tab
 -- ▼▼▼ RAGE step 5: init + close do block
 pcall(Rage.init)
+-- ▼▼▼ RAGE scope cleanup
+context.scope:add(function()
+    pcall(Rage.unload)
+    pcall(ViewAngle.restore)
+    -- 还原 Katana hook（用更新后的 _RG_ key）
+    if shared._RG_KatanaMod and shared._RG_KatanaDeflOrig then
+        pcall(function()
+            if setreadonly then pcall(setreadonly, shared._RG_KatanaMod, false) end
+            shared._RG_KatanaMod._StartDeflecting = shared._RG_KatanaDeflOrig
+        end)
+    end
+    shared._RG_KatanaMod, shared._RG_KatanaDeflOrig = nil, nil
+    -- 还原 Gun hook
+    if shared._RG_GunOrig and Rivals.Gun then
+        pcall(function()
+            if setreadonly then pcall(setreadonly, Rivals.Gun, false) end
+            Rivals.Gun.StartShooting = shared._RG_GunOrig
+        end)
+        shared._RG_GunOrig = nil
+    end
+    if shared._RG_MeleeOrig and Rivals.Melee then
+        pcall(function()
+            if setreadonly then pcall(setreadonly, Rivals.Melee, false) end
+            Rivals.Melee.StartShooting = shared._RG_MeleeOrig
+        end)
+        shared._RG_MeleeOrig = nil
+    end
+    if shared._RG_KnifeOrig and Rivals.Knife then
+        pcall(function()
+            if setreadonly then pcall(setreadonly, Rivals.Knife, false) end
+            Rivals.Knife.StartAiming = shared._RG_KnifeOrig
+        end)
+        shared._RG_KnifeOrig = nil
+    end
+    -- 还原速度追踪连接
+    if shared._RG_velConn then
+        pcall(function() shared._RG_velConn:Disconnect() end)
+        shared._RG_velConn = nil
+    end
+end)
+-- ▲▲▲ RAGE scope cleanup
 end -- end of RAGE do block
 -- ▲▲▲ RAGE TAB (arch integration) — end
 -- ▼▼▼ extras tab (mod detector + lua & servers)
