@@ -2276,16 +2276,16 @@ do
             return table.freeze(HvhKnifeRage)
         end
 
-        function __ANTIBRAIN_MODULES.bd()
-            local v = __ANTIBRAIN_MODULES.cache.bd
+                function __ANTIBRAIN_MODULES.bl()
+            local v = __ANTIBRAIN_MODULES.cache.bl
             if not v then
                 v = { c = __modImpl() }
-                __ANTIBRAIN_MODULES.cache.bd = v
+                __ANTIBRAIN_MODULES.cache.bl = v
             end
             return v.c
         end
     end
-    -- ▲▲▲ HvhKnifeRage module (bd)
+    -- ▲▲▲ HvhKnifeRage module (bl)
 end
 -- ▲▲▲ OrbiterSystem bC
 -- ▼▼▼ OrbiterControls bD
@@ -10642,10 +10642,15 @@ end)
                     text = 'full auto',
                     default = false,
                 })
-                                local alwaysBackstab = box:toggle(ui.id('always-backstab'), {
+                                                local alwaysBackstab = box:toggle(ui.id('always-backstab'), {
                     text = 'always backstab',
                     default = false,
                     tooltip = 'every knife heavy attack lands as a backstab',
+                })
+                local hvhKnifeRage = box:toggle(ui.id('hvh-knife-rage'), {
+                    text    = 'hvh knife rage',
+                    default = false,
+                    tooltip = 'zero-ping void melee ragebot — teleports behind target and swings knife/melee',
                 })
                 local grenade = box:multiDropdown(ui.id('weapons-grenade-options'), {
                     text = 'grenade options',
@@ -15752,7 +15757,7 @@ do
     local function __modImpl()
         local Aimbot = __ANTIBRAIN_MODULES.v()
                         local AlwaysBackstab  = __ANTIBRAIN_MODULES.z()
-            local HvhKnifeRage    = __ANTIBRAIN_MODULES.bd()
+                        local HvhKnifeRage    = __ANTIBRAIN_MODULES.bl()
             local AntiAim = __ANTIBRAIN_MODULES.B()
             local Character = __ANTIBRAIN_MODULES.C()
             local Counter = __ANTIBRAIN_MODULES.L()
