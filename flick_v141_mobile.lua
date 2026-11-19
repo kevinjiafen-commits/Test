@@ -7315,7 +7315,7 @@ return function(Core, loadAirflow, CharacterController, BulletTracers)
         ui = loadAirflow(playerGui)
         local library = ui.Library
         local window = library:Init({Name = "Arch script---Flick", Version = "1.4.1", Keybind = "__FlickManagedMenu", UnlockMouse = false,
-            Scale = UDim2.fromOffset(380, 300), Highlight = Color3.fromRGB(167, 128, 225)})
+            Scale = UDim2.fromOffset(480, 360), Highlight = Color3.fromRGB(167, 128, 225)})
         state.Window = window
         local rage = window:DrawTab({Name = "Ragebot", Icon = "crosshair"})
         local targets = window:DrawTab({Name = "Targeting", Icon = "scan"})
