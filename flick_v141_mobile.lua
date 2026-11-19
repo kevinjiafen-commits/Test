@@ -196,7 +196,7 @@ local Airflow = {
 	Version = "1.2",
 	ScreenGui = AirflowUI,
 	Config = {
-		Scale = UDim2.new(0.1, 515, 0.1, (UserInputService.TouchEnabled and 345) or 395),
+		Scale = UDim2.new(0.1, 420, 0.1, (UserInputService.TouchEnabled and 345) or 395),
 		Hightlight = Color3.fromRGB(163, 128, 216),
 		Logo = "http://www.roblox.com/asset/?id=118752982916680",
 		Keybind = "Delete",
@@ -7315,7 +7315,7 @@ return function(Core, loadAirflow, CharacterController, BulletTracers)
         ui = loadAirflow(playerGui)
         local library = ui.Library
         local window = library:Init({Name = "Arch script---Flick", Version = "1.4.1", Keybind = "__FlickManagedMenu", UnlockMouse = false,
-            Scale = UDim2.fromOffset(680, 500), Highlight = Color3.fromRGB(167, 128, 225)})
+            Scale = UDim2.fromOffset(380, 300), Highlight = Color3.fromRGB(167, 128, 225)})
         state.Window = window
         local rage = window:DrawTab({Name = "Ragebot", Icon = "crosshair"})
         local targets = window:DrawTab({Name = "Targeting", Icon = "scan"})
