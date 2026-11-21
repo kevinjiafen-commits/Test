@@ -21197,9 +21197,8 @@ local luaPage = extrasTabs:tab('lua & servers')
 local soundsPage = extrasTabs:tab('sounds')
 -- ▼▼▼ FurryTexture appearance tab
 local appearancePage = extrasTabs:tab('appearance')
-local furBox = appearancePage:groupbox('Left', 'fur grain')
 
-local furToggle = furBox:toggle(context.ui.id('fur-grain-enabled'), {
+local furToggle = appearancePage:toggle(context.ui.id('fur-grain-enabled'), {
     text    = 'furry overlay',
     default = true,
 })
@@ -21216,7 +21215,7 @@ furToggle:onChanged(function(v)
     end
 end)
 
-furBox:slider(context.ui.id('fur-grain-intensity'), {
+appearancePage:slider(context.ui.id('fur-grain-intensity'), {
     text    = 'intensity',
     default = 0.13,
     min     = 0.03,
@@ -21233,7 +21232,7 @@ furBox:slider(context.ui.id('fur-grain-intensity'), {
     end
 end)
 
-furBox:slider(context.ui.id('fur-grain-speed'), {
+appearancePage:slider(context.ui.id('fur-grain-speed'), {
     text    = 'speed',
     default = 0.45,
     min     = 0.05,
