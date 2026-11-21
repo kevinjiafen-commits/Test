@@ -47,13 +47,18 @@ coroutine.wrap(function()
     end)
 end)()
 
+-- ▼▼▼ 步骤1：前移服务声明
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+-- ▲▲▲ 步骤1：前移服务声明
+
 local _fakeEv
 pcall(function()
     _fakeEv = Instance.new("RemoteEvent")
     _fakeEv.Name = "ClientAlert"
     _fakeEv.Parent = LocalPlayer
 end)
-
 pcall(function()
     local _rf = game:GetService("ReplicatedFirst")
     local _tgt = _rf:WaitForChild("LocalScript3", 10)
@@ -599,19 +604,15 @@ local AlwaysBackstabModule = (function()
             local remote  = _absGetUpdateRemote()
             if not (util and camCtrl and remote) then return end
 
-            local currentYaw = (camCtrl.Rotation and camCtrl.Rotation.Y) or 0
-            local encoded = pcall(function()
-                return util:EncodeCameraRotation(
-                    Vector2.new(math.rad(0), currentYaw + math.rad(180))
-                )
-            end)
-            -- fire raw if EncodeCameraRotation worked
+                        local currentYaw = (camCtrl.Rotation and camCtrl.Rotation.Y) or 0
+            -- ▼▼▼ 步骤4：删除无效 encoded 调用，只保留实际发送
             pcall(function()
                 local enc = util:EncodeCameraRotation(
                     Vector2.new(math.rad(0), currentYaw + math.rad(180))
                 )
                 remote:FireServer(enc, nil)
             end)
+            -- ▲▲▲ 步骤4
         end)
     end
 
@@ -2102,11 +2103,14 @@ local function isClearLineOfSight(origin, targetPos, targetCharacter)
     return raycastResult == nil
 end
 
+-- ▼▼▼ 步骤3：lastPos 提升为闭包变量
+local lastPos
+-- ▲▲▲ 步骤3：lastPos 提升为闭包变量
 local function toggleVoid(on)
     S.voidActive = on
     if on then
         local flip = true
-        local lastPos = HRP.CFrame
+        lastPos = HRP.CFrame
         task.spawn(function()
             while S.voidActive do
                 local h = HRP
@@ -2515,8 +2519,10 @@ for i = 1, MAX_ESP do
     hpBar.BackgroundColor3 = Color3.new(0,0,0)
     hpBar.BorderSizePixel = 0
     hpBar.Parent = box
-    local hpFill = Instance.new("Frame")
-    hpFill.Size = UDim2.new(-1.0,0,-1,0)
+        local hpFill = Instance.new("Frame")
+    -- ▼▼▼ 步骤5：修正负数 scale，血条初始满格
+    hpFill.Size = UDim2.new(1, 0, 1, 0)
+    -- ▲▲▲ 步骤5
     hpFill.BorderSizePixel = 0
     hpFill.BackgroundColor3 = Color3.new(0,1,0)
     hpFill.Parent = hpBar
@@ -3219,6 +3225,14 @@ local function toggleFly(on)
 end
 
 local irregularMoveConn
+-- ▼▼▼ 步骤2：stopIrregularMove 前置，消除前向引用
+local function stopIrregularMove()
+    if irregularMoveConn then
+        irregularMoveConn:Disconnect()
+        irregularMoveConn = nil
+    end
+end
+-- ▲▲▲ 步骤2：stopIrregularMove 前置
 local function startIrregularMove()
     stopIrregularMove()
     local char = LocalPlayer.Character
@@ -3240,13 +3254,6 @@ local function startIrregularMove()
             root.CFrame = root.CFrame * CFrame.new(randX, 0, randZ)
         end
     end)
-end
-
-local function stopIrregularMove()
-    if irregularMoveConn then
-        irregularMoveConn:Disconnect()
-        irregularMoveConn = nil
-    end
 end
 
 local VirtualInputManager = game:GetService("VirtualInputManager")
@@ -3542,16 +3549,18 @@ do
                     return
                 end
 
-                local oldCF = myRoot.CFrame
-                local oldVel = myRoot.Velocity
-                local oldRV = myRoot.RotVelocity
+                                local oldCF = myRoot.CFrame
+                -- ▼▼▼ 步骤6：废弃属性替换为 Assembly 版本
+                local oldVel = myRoot.AssemblyLinearVelocity
+                local oldRV  = myRoot.AssemblyAngularVelocity
+                -- ▲▲▲ 步骤6
 
                 myRoot.CFrame = enemyHead.CFrame
 
                 __y5z6a7:BindToRenderStep("__restore", 101, function()
                     myRoot.CFrame = oldCF
-                    myRoot.Velocity = oldVel
-                    myRoot.RotVelocity = oldRV
+                    myRoot.AssemblyLinearVelocity = oldVel
+                    myRoot.AssemblyAngularVelocity = oldRV
                     __y5z6a7:UnbindFromRenderStep("__restore")
                 end)
             end)
