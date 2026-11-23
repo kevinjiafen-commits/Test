@@ -1,6 +1,16 @@
 --!nocheck
 --!nolint
 
+-- ── 修复 bypass 依赖的全局量 ──────────────────────────────
+if not a then
+    a = cloneref and cloneref(game) or game
+end
+if not yy then yy = function() end end
+if not up then up = function() end end
+if not de then de = nil end
+if not gk then gk = function() end end
+-- ─────────────────────────────────────────────────────────
+
 -- ── Bypass Anti-Cheat ────────────────────────────────────
 do
     local game=6291639151
@@ -50,6 +60,7 @@ end
 -- ─────────────────────────────────────────────────────────
 
 local __ANTIBRAIN_MODULES = {cache = {}}
+-- ... 主脚本其余部分不动
 
 do
     do
