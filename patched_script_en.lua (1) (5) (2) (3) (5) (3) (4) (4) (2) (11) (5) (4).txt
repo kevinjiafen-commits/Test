@@ -1,63 +1,81 @@
 --!nocheck
 --!nolint
+--[[ Decompiled By BallsDecompiler | Took 0.5s To Decompiled | Path: Players.LocalPlayer.Scripts.InGame ]]
 
--- ── 修复 bypass 依赖的全局量 ──────────────────────────────
-if not a then
-    a = cloneref and cloneref(game) or game
-end
-if not yy then yy = function() end end
-if not up then up = function() end end
-if not de then de = nil end
-if not gk then gk = function() end end
--- ─────────────────────────────────────────────────────────
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterPlayer = game:GetService("StarterPlayer")
+local StarterPlayerScripts = StarterPlayer:WaitForChild("StarterPlayerScripts")
 
--- ── Bypass Anti-Cheat ────────────────────────────────────
-do
-    local game=6291639151
-    local b=cloneref(a:GetService("ReplicatedFirst"))
-    local c=b.PlayerScripts1
-    local d=c
-    local e=d
-    local f=e
-    local g=f
-    local h=g
-    local i=h
-    local j=i
-    local k=j
-    local l=k
-    local m=l
-    local n=m
-    local o=n
-    local p=o
-    local q=p
-    local r=q
-    local s=r
-    local t=s
-    local u=t
-    local v=u
-    local w=v
-    local x=w
-    local y=x
-    local z=y
-    local function aa(bb)
-        local cc=bb
-        local dd=cc
-        local ee=dd
-        local ff=ee
-        local gg=ff
-        local function hh(ii)
-            local jj=ii
-            local kk=jj
-            local function ll()
-                kk:Destroy()
-            end
-            yy()
-        end
-        up(de)
-    end
-    gk()
-end
--- ─────────────────────────────────────────────────────────
+local flagEvent = Instance.new("RemoteEvent")
+flagEvent.Name = "LPH"
+flagEvent.Parent = ReplicatedStorage
+
+flagEvent.OnServerEvent:Connect(function(player, detectedReason)
+	if typeof(detectedReason) ~= "string" then return end
+
+	warn(string.format("[LocalScript3] Flagged %s (%d) | Reason: %s", player.Name, player.UserId, detectedReason))
+
+	local banConfig = {
+		UserIds = { player.UserId },
+		Duration = -1,
+		DisplayReason = "Banned by the Anticheat. NO APPEALS.",
+		PrivateReason = "Automated detection: " .. detectedReason,
+		ExcludeAltAccounts = false
+	}
+
+	local success, err = pcall(function()
+		Players:BanAsync(banConfig)
+	end)
+
+	if not success then
+		warn("LocalScript3"): " .. tostring(err))
+		player:Kick("Unauthorized client modification detected.")
+	end
+end)
+
+local clientScript = Instance.new("LocalScript")
+clientScript.Name = "LocalScript3"
+clientScript.Source = [[
+	local ReplicatedStorage = game:GetService("ReplicatedStorage")
+	local CoreGui = game:GetService("CoreGui")
+	local flagEvent = ReplicatedStorage:WaitForChild("ClientIntegrityCheck")
+
+	local suspiciousGlobals = {
+		"identifyexecutor", "getexecutorname", "syn", "krnl", "fluxus", 
+		"getgenv", "getrenv", "hookfunction", "hookmetamethod", "newcclosure"
+	}
+
+	local function checkEnvironment()
+		local env = getfenv(0)
+		for _, funcName in ipairs(suspiciousGlobals) do
+			if env[funcName] ~= nil or _G[funcName] ~= nil then
+				return "Executor Global Detected: " .. funcName
+			end
+		end
+		return nil
+	end
+
+	CoreGui.DescendantAdded:Connect(function(descendant)
+		pcall(function()
+			if descendant.Name == "Dex" or descendant.Name == "InfiniteYield" then
+				flagEvent:FireServer("Injected UI Detected: " .. descendant.Name)
+			end
+		end)
+	end)
+
+	task.spawn(function()
+		while task.wait(5) do
+			local result = checkEnvironment()
+			if result then
+				flagEvent:FireServer(result)
+				break
+			end
+		end
+	end)
+]]
+
+clientScript.Parent = StarterPlayerScripts
 
 local __ANTIBRAIN_MODULES = {cache = {}}
 -- ... 主脚本其余部分不动
