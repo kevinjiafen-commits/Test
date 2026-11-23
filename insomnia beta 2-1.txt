@@ -1,0 +1,3096 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local CollectionService = game:GetService("CollectionService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
+local Lighting = game:GetService("Lighting")
+local HttpService = game:GetService("HttpService")
+local Workspace = game:GetService("Workspace")
+local TweenService = game:GetService("TweenService")
+
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local playerScripts = LocalPlayer.PlayerScripts
+local controllers = playerScripts.Controllers
+
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
+local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
+
+local Options = Library.Options
+local Toggles = Library.Toggles
+
+Library.ForceCheckbox = false
+Library.ShowToggleFrameInKeybinds = true
+Library.ShowCustomCursor = false
+
+local Window = Library:CreateWindow({
+    Title = "insomnia BETA",
+    Footer = "[BETA] made by seenletters",
+    NotifySide = "Right",
+    ShowCustomCursor = false,
+})
+
+pcall(function()
+    if Window.SetCornerRadius then Window:SetCornerRadius(13) end
+    if Library.CornerRadius ~= nil then Library.CornerRadius = 13 end
+end)
+
+local Tabs = {
+    Main = Window:AddTab("Main", "crosshair"),
+    Visuals = Window:AddTab("Visuals", "eye"),
+    Misc = Window:AddTab("Misc", "sparkles"),
+    ["UI Settings"] = Window:AddTab("UI Settings", "settings"),
+}
+
+local IsTouchDevice = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
+local WHITE = Color3.fromRGB(255, 255, 255)
+
+local Config = {
+    AimEnabled=false, FOVEnabled=false, FOVRadius=100,
+    FOVColorStart=WHITE, FOVColorMiddle=WHITE, FOVColorEnd=WHITE,
+    FOVSpin=false, FOVSpinSpeed=1,
+    FOVFill=false,
+    FOVFillColorStart=WHITE, FOVFillColorMiddle=WHITE, FOVFillColorEnd=WHITE,
+    FOVFillSpin=false, FOVFillSpinSpeed=1, FOVFillAlpha=0.15,
+    HitChance=100, ClosestPart=false, ClosestPos=false, HitPart="Head",
+    SilentVisibleOnly=false, SilentIgnoreProtected=false, SilentDisableOnFlash=false,
+    SilentLimitDistance=false, SilentAntiKatana=false, SilentRiotShield=false,
+    AimbotEnabled=false, AimbotClosestPart=false, AimbotHitPart="Head", AimbotFOV=120,
+    AimbotSmoothing=35, AimbotShowFOV=false, AimbotKeybind="E", AimbotMaxDistance=500, AimbotReactionTime=0,
+    AimbotForgetTime=6.5,
+    AimbotVisibleOnly=false, AimbotIgnoreProtected=false, AimbotDisableOnFlash=false,
+    AimbotLimitDistance=false, AimbotAntiKatana=false, AimbotRiotShield=false,
+    AimbotFOVColorStart=WHITE, AimbotFOVColorMiddle=WHITE, AimbotFOVColorEnd=WHITE,
+    AimbotFOVSpin=false, AimbotFOVSpinSpeed=1,
+    AimbotFOVFill=false,
+    AimbotFOVFillColorStart=WHITE, AimbotFOVFillColorMiddle=WHITE, AimbotFOVFillColorEnd=WHITE,
+    AimbotFOVFillSpin=false, AimbotFOVFillSpinSpeed=1, AimbotFOVFillAlpha=0.15,
+    TriggerbotEnabled=false, TriggerbotReactionTime=0.05, TriggerbotShootDelay=0.1,
+    TriggerbotDisableOnScope=false, TriggerbotWhitelistPart={},
+    TriggerbotVisibleOnly=false, TriggerbotIgnoreProtected=false,
+    TriggerbotAntiKatana=false, TriggerbotRiotShield=false,
+    NoMuzzleFlash=false, NoSpread=false, ForceAuto=false, ForceAutoModifier=0.5,
+    AlwaysBackstab=false, NoRecoil=false,
+    HitsoundEnabled=false, HitsoundRemoveInGame=false, HitsoundName="Rust Headshot",
+    HitsoundVolume=100, HitsoundPitch=1,
+    WorldAmbient=false, WorldAmbientColor=Color3.fromRGB(70,70,70),
+    WorldOutdoorAmbient=false, WorldOutdoorAmbientColor=Color3.fromRGB(120,120,120),
+    WorldBrightness=false, WorldBrightnessValue=2,
+    WorldClockTime=false, WorldClockTimeValue=14,
+    WorldFog=false, WorldFogColor=Color3.fromRGB(180,180,180), WorldFogStart=0, WorldFogEnd=500,
+    WorldSkybox=false, WorldSkyboxPreset="Space",
+    WorldExposure=false, WorldExposureValue=0,
+    WorldBloom=false, WorldBloomIntensity=1,
+    WorldColorCorrection=false, WorldColorCorrectionColor=WHITE,
+    WorldSaturation=false, WorldSaturationValue=0,
+    WorldContrast=false, WorldContrastValue=0,
+    WorldAtmosphere=false, WorldAtmosphereDensity=0.3, WorldAtmosphereHaze=1.5, WorldAtmosphereGlare=0.5,
+    WorldSunRays=false, WorldSunRaysIntensity=0.1,
+    WorldDepthOfField=false, WorldDepthOfFieldFocus=50,
+    WeatherEnabled=false, WeatherType="Snow", WeatherIntensity=50,
+    UnlockAll=false,
+}
+
+local ESP = {
+    Enabled=false, LimitDistance=false, Box=false,
+    BoxColorStart=WHITE, BoxColorMiddle=WHITE, BoxColorEnd=WHITE,
+    BoxSpin=false, BoxSpinSpeed=1, BoxThickness=1.5, BoxCorner=4,
+    BoxFill=false,
+    BoxFillColorStart=WHITE, BoxFillColorMiddle=WHITE, BoxFillColorEnd=WHITE,
+    BoxFillSpin=false, BoxFillSpinSpeed=1, BoxFillAlpha=0.35,
+    Highlight=false, HighlightFillColor=Color3.fromRGB(120,81,166), HighlightFillAlpha=0.55,
+    HighlightOutlineColor=WHITE, HighlightOutlineAlpha=0,
+    Skeleton=false,
+    SkeletonColorStart=WHITE, SkeletonColorMiddle=WHITE, SkeletonColorEnd=WHITE,
+    SkeletonSpin=false, SkeletonSpinSpeed=1, SkeletonThick=1.5,
+    Name=false,
+    NameColorStart=WHITE, NameColorMiddle=WHITE, NameColorEnd=WHITE,
+    NameSpin=false, NameSpinSpeed=1, NameShowHealth=false,
+    HealthBar=false, HealthBarWidth=3, HealthBarGap=4,
+    HealthText=false,
+    HealthTextColorStart=WHITE, HealthTextColorMiddle=WHITE, HealthTextColorEnd=WHITE,
+    HealthTextSpin=false, HealthTextSpinSpeed=1,
+    Distance=false,
+    DistanceColorStart=WHITE, DistanceColorMiddle=WHITE, DistanceColorEnd=WHITE,
+    DistanceSpin=false, DistanceSpinSpeed=1,
+    Weapon=false,
+    WeaponColorStart=WHITE, WeaponColorMiddle=WHITE, WeaponColorEnd=WHITE,
+    WeaponSpin=false, WeaponSpinSpeed=1,
+    Tracer=false,
+    TracerColorStart=WHITE, TracerColorMiddle=WHITE, TracerColorEnd=WHITE,
+    TracerSpin=false, TracerSpinSpeed=1, TracerOriginX=0.5, TracerOriginY=1.0,
+    MaxDistance=1000,
+}
+
+local hitsounds = {
+    ["Rust Headshot"]="rbxassetid://138750331387064",
+    ["Neverlose"]="rbxassetid://110168723447153",
+    ["Bubble"]="rbxassetid://6534947588",
+    ["Laser"]="rbxassetid://7837461331",
+    ["Steve"]="rbxassetid://4965083997",
+    ["Call of Duty"]="rbxassetid://5952120301",
+    ["Bat"]="rbxassetid://3333907347",
+    ["TF2 Critical"]="rbxassetid://296102734",
+    ["Saber"]="rbxassetid://8415678813",
+    ["Bameware"]="rbxassetid://3124331820",
+    ["Money"]="rbxassetid://13956013041",
+    ["Notif"]="rbxassetid://6696469190",
+    ["Shutter"]="rbxassetid://10066921516",
+    ["RIFK7"]="rbxassetid://9102080552",
+    ["LazerBeam"]="rbxassetid://130791043",
+    ["WindowsXPError"]="rbxassetid://160715357",
+    ["TF2Hitsound"]="rbxassetid://3455144981",
+    ["TF2Bat"]="rbxassetid://3333907347",
+    ["BowHit"]="rbxassetid://1053296915",
+    ["Bow"]="rbxassetid://3442683707",
+    ["OSU"]="rbxassetid://7147454322",
+    ["OneNN"]="rbxassetid://7349055654",
+    ["Rust"]="rbxassetid://6565371338",
+    ["TF2Pan"]="rbxassetid://3431749479",
+    ["Mario"]="rbxassetid://5709456554",
+    ["Bell"]="rbxassetid://6534947240",
+    ["Pick"]="rbxassetid://1347140027",
+    ["Pop"]="rbxassetid://198598793",
+    ["Sans"]="rbxassetid://3188795283",
+    ["Fart"]="rbxassetid://130833677",
+    ["Big"]="rbxassetid://5332005053",
+    ["Vine"]="rbxassetid://5332680810",
+    ["Bruh"]="rbxassetid://4578740568",
+    ["Skeet"]="rbxassetid://5633695679",
+    ["Fatality"]="rbxassetid://6534947869",
+    ["Bonk"]="rbxassetid://5766898159",
+    ["Minecraft"]="rbxassetid://5869422451",
+    ["Gamesense"]="rbxassetid://4817809188",
+    ["Bamboo"]="rbxassetid://3769434519",
+    ["Crowbar"]="rbxassetid://546410481",
+    ["Weeb"]="rbxassetid://6442965016",
+    ["Beep"]="rbxassetid://8177256015",
+    ["Bambi"]="rbxassetid://8437203821",
+    ["Stone"]="rbxassetid://3581383408",
+    ["Old Fatality"]="rbxassetid://6607142036",
+    ["Click"]="rbxassetid://8053704437",
+    ["Ding"]="rbxassetid://7149516994",
+    ["Snow"]="rbxassetid://6455527632",
+    ["Osu"]="rbxassetid://7149255551",
+    ["TF2"]="rbxassetid://2868331684",
+    ["Slime"]="rbxassetid://6916371803",
+    ["Among Us"]="rbxassetid://5700183626",
+    ["One"]="rbxassetid://7380502345",
+    ["BulletDeflect"]="rbxassetid://1657157666",
+    ["Default"]="rbxassetid://330595293",
+    ["UwU"]="rbxassetid://8679659744",
+    ["Cod"]="rbxassetid://160432334",
+    ["Blood SFX"]="rbxassetid://8164951181",
+    ["Blood Burst"]="rbxassetid://3781479909",
+    ["Blood Hit"]="rbxassetid://429400881",
+}
+local hitsoundNames = {}
+for name in pairs(hitsounds) do table.insert(hitsoundNames, name) end
+table.sort(hitsoundNames)
+
+local Utility, GameplayUtility, Gun, FighterController, ClientViewModel, CameraController, Katana
+pcall(function()
+    Utility = require(ReplicatedStorage.Modules.Utility)
+    GameplayUtility = require(ReplicatedStorage.Modules.GameplayUtility)
+    Gun = require(LocalPlayer.PlayerScripts.Modules.ItemTypes.Gun)
+    FighterController = require(LocalPlayer.PlayerScripts.Controllers.FighterController)
+    ClientViewModel = require(LocalPlayer.PlayerScripts.Modules.ClientReplicatedClasses.ClientFighter.ClientItem.ClientViewModel)
+    CameraController = require(LocalPlayer.PlayerScripts.Controllers.CameraController)
+    Katana = require(LocalPlayer.PlayerScripts.Modules.Items.Katana)
+end)
+
+local modules = {}
+pcall(function()
+    local PS = LocalPlayer:WaitForChild("PlayerScripts", 10)
+    local Controllers = PS and PS:FindFirstChild("Controllers")
+    local RSModules = ReplicatedStorage:FindFirstChild("Modules")
+    if Controllers then
+        pcall(function() modules.PlayerDataController = require(Controllers:WaitForChild("PlayerDataController", 5)) end)
+        pcall(function() modules.MonetizationController = require(Controllers:WaitForChild("MonetizationController", 5)) end)
+    end
+    if RSModules then
+        pcall(function() modules.CosmeticLibrary = require(RSModules:WaitForChild("CosmeticLibrary", 5)) end)
+        pcall(function() modules.ShopLibrary = require(RSModules:WaitForChild("ShopLibrary", 5)) end)
+        pcall(function() modules.ItemLibrary = require(RSModules:WaitForChild("ItemLibrary", 5)) end)
+    end
+end)
+
+pcall(function()
+    if modules.PlayerDataController and modules.PlayerDataController.WaitUntilLoaded then
+        modules.PlayerDataController:WaitUntilLoaded()
+    end
+end)
+
+local function SafeGet(key, fallback)
+    local ok, v = pcall(function()
+        return modules.PlayerDataController and modules.PlayerDataController:Get(key)
+    end)
+    return (ok and v ~= nil) and v or fallback
+end
+
+local states = {
+    skinchanger_state = {
+        fake_owned = SafeGet("CosmeticInventory", {}),
+        fake_weapon_owned = SafeGet("WeaponInventory", {}),
+        equipped = {},
+        favorites = {},
+        fake_weapon_names = {},
+        constructing_weapon = nil,
+        last_used_weapon = nil,
+        placed_object_map = {},
+        viewing_profile = nil,
+    },
+    inventory_state = {
+        fake_owned = SafeGet("UnclaimedRewards", {}),
+    },
+}
+
+local UNLOCK_FILE = "insomnia_unlock_all.json"
+local EQUIP_FILE = "insomnia_equipped.json"
+
+local function SaveUnlockState(val)
+    pcall(function()
+        if writefile then
+            writefile(UNLOCK_FILE, HttpService:JSONEncode({ enabled = val }))
+        end
+    end)
+end
+
+local function LoadUnlockState()
+    local ok, data = pcall(function()
+        if isfile and isfile(UNLOCK_FILE) and readfile then
+            return HttpService:JSONDecode(readfile(UNLOCK_FILE))
+        end
+    end)
+    if ok and type(data) == "table" then return data.enabled == true end
+    return false
+end
+
+local function SaveEquipped()
+    pcall(function()
+        if writefile then
+            writefile(EQUIP_FILE, HttpService:JSONEncode(states.skinchanger_state.equipped))
+        end
+    end)
+end
+
+local function LoadEquipped()
+    local ok, data = pcall(function()
+        if isfile and isfile(EQUIP_FILE) and readfile then
+            return HttpService:JSONDecode(readfile(EQUIP_FILE))
+        end
+    end)
+    if ok and type(data) == "table" then
+        states.skinchanger_state.equipped = data
+    end
+end
+
+pcall(LoadEquipped)
+
+pcall(function()
+    if not modules.PlayerDataController then return end
+    local original = modules.PlayerDataController.Get
+    modules.PlayerDataController.Get = function(self, key, ...)
+        local data = original(self, key, ...)
+        local s = states.skinchanger_state
+        if key == "CosmeticInventory" then return s.fake_owned or data end
+        if key == "WeaponInventory" or key == "FreeWeaponUnlockCheck" then return s.fake_weapon_owned or data end
+        if key == "UnclaimedRewards" then return states.inventory_state.fake_owned or data end
+        return data
+    end
+end)
+
+pcall(function()
+    if not modules.CosmeticLibrary then return end
+    local cos = modules.CosmeticLibrary
+    local function WrapOwnership(old, expected_args)
+        return function(...)
+            local args = {...}
+            local name = args[expected_args]
+            if type(name) == "string" and states.skinchanger_state.fake_owned[name] then return true end
+            if old then return old(...) end
+            return false
+        end
+    end
+    if cos.OwnsCosmeticNormally then cos.OwnsCosmeticNormally = WrapOwnership(cos.OwnsCosmeticNormally, 3) end
+    if cos.OwnsCosmeticUniversally then cos.OwnsCosmeticUniversally = WrapOwnership(cos.OwnsCosmeticUniversally, 3) end
+    if cos.OwnsCosmeticForSomething then cos.OwnsCosmeticForSomething = WrapOwnership(cos.OwnsCosmeticForSomething, 3) end
+    if cos.OwnsCosmeticForWeapon then cos.OwnsCosmeticForWeapon = WrapOwnership(cos.OwnsCosmeticForWeapon, 3) end
+    if cos.OwnsCosmetic then
+        local orig_owns = cos.OwnsCosmetic
+        cos.OwnsCosmetic = function(self, inventory, name, weapon)
+            if type(name) == "string" and states.skinchanger_state.fake_owned[name] then return true end
+            if orig_owns then return orig_owns(self, inventory, name, weapon) end
+            return false
+        end
+    end
+end)
+
+pcall(function()
+    if not modules.PlayerDataController then return end
+    local pdc = modules.PlayerDataController
+    if pdc.GetWeaponData then
+        local orig_getweapondata = pdc.GetWeaponData
+        pdc.GetWeaponData = function(p1, ...)
+            local weapon_name = ({...})[1]
+            local original_data, index = orig_getweapondata(p1, ...)
+            local fake_owned = false
+            for _, weapon in ipairs(states.skinchanger_state.fake_weapon_owned) do
+                if type(weapon) == "table" and weapon.Name == weapon_name then fake_owned = true break end
+            end
+            if fake_owned and not original_data then
+                local fake_data = { Name = weapon_name, Level = 1, XP = 0, IsFavorited = false, Skin = nil }
+                local equipped = states.skinchanger_state.equipped
+                if equipped and equipped[weapon_name] then
+                    for cos_type, cos_data in pairs(equipped[weapon_name]) do
+                        if type(cos_data) == "table" and (cos_data.Name == "NONE_COSMETIC" or cos_data.Name == "None") then
+                            fake_data[cos_type] = nil
+                        else
+                            fake_data[cos_type] = cos_data
+                        end
+                    end
+                end
+                return fake_data, index
+            end
+            local equipped = states.skinchanger_state.equipped
+            if original_data and equipped and equipped[weapon_name] then
+                for cos_type, cos_data in pairs(equipped[weapon_name]) do
+                    if type(cos_data) == "table" and (cos_data.Name == "NONE_COSMETIC" or cos_data.Name == "None") then
+                        original_data[cos_type] = nil
+                    else
+                        original_data[cos_type] = cos_data
+                    end
+                end
+            end
+            return original_data, index
+        end
+    end
+end)
+
+task.spawn(function()
+    while not (modules.PlayerDataController and modules.PlayerDataController.CurrentData) do
+        task.wait(0.1)
+    end
+    local cd = modules.PlayerDataController.CurrentData
+    if type(cd.Get) ~= "function" or cd._fakeOwnedPatched then return end
+    local old_get = cd.Get
+    cd.Get = function(self, ...)
+        local data = old_get(self, ...)
+        local key = ({...})[1]
+        if key == "CosmeticInventory" then return states.skinchanger_state.fake_owned or data end
+        if key == "UnclaimedRewards" then return states.inventory_state.fake_owned or data end
+        if key == "WeaponInventory" or key == "FreeWeaponUnlockCheck" then return states.skinchanger_state.fake_weapon_owned or data end
+        return data
+    end
+    cd._fakeOwnedPatched = true
+end)
+
+local NamecallDispatcher = { Hooks = {}, Original = nil }
+function NamecallDispatcher:Register(cb) self.Hooks[#self.Hooks + 1] = cb; return #self.Hooks end
+function NamecallDispatcher:CallOriginal(obj, ...) if self.Original then return self.Original(obj, ...) end end
+
+pcall(function()
+    NamecallDispatcher.Original = hookmetamethod(game, "__namecall", newcclosure(function(object, ...)
+        local count = #NamecallDispatcher.Hooks
+        if count == 0 then return NamecallDispatcher.Original(object, ...) end
+        local method = getnamecallmethod()
+        for i = 1, count do
+            local result = NamecallDispatcher.Hooks[i](object, method, ...)
+            if result ~= nil and result ~= false then
+                if result == true then return nil end
+                return result
+            end
+        end
+        return NamecallDispatcher.Original(object, ...)
+    end))
+end)
+
+local function CloneCosmetic(name, cosmetic_type, options)
+    if not modules.CosmeticLibrary or not modules.CosmeticLibrary.Cosmetics then return nil end
+    local base = modules.CosmeticLibrary.Cosmetics[name]
+    if not base then return nil end
+    local data = table.clone(base)
+    data.Name = name
+    data.Type = data.Type or cosmetic_type
+    data.Seed = math.random(1, 1000000)
+    if options then
+        if options.inverted then data.Inverted = true end
+        if options.favorites_only then data.OnlyUseFavorites = true end
+    end
+    return data
+end
+
+local function HandleSkinchangerEquip(args)
+    local weapon_name = args[1]
+    local cosmetic_type = args[2]
+    local cosmetic_name = args[3]
+    local options = args[4] or {}
+    states.skinchanger_state.equipped[weapon_name] = states.skinchanger_state.equipped[weapon_name] or {}
+    if not cosmetic_name or cosmetic_name == "" or cosmetic_name == "None" or cosmetic_name == "NONE_COSMETIC" then
+        states.skinchanger_state.equipped[weapon_name][cosmetic_type] = { Name = "NONE_COSMETIC" }
+    elseif cosmetic_name == "Random" or cosmetic_name == "RANDOM_COSMETIC" then
+        states.skinchanger_state.equipped[weapon_name][cosmetic_type] = {
+            Name = cosmetic_name, Type = cosmetic_type,
+            Inverted = options.IsInverted, OnlyUseFavorites = options.OnlyUseFavorites,
+            Seed = math.random(1, 1000000),
+        }
+    else
+        local cloned = CloneCosmetic(cosmetic_name, cosmetic_type, {
+            inverted = options.IsInverted, favorites_only = options.OnlyUseFavorites,
+        })
+        if cloned then states.skinchanger_state.equipped[weapon_name][cosmetic_type] = cloned end
+    end
+    task.spawn(function()
+        task.wait(0.1)
+        pcall(function()
+            if modules.PlayerDataController and modules.PlayerDataController.CurrentData then
+                modules.PlayerDataController.CurrentData:Replicate("WeaponInventory")
+            end
+        end)
+    end)
+    task.spawn(function()
+        task.wait(0.2)
+        pcall(function()
+            local lf = FighterController and FighterController.LocalFighter
+            if not lf or not lf.EquippedItem then return end
+            local item = lf.EquippedItem
+            local vm = item.ViewModel
+            if vm and vm.Destroy then vm:Destroy() end
+            item.ViewModel = nil
+            if item._CreateViewModel then
+                item.ViewModel = item:_CreateViewModel(item.ViewModelRef)
+            end
+        end)
+    end)
+    pcall(SaveEquipped)
+end
+
+pcall(function()
+    NamecallDispatcher:Register(function(self, method, ...)
+        if method ~= "FireServer" then return false end
+        local args = {...}
+        if self.Name == "EquipCosmetic" then
+            HandleSkinchangerEquip(args)
+            return true
+        end
+        if self.Name == "FavoriteCosmetic" then
+            local weapon_name = args[1]
+            local cosmetic_name = args[2]
+            local state = args[3]
+            states.skinchanger_state.favorites = states.skinchanger_state.favorites or {}
+            states.skinchanger_state.favorites[weapon_name] = states.skinchanger_state.favorites[weapon_name] or {}
+            states.skinchanger_state.favorites[weapon_name][cosmetic_name] = state or nil
+            return true
+        end
+        return false
+    end)
+end)
+
+local function ResolveCosmetic(weaponName, cosmeticType)
+    local equipped = states.skinchanger_state.equipped[weaponName]
+        and states.skinchanger_state.equipped[weaponName][cosmeticType]
+    if not equipped then return nil end
+    if equipped.Name == "None" or equipped.Name == "NONE_COSMETIC" then return nil end
+    return equipped
+end
+
+pcall(function()
+    if not modules.ItemLibrary then return end
+    local orig = modules.ItemLibrary.GetViewModelImageFromWeaponData
+    modules.ItemLibrary.GetViewModelImageFromWeaponData = function(p1, p2, p3)
+        if not p2 then return orig(p1, p2, p3) end
+        local weapon_name = p2.Name
+        local skin = ResolveCosmetic(weapon_name, "Skin")
+        local should_show = skin and (
+            (p2.Skin and states.skinchanger_state.equipped[weapon_name])
+            or (states.skinchanger_state.viewing_profile == LocalPlayer and states.skinchanger_state.equipped[weapon_name])
+        )
+        if should_show and skin then
+            local skin_info = p1.ViewModels[skin.Name]
+            if skin_info then
+                return skin_info[p3 and "ImageHighResolution" or "Image"] or skin_info.Image
+            end
+        end
+        return orig(p1, p2, p3)
+    end
+end)
+
+pcall(function()
+    local ok, clientItemPath = pcall(function()
+        return LocalPlayer.PlayerScripts.Modules.ClientReplicatedClasses.ClientFighter.ClientItem
+    end)
+    if not ok or not clientItemPath then return end
+    local ClientItem = require(clientItemPath)
+
+    if ClientItem._CreateViewModel then
+        local orig = ClientItem._CreateViewModel
+        ClientItem._CreateViewModel = function(self, viewmodelRef)
+            local weaponName = self.Name
+            local weaponPlayer = self.ClientFighter and self.ClientFighter.Player
+            states.skinchanger_state.constructing_weapon = (weaponPlayer == LocalPlayer) and weaponName or nil
+
+            if weaponPlayer == LocalPlayer and states.skinchanger_state.equipped[weaponName] and ResolveCosmetic(weaponName, "Skin") and viewmodelRef then
+                pcall(function()
+                    local ReplicatedClass = require(ReplicatedStorage.Modules.ReplicatedClass)
+                    local dataKey = ReplicatedClass:ToEnum("Data")
+                    local skinKey = ReplicatedClass:ToEnum("Skin")
+                    local nameKey = ReplicatedClass:ToEnum("Name")
+
+                    if viewmodelRef[dataKey] then
+                        viewmodelRef[dataKey][skinKey] = ResolveCosmetic(weaponName, "Skin")
+                        viewmodelRef[dataKey][nameKey] = ResolveCosmetic(weaponName, "Skin").Name
+                    elseif viewmodelRef.Data then
+                        viewmodelRef.Data.Skin = ResolveCosmetic(weaponName, "Skin")
+                        viewmodelRef.Data.Name = ResolveCosmetic(weaponName, "Skin").Name
+                    end
+                end)
+            end
+
+            local result = orig(self, viewmodelRef)
+            states.skinchanger_state.constructing_weapon = nil
+            return result
+        end
+    end
+
+    pcall(function()
+        local viewModelModule = clientItemPath:FindFirstChild("ClientViewModel")
+        if not viewModelModule then return end
+        local ClientViewModel2 = require(viewModelModule)
+
+        if ClientViewModel2.GetWrap then
+            local origGetWrap = ClientViewModel2.GetWrap
+            ClientViewModel2.GetWrap = function(self)
+                local weaponName = self.ClientItem and self.ClientItem.Name
+                local weaponPlayer = self.ClientItem and self.ClientItem.ClientFighter and self.ClientItem.ClientFighter.Player
+                if weaponName and weaponPlayer == LocalPlayer and states.skinchanger_state.equipped[weaponName] and ResolveCosmetic(weaponName, "Wrap") then
+                    return ResolveCosmetic(weaponName, "Wrap")
+                end
+                return origGetWrap(self)
+            end
+        end
+
+        local origNew = ClientViewModel2.new
+        ClientViewModel2.new = function(replicatedData, clientItem)
+            local weaponPlayer = clientItem.ClientFighter and clientItem.ClientFighter.Player
+            local weaponName = states.skinchanger_state.constructing_weapon or clientItem.Name
+
+            if weaponPlayer == LocalPlayer and states.skinchanger_state.equipped[weaponName] then
+                pcall(function()
+                    local ReplicatedClass = require(ReplicatedStorage.Modules.ReplicatedClass)
+                    local dataKey = ReplicatedClass:ToEnum("Data")
+                    replicatedData[dataKey] = replicatedData[dataKey] or {}
+
+                    if ResolveCosmetic(weaponName, "Skin") then
+                        replicatedData[dataKey][ReplicatedClass:ToEnum("Skin")] = ResolveCosmetic(weaponName, "Skin")
+                    end
+                    if ResolveCosmetic(weaponName, "Wrap") then
+                        replicatedData[dataKey][ReplicatedClass:ToEnum("Wrap")] = ResolveCosmetic(weaponName, "Wrap")
+                    end
+                    if ResolveCosmetic(weaponName, "Charm") then
+                        replicatedData[dataKey][ReplicatedClass:ToEnum("Charm")] = ResolveCosmetic(weaponName, "Charm")
+                    end
+                end)
+            end
+
+            local result = origNew(replicatedData, clientItem)
+
+            pcall(function()
+                local objectID = nil
+                pcall(function()
+                    local ReplicatedClass = require(ReplicatedStorage.Modules.ReplicatedClass)
+                    local dataKey = ReplicatedClass:ToEnum("Data")
+                    local objKey = ReplicatedClass:ToEnum("ObjectID")
+                    if replicatedData[dataKey] then
+                        objectID = replicatedData[dataKey][objKey]
+                    end
+                end)
+                if objectID == nil then
+                    pcall(function() objectID = result:Get("ObjectID") or result.ObjectID end)
+                end
+                if objectID and weaponPlayer == LocalPlayer and states.skinchanger_state.equipped[weaponName] then
+                    states.skinchanger_state.placed_object_map[objectID] = weaponName
+                end
+            end)
+
+            if weaponPlayer == LocalPlayer and states.skinchanger_state.equipped[weaponName] and ResolveCosmetic(weaponName, "Wrap") and result._UpdateWrap then
+                task.spawn(function()
+                    result:_UpdateWrap()
+                    task.wait(0.1)
+                    if not result._destroyed then result:_UpdateWrap() end
+                end)
+            end
+
+            return result
+        end
+    end)
+end)
+
+local function GetAllCosmetics()
+    local results = {}
+    if not modules.CosmeticLibrary or not modules.CosmeticLibrary.Cosmetics then return results end
+    for name, _ in pairs(modules.CosmeticLibrary.Cosmetics) do table.insert(results, name) end
+    return results
+end
+
+local function UnlockAllCosmetics()
+    local list = GetAllCosmetics()
+    for _, cosmetic in ipairs(list) do
+        if not cosmetic:find("MISSING_") then states.skinchanger_state.fake_owned[cosmetic] = true end
+    end
+    pcall(function()
+        if modules.PlayerDataController and modules.PlayerDataController.CurrentData then
+            modules.PlayerDataController.CurrentData:Replicate("CosmeticInventory")
+        end
+    end)
+end
+
+local function UnlockAllWeapons()
+    local current_data = modules.PlayerDataController and modules.PlayerDataController.CurrentData
+    if not current_data then return end
+    local inventory = current_data:Get("WeaponInventory")
+    local owned = {}
+    if type(inventory) == "table" then
+        for _, weapon_data in pairs(inventory) do
+            if type(weapon_data) == "table" and weapon_data.Name then owned[weapon_data.Name] = true end
+        end
+    end
+    if not modules.ShopLibrary or not modules.ShopLibrary.GetReleasedOwnableWeapons then return end
+    local ownables = modules.ShopLibrary:GetReleasedOwnableWeapons()
+    for _, weapon_name in pairs(ownables) do
+        if not owned[weapon_name] and not states.skinchanger_state.fake_weapon_names[weapon_name] then
+            table.insert(states.skinchanger_state.fake_weapon_owned, { Name = weapon_name, Level = 1, XP = 0, IsFavorited = false, Skin = nil })
+            states.skinchanger_state.fake_weapon_names[weapon_name] = true
+        end
+    end
+    pcall(function()
+        if modules.PlayerDataController and modules.PlayerDataController.CurrentData then
+            modules.PlayerDataController.CurrentData:Replicate("WeaponInventory")
+        end
+    end)
+end
+
+function UnlockEverything()
+    UnlockAllCosmetics()
+    UnlockAllWeapons()
+end
+_G.InsomniaUnlockEverything = UnlockEverything
+
+local deflecting = {}
+if Katana then
+    local oldDeflect = Katana._StartDeflecting
+    Katana._StartDeflecting = function(...)
+        local args = {...}
+        local fighter = args[1] and args[1].ClientFighter
+        local player = fighter and fighter.Player
+        if player then
+            deflecting[player] = true
+            task.delay(args[1].Info and args[1].Info.DeflectDuration or 0.1, function()
+                deflecting[player] = false
+            end)
+        end
+        return oldDeflect(table.unpack(args))
+    end
+end
+
+local function is_deflecting(plr) return deflecting[plr] == true end
+local function has_riot(plr)
+    if not plr then return false end
+    return workspace.ViewModels:FindFirstChild(plr.Name .. " - Riot Shield - Riot Shield") ~= nil
+end
+
+local HitboxNames = {
+    "HitboxHead","HitboxHeadSmall","PhysicalHitboxHead","Head",
+    "UpperTorso","LowerTorso","Torso",
+    "LeftUpperArm","RightUpperArm","LeftLowerArm","RightLowerArm",
+    "LeftHand","RightHand",
+    "LeftUpperLeg","RightUpperLeg","LeftLowerLeg","RightLowerLeg",
+    "LeftFoot","RightFoot","HumanoidRootPart",
+}
+
+local AimPartList = {
+    "Head","HitboxHead","HitboxHeadSmall","PhysicalHitboxHead","HumanoidRootPart",
+    "UpperTorso","LowerTorso","Torso",
+    "LeftUpperArm","RightUpperArm","LeftLowerArm","RightLowerArm","LeftHand","RightHand",
+    "LeftUpperLeg","RightUpperLeg","LeftLowerLeg","RightLowerLeg","LeftFoot","RightFoot",
+}
+
+local function MakeGui(name)
+    local g = Instance.new("ScreenGui")
+    g.Name = name
+    g.IgnoreGuiInset = true
+    g.ResetOnSpawn = false
+    g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    g.DisplayOrder = 5
+    pcall(function() g.Parent = game.CoreGui end)
+    if not g.Parent then g.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+    return g
+end
+
+local FOVGui = MakeGui("FOVAimGui")
+local AimbotFOVGui = MakeGui("AimbotFOVGui")
+local ESPGui = MakeGui("ESP_Gui")
+
+local RotationState = { Time = 0 }
+RunService.RenderStepped:Connect(function(dt) RotationState.Time = RotationState.Time + dt end)
+
+local function Fract(x) return x - math.floor(x) end
+
+local function MakeGradientSequence(cA, cB, cC)
+    return ColorSequence.new({
+        ColorSequenceKeypoint.new(0, cA),
+        ColorSequenceKeypoint.new(0.5, cB),
+        ColorSequenceKeypoint.new(1, cC),
+    })
+end
+
+local function ApplyGradient(gradient, cfg, prefix, spinning)
+    local cA = cfg[prefix .. "ColorStart"] or WHITE
+    local cB = cfg[prefix .. "ColorMiddle"] or cA
+    local cC = cfg[prefix .. "ColorEnd"] or cB
+    gradient.Color = MakeGradientSequence(cA, cB, cC)
+    if spinning then
+        gradient.Rotation = (RotationState.Time * (cfg[prefix .. "SpinSpeed"] or 1) * 60) % 360
+    else
+        gradient.Rotation = 45
+    end
+end
+
+local function BuildFOVCircle(name, parent, thickness, filled, alpha)
+    local frame = Instance.new("Frame")
+    frame.Name = name
+    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.BackgroundTransparency = 1
+    frame.BorderSizePixel = 0
+    frame.Visible = false
+    frame.ZIndex = 2
+    frame.Parent = parent
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = frame
+    if filled then
+        frame.BackgroundColor3 = WHITE
+        frame.BackgroundTransparency = 1 - alpha
+        local grad = Instance.new("UIGradient")
+        grad.Parent = frame
+        return frame, nil, grad
+    else
+        local stroke = Instance.new("UIStroke")
+        stroke.Thickness = thickness
+        stroke.Color = WHITE
+        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        stroke.Parent = frame
+        local grad = Instance.new("UIGradient")
+        grad.Parent = stroke
+        return frame, stroke, grad
+    end
+end
+
+local FOVFrame, FOVStroke, FOVGradient = BuildFOVCircle("FOVOutline", FOVGui, 2, false)
+local FOVFillFrame, _, FOVFillGradient = BuildFOVCircle("FOVFill", FOVGui, 0, true, Config.FOVFillAlpha)
+local AimbotFOVFrame, AimbotFOVStroke, AimbotFOVGradient = BuildFOVCircle("AimbotFOVOutline", AimbotFOVGui, 2, false)
+local AimbotFOVFillFrame, _, AimbotFOVFillGradient = BuildFOVCircle("AimbotFOVFill", AimbotFOVGui, 0, true, Config.AimbotFOVFillAlpha)
+
+local function UpdateFOV()
+    local center = Vector2.new(Camera.ViewportSize.X * 0.5, Camera.ViewportSize.Y * 0.5)
+    if Config.AimEnabled and Config.FOVEnabled then
+        FOVFrame.Visible = true
+        FOVFrame.Position = UDim2.fromOffset(center.X, center.Y)
+        FOVFrame.Size = UDim2.fromOffset(Config.FOVRadius * 2, Config.FOVRadius * 2)
+        ApplyGradient(FOVGradient, Config, "FOV", Config.FOVSpin)
+        if Config.FOVFill then
+            FOVFillFrame.Visible = true
+            FOVFillFrame.Position = UDim2.fromOffset(center.X, center.Y)
+            FOVFillFrame.Size = UDim2.fromOffset(Config.FOVRadius * 2, Config.FOVRadius * 2)
+            FOVFillFrame.BackgroundTransparency = 1 - Config.FOVFillAlpha
+            ApplyGradient(FOVFillGradient, Config, "FOVFill", Config.FOVFillSpin)
+        else
+            FOVFillFrame.Visible = false
+        end
+    else
+        FOVFrame.Visible = false
+        FOVFillFrame.Visible = false
+    end
+    if Config.AimbotEnabled and Config.AimbotShowFOV then
+        AimbotFOVFrame.Visible = true
+        AimbotFOVFrame.Position = UDim2.fromOffset(center.X, center.Y)
+        AimbotFOVFrame.Size = UDim2.fromOffset(Config.AimbotFOV * 2, Config.AimbotFOV * 2)
+        ApplyGradient(AimbotFOVGradient, Config, "AimbotFOV", Config.AimbotFOVSpin)
+        if Config.AimbotFOVFill then
+            AimbotFOVFillFrame.Visible = true
+            AimbotFOVFillFrame.Position = UDim2.fromOffset(center.X, center.Y)
+            AimbotFOVFillFrame.Size = UDim2.fromOffset(Config.AimbotFOV * 2, Config.AimbotFOV * 2)
+            AimbotFOVFillFrame.BackgroundTransparency = 1 - Config.AimbotFOVFillAlpha
+            ApplyGradient(AimbotFOVFillGradient, Config, "AimbotFOVFill", Config.AimbotFOVFillSpin)
+        else
+            AimbotFOVFillFrame.Visible = false
+        end
+    else
+        AimbotFOVFrame.Visible = false
+        AimbotFOVFillFrame.Visible = false
+    end
+end
+
+local SkyPresets = {
+    ["Minecraft"] = { Bk = "rbxassetid://1876545003", Dn = "rbxassetid://1876544331", Ft = "rbxassetid://1876542941", Lf = "rbxassetid://1876543392", Rt = "rbxassetid://1876543764", Up = "rbxassetid://1876544642", },
+    ["PurpleDay"] = { Bk = "rbxassetid://296908715", Dn = "rbxassetid://296908724", Ft = "rbxassetid://296908740", Lf = "rbxassetid://296908755", Rt = "rbxassetid://296908764", Up = "rbxassetid://296908769", },
+    ["RedNight"] = { Bk = "rbxassetid://401664839", Dn = "rbxassetid://401664862", Ft = "rbxassetid://401664960", Lf = "rbxassetid://401664881", Rt = "rbxassetid://401664901", Up = "rbxassetid://401664936", },
+    ["Night"] = { Bk = "rbxassetid://48020371", Dn = "rbxassetid://48020144", Ft = "rbxassetid://48020234", Lf = "rbxassetid://48020211", Rt = "rbxassetid://48020254", Up = "rbxassetid://48020383", },
+    ["Space"] = { Bk = "rbxassetid://149397692", Dn = "rbxassetid://149397686", Ft = "rbxassetid://149397697", Lf = "rbxassetid://149397684", Rt = "rbxassetid://149397688", Up = "rbxassetid://149397702", },
+    ["VibeMorning"] = { Bk = "rbxassetid://1417494030", Dn = "rbxassetid://1417494146", Ft = "rbxassetid://1417494253", Lf = "rbxassetid://1417494402", Rt = "rbxassetid://1417494499", Up = "rbxassetid://1417494643", },
+    ["VibeNight"] = { Bk = "rbxassetid://5084575798", Dn = "rbxassetid://5084575916", Ft = "rbxassetid://5103949679", Lf = "rbxassetid://5103948542", Rt = "rbxassetid://5103948784", Up = "rbxassetid://5084576400", },
+    ["PurpleSplash"] = { Bk = "rbxassetid://8539982183", Dn = "rbxassetid://8539981943", Ft = "rbxassetid://8539981721", Lf = "rbxassetid://8539981424", Rt = "rbxassetid://8539980766", Up = "rbxassetid://8539981085", },
+    ["GreenSpace"] = { Bk = "rbxassetid://159248188", Dn = "rbxassetid://159248183", Ft = "rbxassetid://159248187", Lf = "rbxassetid://159248173", Rt = "rbxassetid://159248192", Up = "rbxassetid://159248176", },
+    ["Snowy"] = { Bk = "rbxassetid://155657655", Dn = "rbxassetid://155674246", Ft = "rbxassetid://155657609", Lf = "rbxassetid://155657671", Rt = "rbxassetid://155657619", Up = "rbxassetid://155674931", },
+    ["Spongebob"] = { Bk = "rbxassetid://10287764626", Dn = "rbxassetid://10287766382", Ft = "rbxassetid://10287764626", Lf = "rbxassetid://10287763421", Rt = "rbxassetid://10287764626", Up = "rbxassetid://10287767597", },
+    ["PinkDay"] = { Bk = "rbxassetid://271042516", Dn = "rbxassetid://271077243", Ft = "rbxassetid://271042556", Lf = "rbxassetid://271042310", Rt = "rbxassetid://271042467", Up = "rbxassetid://271077958", },
+    ["AlienRed"] = { Bk = "rbxassetid://1012890", Dn = "rbxassetid://1012891", Ft = "rbxassetid://1012887", Lf = "rbxassetid://1012889", Rt = "rbxassetid://1012888", Up = "rbxassetid://1014449", },
+    ["WallsOfAutumn"] = { Bk = "rbxassetid://7123244709", Dn = "rbxassetid://7123246497", Ft = "rbxassetid://7123255895", Lf = "rbxassetid://7123257992", Rt = "rbxassetid://7123279103", Up = "rbxassetid://7123281828", },
+    ["ColdWinterness"] = { Bk = "rbxassetid://7123754562", Dn = "rbxassetid://7123756028", Ft = "rbxassetid://7123757422", Lf = "rbxassetid://7123758897", Rt = "rbxassetid://7123760563", Up = "rbxassetid://7123762364", },
+    ["Oblivion"] = { Bk = "rbxassetid://7123654189", Dn = "rbxassetid://7123657455", Ft = "rbxassetid://7123662047", Lf = "rbxassetid://7123664533", Rt = "rbxassetid://7123666598", Up = "rbxassetid://7123668994", },
+    ["ClassicSky"] = { Bk = "rbxassetid://672345740", Dn = "rbxassetid://672345828", Ft = "rbxassetid://672345879", Lf = "rbxassetid://672345927", Rt = "rbxassetid://672346006", Up = "rbxassetid://672346072", },
+    ["PurpleDayClear"] = { Bk = "rbxassetid://6847607535", Dn = "rbxassetid://6847607977", Ft = "rbxassetid://6847608302", Lf = "rbxassetid://6847608608", Rt = "rbxassetid://6847608986", Up = "rbxassetid://6847609323", },
+    ["YellowDay"] = { Bk = "rbxassetid://2651432901", Dn = "rbxassetid://2651434974", Ft = "rbxassetid://2651435990", Lf = "rbxassetid://2651436494", Rt = "rbxassetid://2651436979", Up = "rbxassetid://2651437350", },
+    ["MinecraftSky"] = { Bk = "rbxassetid://8735166756", Dn = "rbxassetid://8735166707", Ft = "rbxassetid://8735231668", Lf = "rbxassetid://8735166755", Rt = "rbxassetid://8735166751", Up = "rbxassetid://8735166729", },
+    ["Sunset"] = { Bk = "rbxassetid://150939022", Dn = "rbxassetid://150939038", Ft = "rbxassetid://150939047", Lf = "rbxassetid://150939056", Rt = "rbxassetid://150939063", Up = "rbxassetid://150939082", },
+    ["CartoonSky"] = { Bk = "rbxassetid://6778646360", Dn = "rbxassetid://6778658683", Ft = "rbxassetid://6778648039", Lf = "rbxassetid://6778649136", Rt = "rbxassetid://6778650519", Up = "rbxassetid://6778658364", },
+    ["Anime"] = { Bk = "rbxassetid://7643700666", Dn = "rbxassetid://7643743687", Ft = "rbxassetid://7644304186", Lf = "rbxassetid://7644288724", Rt = "rbxassetid://7643700819", Up = "rbxassetid://7643757404", },
+    ["HellSky"] = { Bk = "rbxassetid://437430787", Dn = "rbxassetid://437430804", Ft = "rbxassetid://437430543", Lf = "rbxassetid://437430732", Rt = "rbxassetid://437430747", Up = "rbxassetid://437430771", },
+    ["StarryNight"] = { Bk = "rbxassetid://8291078911", Dn = "rbxassetid://8291077403", Ft = "rbxassetid://8291081613", Lf = "rbxassetid://8291074004", Rt = "rbxassetid://8291080353", Up = "rbxassetid://8291075054", },
+    ["Omori"] = { Bk = "rbxassetid://8767416629", Dn = "rbxassetid://8767416629", Ft = "rbxassetid://8767416629", Lf = "rbxassetid://8767416629", Rt = "rbxassetid://8767416629", Up = "rbxassetid://8767416629", },
+    ["c00lkidd"] = { Bk = "rbxassetid://433381097", Dn = "rbxassetid://433381097", Ft = "rbxassetid://433381097", Lf = "rbxassetid://433381097", Rt = "rbxassetid://433381097", Up = "rbxassetid://433381097", },
+    ["ClearDay"] = { Bk = "rbxassetid://591058823", Dn = "rbxassetid://591059876", Ft = "rbxassetid://591058104", Lf = "rbxassetid://591057861", Rt = "rbxassetid://591057625", Up = "rbxassetid://591059642", },
+    ["Mountains"] = { Bk = "http://www.roblox.com/asset/?id=324014980", Dn = "http://www.roblox.com/asset/?id=324015477", Ft = "http://www.roblox.com/asset/?id=324014995", Lf = "http://www.roblox.com/asset/?id=324014679", Rt = "http://www.roblox.com/asset/?id=324015013", Up = "http://www.roblox.com/asset/?id=324015409", },
+    ["Forest"] = { Bk = "http://www.roblox.com/asset/?id=70945545", Dn = "http://www.roblox.com/asset/?id=70945449", Ft = "http://www.roblox.com/asset/?id=70945487", Lf = "http://www.roblox.com/asset/?id=70945523", Rt = "http://www.roblox.com/asset/?id=70945508", Up = "http://www.roblox.com/asset/?id=70945531", },
+    ["LargeForest"] = { Bk = "rbxassetid://17428978603", Dn = "rbxassetid://17428977445", Ft = "rbxassetid://17428977114", Lf = "rbxassetid://17428978399", Rt = "rbxassetid://17428976828", Up = "rbxassetid://17428976669", },
+    ["Crimson"] = { Bk = "rbxassetid://15832429892", Dn = "rbxassetid://15832430998", Ft = "rbxassetid://15832430210", Lf = "rbxassetid://15832430671", Rt = "rbxassetid://15832431198", Up = "rbxassetid://15832429401", },
+    ["PumpkinHill"] = { Bk = "rbxassetid://11202510597", Dn = "rbxassetid://11202510255", Ft = "rbxassetid://11202509993", Lf = "rbxassetid://11202510806", Rt = "rbxassetid://11202511066", Up = "rbxassetid://11202509704", },
+    ["AnimeIsland"] = { Bk = "http://www.roblox.com/asset/?id=14753804949", Dn = "http://www.roblox.com/asset/?id=14753795573", Ft = "http://www.roblox.com/asset/?id=14753807625", Lf = "http://www.roblox.com/asset/?id=14753797417", Rt = "http://www.roblox.com/asset/?id=14753799966", Up = "http://www.roblox.com/asset/?id=14753810287", },
+    ["SnowyMountains"] = { Bk = "http://www.roblox.com/asset/?id=368385273", Dn = "http://www.roblox.com/asset/?id=48015300", Ft = "http://www.roblox.com/asset/?id=368388290", Lf = "http://www.roblox.com/asset/?id=368390615", Rt = "http://www.roblox.com/asset/?id=368385190", Up = "http://www.roblox.com/asset/?id=48015387", },
+    ["Desert"] = { Bk = "rbxassetid://161319957", Dn = "rbxassetid://161319965", Ft = "rbxassetid://161319970", Lf = "rbxassetid://161319983", Rt = "rbxassetid://161319989", Up = "rbxassetid://161319996", },
+    ["Cloudy"] = { Bk = "http://www.roblox.com/asset/?id=225469345", Dn = "http://www.roblox.com/asset/?id=225469349", Ft = "http://www.roblox.com/asset/?id=225469359", Lf = "http://www.roblox.com/asset/?id=225469364", Rt = "http://www.roblox.com/asset/?id=225469372", Up = "http://www.roblox.com/asset/?id=225469380", },
+    ["Island"] = { Bk = "http://www.roblox.com/asset/?id=319343577", Dn = "http://www.roblox.com/asset/?id=319343653", Ft = "http://www.roblox.com/asset/?id=319343666", Lf = "http://www.roblox.com/asset/?id=319343686", Rt = "http://www.roblox.com/asset/?id=319343631", Up = "http://www.roblox.com/asset/?id=319343614", },
+    ["OrangeFog"] = { Bk = "http://www.roblox.com/asset/?id=458016711", Dn = "http://www.roblox.com/asset/?id=458016826", Ft = "http://www.roblox.com/asset/?id=458016532", Lf = "http://www.roblox.com/asset/?id=458016655", Rt = "http://www.roblox.com/asset/?id=458016782", Up = "http://www.roblox.com/asset/?id=458016792", },
+    ["FadeNight"] = { Bk = "http://www.roblox.com/asset/?id=16888843486", Dn = "http://www.roblox.com/asset/?id=16888845693", Ft = "http://www.roblox.com/asset/?id=16888848245", Lf = "http://www.roblox.com/asset/?id=16888850949", Rt = "http://www.roblox.com/asset/?id=16888854243", Up = "http://www.roblox.com/asset/?id=16888857144", },
+    ["Office"] = { Bk = "rbxassetid://658623433", Dn = "rbxassetid://316342560", Ft = "rbxassetid://658625205", Lf = "rbxassetid://658627155", Rt = "rbxassetid://658628504", Up = "rbxassetid://658632701", },
+    ["Spongebob2"] = { Bk = "rbxassetid://12049872454", Dn = "rbxassetid://12049872284", Ft = "rbxassetid://12049872181", Lf = "rbxassetid://12049872074", Rt = "rbxassetid://12049871884", Up = "rbxassetid://12049871774", },
+    ["PurpleFog"] = { Bk = "http://www.roblox.com/asset/?id=17279854976", Dn = "http://www.roblox.com/asset/?id=17279856318", Ft = "http://www.roblox.com/asset/?id=17279858447", Lf = "http://www.roblox.com/asset/?id=17279860360", Rt = "http://www.roblox.com/asset/?id=17279862234", Up = "http://www.roblox.com/asset/?id=17279864507", },
+    ["EarthSpace"] = { Bk = "rbxassetid://15753305495", Dn = "rbxassetid://15753362674", Ft = "rbxassetid://15753305823", Lf = "rbxassetid://15753310707", Rt = "rbxassetid://15753304774", Up = "rbxassetid://15753304473", },
+    ["GreenCloudy"] = { Bk = "rbxassetid://921882045", Dn = "rbxassetid://921881907", Ft = "rbxassetid://921882121", Lf = "rbxassetid://921881811", Rt = "rbxassetid://921881989", Up = "rbxassetid://921882259", },
+    ["SummerDay"] = { Bk = "http://www.roblox.com/asset/?version=1&id=135483466", Dn = "http://www.roblox.com/asset/?version=1&id=135483484", Ft = "http://www.roblox.com/asset/?version=1&id=135483461", Lf = "http://www.roblox.com/asset/?version=1&id=135483495", Rt = "http://www.roblox.com/asset/?version=1&id=135483499", Up = "http://www.roblox.com/asset/?version=1&id=135483475", },
+    ["SnowyPlains"] = { Bk = "http://www.roblox.com/asset/?id=155657655", Dn = "http://www.roblox.com/asset/?id=155674246", Ft = "http://www.roblox.com/asset/?id=155657609", Lf = "http://www.roblox.com/asset/?id=155657671", Rt = "http://www.roblox.com/asset/?id=155657619", Up = "http://www.roblox.com/asset/?id=155674931", },
+    ["Underwater"] = { Bk = "http://www.roblox.com/asset/?id=227635868", Dn = "http://www.roblox.com/asset/?id=227635921", Ft = "http://www.roblox.com/asset/?id=227635954", Lf = "http://www.roblox.com/asset/?id=227635974", Rt = "http://www.roblox.com/asset/?id=227635990", Up = "http://www.roblox.com/asset/?id=227636031", },
+    ["BlueAbyss"] = { Bk = "rbxassetid://16269815885", Dn = "rbxassetid://16269839652", Ft = "rbxassetid://16269798011", Lf = "rbxassetid://16269813852", Rt = "rbxassetid://16269814948", Up = "rbxassetid://16269829700", },
+    ["Poison"] = { Bk = "rbxassetid://1370716695", Dn = "rbxassetid://1370716766", Ft = "rbxassetid://1370716833", Lf = "rbxassetid://1370716898", Rt = "rbxassetid://1370716955", Up = "rbxassetid://1370717024", },
+    ["BlueSpace"] = { Bk = "rbxassetid://1127563035", Dn = "rbxassetid://1127563006", Ft = "rbxassetid://1127563026", Lf = "rbxassetid://1127563216", Rt = "rbxassetid://1127563115", Up = "rbxassetid://1127562999", },
+    ["AnimeMountains"] = { Bk = "http://www.roblox.com/asset/?id=12849370744", Dn = "http://www.roblox.com/asset/?id=12849378890", Ft = "http://www.roblox.com/asset/?id=12849390276", Lf = "http://www.roblox.com/asset/?id=12849405549", Rt = "http://www.roblox.com/asset/?id=12849398428", Up = "http://www.roblox.com/asset/?id=12849426002", },
+    ["PinkGradient"] = { Bk = "http://www.roblox.com/asset/?id=5371541816", Dn = "http://www.roblox.com/asset/?id=5371541154", Ft = "http://www.roblox.com/asset/?id=5371541816", Lf = "http://www.roblox.com/asset/?id=5371541816", Rt = "http://www.roblox.com/asset/?id=5371541816", Up = "http://www.roblox.com/asset/?id=5371540604", },
+    ["YellowGradient"] = { Bk = "http://www.roblox.com/asset/?id=159005370", Dn = "rbxassetid://858422412", Ft = "http://www.roblox.com/asset/?id=159005370", Lf = "http://www.roblox.com/asset/?id=159005370", Rt = "http://www.roblox.com/asset/?id=159005370", Up = "http://www.roblox.com/asset/?id=159006363", },
+    ["BlueGradient"] = { Bk = "http://www.roblox.com/asset/?id=4628466090", Dn = "http://www.roblox.com/asset/?id=4628471901", Ft = "http://www.roblox.com/asset/?id=4628466090", Lf = "http://www.roblox.com/asset/?id=4628466090", Rt = "http://www.roblox.com/asset/?id=4628466090", Up = "http://www.roblox.com/asset/?id=4628472152", },
+    ["GreenNebula"] = { Bk = "http://www.roblox.com/asset/?id=47974894", Dn = "http://www.roblox.com/asset/?id=47974690", Ft = "http://www.roblox.com/asset/?id=47974821", Lf = "http://www.roblox.com/asset/?id=47974776", Rt = "http://www.roblox.com/asset/?id=47974859", Up = "http://www.roblox.com/asset/?id=47974909", },
+    ["OrangeGradient"] = { Bk = "rbxassetid://6902754982", Dn = "rbxassetid://6902795826", Ft = "rbxassetid://6902754982", Lf = "rbxassetid://6902754982", Rt = "rbxassetid://6902754982", Up = "rbxassetid://6902796078", },
+    ["GreenAurora"] = { Bk = "http://www.roblox.com/asset/?id=16563478983", Dn = "http://www.roblox.com/asset/?id=16563481302", Ft = "http://www.roblox.com/asset/?id=16563484084", Lf = "http://www.roblox.com/asset/?id=16563485362", Rt = "http://www.roblox.com/asset/?id=16563487078", Up = "http://www.roblox.com/asset/?id=16563489821", },
+}
+
+local WorldDefaults = {
+    Ambient = Lighting.Ambient,
+    OutdoorAmbient = Lighting.OutdoorAmbient,
+    Brightness = Lighting.Brightness,
+    ClockTime = Lighting.ClockTime,
+    FogColor = Lighting.FogColor,
+    FogStart = Lighting.FogStart,
+    FogEnd = Lighting.FogEnd,
+    ExposureCompensation = Lighting.ExposureCompensation,
+}
+
+local function getOrCreate(class, name)
+    local obj = Lighting:FindFirstChild(name)
+    if not obj then
+        obj = Instance.new(class)
+        obj.Name = name
+        obj.Parent = Lighting
+    end
+    return obj
+end
+
+local function applyWorld()
+    Lighting.Ambient = Config.WorldAmbient and Config.WorldAmbientColor or WorldDefaults.Ambient
+    Lighting.OutdoorAmbient = Config.WorldOutdoorAmbient and Config.WorldOutdoorAmbientColor or WorldDefaults.OutdoorAmbient
+    Lighting.Brightness = Config.WorldBrightness and Config.WorldBrightnessValue or WorldDefaults.Brightness
+    Lighting.ClockTime = Config.WorldClockTime and Config.WorldClockTimeValue or WorldDefaults.ClockTime
+    if Config.WorldFog then
+        Lighting.FogColor = Config.WorldFogColor
+        Lighting.FogStart = Config.WorldFogStart
+        Lighting.FogEnd = Config.WorldFogEnd
+    else
+        Lighting.FogColor = WorldDefaults.FogColor
+        Lighting.FogStart = WorldDefaults.FogStart
+        Lighting.FogEnd = WorldDefaults.FogEnd
+    end
+    Lighting.ExposureCompensation = Config.WorldExposure and Config.WorldExposureValue or WorldDefaults.ExposureCompensation
+    for _, sky in ipairs(Lighting:GetChildren()) do
+        if sky:IsA("Sky") and sky.Name ~= "insomniaSky" then sky:Destroy() end
+    end
+    local sky = Lighting:FindFirstChild("insomniaSky")
+    if Config.WorldSkybox then
+        if not sky then
+            sky = Instance.new("Sky")
+            sky.Name = "insomniaSky"
+            sky.Parent = Lighting
+        end
+        local preset = SkyPresets[Config.WorldSkyboxPreset]
+        if preset then
+            pcall(function()
+                sky.SkyboxBk = preset.Bk
+                sky.SkyboxDn = preset.Dn
+                sky.SkyboxFt = preset.Ft
+                sky.SkyboxLf = preset.Lf
+                sky.SkyboxRt = preset.Rt
+                sky.SkyboxUp = preset.Up
+                sky.SunTextureId = ""
+                sky.MoonTextureId = ""
+                sky.StarCount = 0
+            end)
+        end
+    else
+        if sky then sky:Destroy() end
+    end
+    if Config.WorldBloom then
+        local bloom = getOrCreate("BloomEffect", "insomniaBloom")
+        bloom.Intensity = Config.WorldBloomIntensity
+        bloom.Size = 24
+        bloom.Threshold = 0.95
+    else
+        local b = Lighting:FindFirstChild("insomniaBloom")
+        if b then b:Destroy() end
+    end
+    if Config.WorldColorCorrection then
+        local cc = getOrCreate("ColorCorrectionEffect", "insomniaCC")
+        cc.TintColor = Config.WorldColorCorrectionColor
+    else
+        local cc = Lighting:FindFirstChild("insomniaCC")
+        if cc then cc:Destroy() end
+    end
+    if Config.WorldSaturation then
+        local sat = getOrCreate("ColorCorrectionEffect", "insomniaSat")
+        sat.Saturation = Config.WorldSaturationValue
+    else
+        local sat = Lighting:FindFirstChild("insomniaSat")
+        if sat then sat:Destroy() end
+    end
+    if Config.WorldContrast then
+        local con = getOrCreate("ColorCorrectionEffect", "insomniaCon")
+        con.Contrast = Config.WorldContrastValue
+    else
+        local con = Lighting:FindFirstChild("insomniaCon")
+        if con then con:Destroy() end
+    end
+    if Config.WorldAtmosphere then
+        local atm = getOrCreate("Atmosphere", "insomniaAtm")
+        atm.Density = Config.WorldAtmosphereDensity
+        atm.Haze = Config.WorldAtmosphereHaze
+        atm.Glare = Config.WorldAtmosphereGlare
+    else
+        local atm = Lighting:FindFirstChild("insomniaAtm")
+        if atm then atm:Destroy() end
+    end
+    if Config.WorldSunRays then
+        local sr = getOrCreate("SunRaysEffect", "insomniaSunRays")
+        sr.Intensity = Config.WorldSunRaysIntensity
+        sr.Spread = 1
+    else
+        local sr = Lighting:FindFirstChild("insomniaSunRays")
+        if sr then sr:Destroy() end
+    end
+    if Config.WorldDepthOfField then
+        local dof = getOrCreate("DepthOfFieldEffect", "insomniaDoF")
+        dof.FarIntensity = 1
+        dof.FocusDistance = Config.WorldDepthOfFieldFocus
+        dof.InFocusRadius = 5
+        dof.NearIntensity = 0.5
+    else
+        local dof = Lighting:FindFirstChild("insomniaDoF")
+        if dof then dof:Destroy() end
+    end
+end
+
+local WeatherTypes = { "Snow", "Rain", "Ash", "Embers", "Confetti", "Stars", "Fireflies", "Bubbles" }
+
+local WeatherConfigs = {
+    Snow = { UseDecal = false, Shape = Enum.PartType.Ball, Color = Color3.fromRGB(255, 255, 255), Material = Enum.Material.SmoothPlastic, Size = Vector3.new(0.4, 0.4, 0.4), Area = 200, Height = 50, Speed = 20, Count = 120, Mode = "fall", Drift = 15, RotSpeed = 45, Transparency = 0.05, },
+    Rain = { UseDecal = false, Shape = Enum.PartType.Block, Color = Color3.fromRGB(160, 200, 255), Material = Enum.Material.SmoothPlastic, Size = Vector3.new(0.05, 3, 0.05), Area = 200, Height = 50, Speed = 120, Count = 50, Mode = "fall", Drift = 0, RotSpeed = 0, Transparency = 0.5, Sound = "rbxassetid://365362615", SoundVolume = 0.4, },
+    Ash = { UseDecal = false, Shape = Enum.PartType.Ball, Color = Color3.fromRGB(60, 60, 60), Material = Enum.Material.SmoothPlastic, Size = Vector3.new(0.35, 0.35, 0.35), Area = 180, Height = 45, Speed = 10, Count = 80, Mode = "fall", Drift = 25, RotSpeed = 30, Transparency = 0.2, },
+    Embers = { UseDecal = false, Shape = Enum.PartType.Ball, Color = Color3.fromRGB(255, 130, 40), Material = Enum.Material.Neon, Size = Vector3.new(0.35, 0.35, 0.35), Area = 160, Height = 40, Speed = -20, Count = 60, Mode = "rise", Drift = 20, RotSpeed = 30, Transparency = 0, },
+    Confetti = { UseDecal = false, Shape = Enum.PartType.Block, Color = Color3.fromRGB(255, 100, 200), Material = Enum.Material.SmoothPlastic, Size = Vector3.new(0.6, 0.6, 0.05), Area = 200, Height = 55, Speed = 30, Count = 100, Mode = "fall", Drift = 30, RotSpeed = 500, Transparency = 0, RainbowColor = true, },
+    Stars = { UseDecal = false, Shape = Enum.PartType.Ball, Color = Color3.fromRGB(255, 255, 220), Material = Enum.Material.Neon, Size = Vector3.new(0.3, 0.3, 0.3), Area = 250, Height = 60, Speed = 5, Count = 40, Mode = "float", Drift = 10, RotSpeed = 20, Transparency = 0, },
+    Fireflies = { UseDecal = false, Shape = Enum.PartType.Ball, Color = Color3.fromRGB(255, 240, 100), Material = Enum.Material.Neon, Size = Vector3.new(0.5, 0.5, 0.5), Area = 180, Height = 40, Speed = 8, Count = 40, Mode = "float", Drift = 30, RotSpeed = 20, Transparency = 0, },
+    Bubbles = { UseDecal = false, Shape = Enum.PartType.Ball, Color = Color3.fromRGB(180, 220, 255), Material = Enum.Material.Glass, Size = Vector3.new(0.9, 0.9, 0.9), Area = 180, Height = 45, Speed = -12, Count = 60, Mode = "rise", Drift = 20, RotSpeed = 20, Transparency = 0.4, },
+}
+
+local WeatherFolder = nil
+local WeatherConnection = nil
+local WeatherSound = nil
+local WeatherParticles = {}
+local WeatherParticleData = {}
+
+local function clearWeather()
+    if WeatherConnection then WeatherConnection:Disconnect(); WeatherConnection = nil end
+    if WeatherSound then WeatherSound:Stop(); WeatherSound:Destroy(); WeatherSound = nil end
+    for _, obj in ipairs(workspace:GetChildren()) do
+        if obj.Name == "insomniaWeather" then obj:Destroy() end
+    end
+    WeatherFolder = nil
+    WeatherParticles = {}
+    WeatherParticleData = {}
+end
+
+local function applyWeather()
+    clearWeather()
+    if not Config.WeatherEnabled then return end
+    if Config.WeatherType == "None" then return end
+    local preset = WeatherConfigs[Config.WeatherType]
+    if not preset then return end
+    local intMul = (Config.WeatherIntensity or 50) / 50
+    local count = math.floor(preset.Count * intMul)
+    local area = preset.Area
+    local height = preset.Height
+    local speed = preset.Speed
+    local mode = preset.Mode
+    local folder = Instance.new("Folder")
+    folder.Name = "insomniaWeather"
+    folder.Parent = workspace
+    WeatherFolder = folder
+    local particles = {}
+    local data = {}
+    for i = 1, count do
+        local part = Instance.new("Part")
+        part.Name = "Particle_" .. i
+        part.Shape = preset.Shape or Enum.PartType.Block
+        part.Size = preset.Size
+        part.Anchored = true
+        part.CanCollide = false
+        part.CanQuery = false
+        part.CanTouch = false
+        part.CastShadow = false
+        part.Material = preset.Material or Enum.Material.SmoothPlastic
+        part.Color = preset.Color
+        part.Transparency = preset.Transparency or 0
+        part.Parent = folder
+        if preset.RainbowColor then part.Color = Color3.fromHSV(math.random(), 1, 1) end
+        local offX = math.random(-area/2, area/2)
+        local offZ = math.random(-area/2, area/2)
+        local offY = math.random(0, height)
+        particles[i] = part
+        data[i] = { x = offX, y = offY, z = offZ, rot = math.random(0, 360) }
+    end
+    WeatherParticles = particles
+    WeatherParticleData = data
+    local presetRef = preset
+    local modeRef = mode
+    local speedRef = speed
+    local function getPlayerRootPos()
+        local char = LocalPlayer.Character
+        if char then
+            local root = char:FindFirstChild("HumanoidRootPart")
+            if root then return root.Position end
+        end
+        return Vector3.new(0, 0, 0)
+    end
+    WeatherConnection = RunService.RenderStepped:Connect(function(dt)
+        if not WeatherFolder or not WeatherFolder.Parent then
+            if WeatherConnection then WeatherConnection:Disconnect() end
+            return
+        end
+        local rootPos = getPlayerRootPos()
+        local dtSpeed = speedRef * dt
+        for i, drop in ipairs(particles) do
+            if not drop.Parent then return end
+            local d = data[i]
+            if not d then return end
+            if modeRef == "fall" then
+                d.y = d.y - dtSpeed
+                if presetRef.Drift and presetRef.Drift > 0 then
+                    d.x = d.x + math.sin(tick() + i) * presetRef.Drift * dt
+                end
+            elseif modeRef == "rise" then
+                d.y = d.y - dtSpeed
+            elseif modeRef == "float" then
+                d.x = d.x + math.sin(tick() * 0.8 + i) * 5 * dt
+                d.z = d.z + math.cos(tick() * 0.6 + i) * 5 * dt
+                d.y = d.y + math.sin(tick() * 0.4 + i) * 2 * dt
+            end
+            local reset = false
+            if modeRef == "fall" and d.y < -10 then reset = true end
+            if modeRef == "rise" and d.y > height then reset = true end
+            if reset then
+                d.x = math.random(-area/2, area/2)
+                d.z = math.random(-area/2, area/2)
+                if modeRef == "fall" then d.y = height
+                elseif modeRef == "rise" then d.y = 0
+                else d.y = math.random(0, height) end
+            end
+            drop.Position = Vector3.new(rootPos.X + d.x, rootPos.Y + d.y, rootPos.Z + d.z)
+            if presetRef.RotSpeed and presetRef.RotSpeed > 0 then
+                d.rot = d.rot + presetRef.RotSpeed * dt
+                drop.CFrame = CFrame.new(drop.Position) * CFrame.Angles(math.rad(d.rot), math.rad(d.rot * 0.7), math.rad(d.rot * 0.5))
+            end
+        end
+    end)
+    if preset.Sound then
+        local sound = Instance.new("Sound")
+        sound.Name = "insomniaWeatherSound"
+        sound.SoundId = preset.Sound
+        sound.Looped = true
+        sound.Volume = preset.SoundVolume or 0.5
+        sound.Parent = SoundService
+        sound:Play()
+        WeatherSound = sound
+    end
+end
+
+local hitSoundInstance = Instance.new("Sound")
+hitSoundInstance.Name = "insomniaHitSound"
+hitSoundInstance.Volume = 3
+hitSoundInstance.PlaybackSpeed = 1
+hitSoundInstance.Parent = SoundService
+
+local function PlayHitsound()
+    if not Config.HitsoundEnabled then return end
+    local id = hitsounds[Config.HitsoundName]
+    if not id then return end
+    hitSoundInstance.SoundId = id
+    hitSoundInstance.Volume = (Config.HitsoundVolume / 100) * 3
+    hitSoundInstance.PlaybackSpeed = Config.HitsoundPitch
+    if hitSoundInstance.IsPlaying then hitSoundInstance:Stop() end
+    hitSoundInstance:Play()
+end
+
+local ESPObjects = {}
+
+local function CreateGradientLabel(parent, textSize)
+    local t = Instance.new("TextLabel")
+    t.BackgroundTransparency = 1
+    t.BorderSizePixel = 0
+    t.Font = Enum.Font.GothamBold
+    t.TextSize = textSize or 13
+    t.TextColor3 = WHITE
+    t.TextStrokeTransparency = 0
+    t.TextStrokeColor3 = Color3.new(0,0,0)
+    t.TextXAlignment = Enum.TextXAlignment.Center
+    t.TextYAlignment = Enum.TextYAlignment.Center
+    t.RichText = true
+    t.Visible = false
+    t.Parent = parent
+    local grad = Instance.new("UIGradient")
+    grad.Parent = t
+    return t, grad
+end
+
+local function CreateLine(parent)
+    local l = Instance.new("Frame")
+    l.AnchorPoint = Vector2.new(0.5, 0.5)
+    l.BackgroundColor3 = WHITE
+    l.BorderSizePixel = 0
+    l.Visible = false
+    l.ZIndex = 3
+    l.Parent = parent
+    local grad = Instance.new("UIGradient")
+    grad.Parent = l
+    return l, grad
+end
+
+local function CreateEntity(Ent)
+    local Root = Instance.new("Frame")
+    Root.Name = "ESP_" .. Ent.Name
+    Root.BackgroundTransparency = 1
+    Root.BorderSizePixel = 0
+    Root.Visible = false
+    Root.ZIndex = 2
+    Root.Parent = ESPGui
+    local Data = { Root = Root }
+    local fill = Instance.new("Frame")
+    fill.BackgroundColor3 = WHITE
+    fill.BackgroundTransparency = 1 - ESP.BoxFillAlpha
+    fill.BorderSizePixel = 0
+    fill.Visible = false
+    fill.ZIndex = 2
+    fill.Parent = Root
+    local fillCorner = Instance.new("UICorner"); fillCorner.CornerRadius = UDim.new(0, ESP.BoxCorner); fillCorner.Parent = fill
+    local fillGrad = Instance.new("UIGradient"); fillGrad.Parent = fill
+    Data.Fill = fill
+    Data.FillGradient = fillGrad
+    local box = Instance.new("Frame")
+    box.BackgroundTransparency = 1
+    box.BorderSizePixel = 0
+    box.Visible = false
+    box.ZIndex = 4
+    box.Parent = Root
+    local boxCorner = Instance.new("UICorner"); boxCorner.CornerRadius = UDim.new(0, ESP.BoxCorner); boxCorner.Parent = box
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = ESP.BoxThickness
+    stroke.Color = WHITE
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    stroke.Parent = box
+    local boxGrad = Instance.new("UIGradient"); boxGrad.Parent = stroke
+    Data.Box = box
+    Data.BoxStroke = stroke
+    Data.BoxStrokeGradient = boxGrad
+    local hl = Instance.new("Highlight")
+    hl.Name = "insomniaHL"
+    hl.Enabled = false
+    hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    hl.Adornee = Ent
+    pcall(function() hl.Parent = game.CoreGui end)
+    if not hl.Parent then hl.Parent = ESPGui end
+    Data.Highlight = hl
+    Data.Name, Data.NameGradient = CreateGradientLabel(Root)
+    Data.HealthText, Data.HealthTextGradient = CreateGradientLabel(Root)
+    Data.Distance, Data.DistanceGradient = CreateGradientLabel(Root, 12)
+    Data.Weapon, Data.WeaponGradient = CreateGradientLabel(Root, 12)
+    local bg = Instance.new("Frame")
+    bg.BackgroundColor3 = Color3.fromRGB(0,0,0)
+    bg.BackgroundTransparency = 0.4
+    bg.BorderSizePixel = 0
+    bg.Visible = false
+    bg.ZIndex = 4
+    bg.Parent = Root
+    local bgCorner = Instance.new("UICorner"); bgCorner.CornerRadius = UDim.new(1, 0); bgCorner.Parent = bg
+    local hfill = Instance.new("Frame")
+    hfill.BackgroundColor3 = Color3.fromRGB(0,255,0)
+    hfill.BorderSizePixel = 0
+    hfill.ZIndex = 5
+    hfill.Parent = bg
+    local hfillCorner = Instance.new("UICorner"); hfillCorner.CornerRadius = UDim.new(1, 0); hfillCorner.Parent = hfill
+    Data.HealthBg = bg
+    Data.HealthFill = hfill
+    Data.Skeleton = {}
+    Data.SkeletonGradients = {}
+    for i = 1, 20 do
+        local line, grad = CreateLine(Root)
+        Data.Skeleton[i] = line
+        Data.SkeletonGradients[i] = grad
+    end
+    Data.Tracer, Data.TracerGradient = CreateLine(ESPGui)
+    Data.Tracer.ZIndex = 1
+    ESPObjects[Ent] = Data
+    return Data
+end
+
+local function CleanupEntity(Ent)
+    local Data = ESPObjects[Ent]
+    if not Data then return end
+    if Data.Root then pcall(function() Data.Root:Destroy() end) end
+    if Data.Tracer then pcall(function() Data.Tracer:Destroy() end) end
+    if Data.Highlight then pcall(function() Data.Highlight:Destroy() end) end
+    ESPObjects[Ent] = nil
+end
+
+local function HideAll(Data)
+    if not Data then return end
+    Data.Root.Visible = false
+    if Data.Box then Data.Box.Visible = false end
+    if Data.Fill then Data.Fill.Visible = false end
+    if Data.Name then Data.Name.Visible = false end
+    if Data.HealthText then Data.HealthText.Visible = false end
+    if Data.Distance then Data.Distance.Visible = false end
+    if Data.Weapon then Data.Weapon.Visible = false end
+    if Data.HealthBg then Data.HealthBg.Visible = false end
+    if Data.HealthFill then Data.HealthFill.Visible = false end
+    if Data.Tracer then Data.Tracer.Visible = false end
+    if Data.Highlight then Data.Highlight.Enabled = false end
+    if Data.Skeleton then for _, l in ipairs(Data.Skeleton) do l.Visible = false end end
+end
+
+local function GetAimPart(Entity)
+    if not Entity then return nil end
+    if Config.ClosestPart then
+        local Mouse = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+        local Best, BestDist = nil, math.huge
+        for _, Name in ipairs(HitboxNames) do
+            local Part = Entity:FindFirstChild(Name, true)
+            if Part and Part:IsA("BasePart") then
+                local sp, onScreen = Camera:WorldToViewportPoint(Part.Position)
+                if onScreen then
+                    local d = (Vector2.new(sp.X, sp.Y) - Mouse).Magnitude
+                    if d < BestDist then Best, BestDist = Part, d end
+                end
+            end
+        end
+        return Best
+    end
+    if Config.HitPart and Config.HitPart ~= "" then
+        local Part = Entity:FindFirstChild(Config.HitPart, true)
+        if Part and Part:IsA("BasePart") then return Part end
+    end
+    for _, Name in ipairs(HitboxNames) do
+        local Part = Entity:FindFirstChild(Name, true)
+        if Part and Part:IsA("BasePart") then return Part end
+    end
+    return nil
+end
+
+local function GetAimPosition(Part)
+    if not Part then return nil end
+    if Config.ClosestPos then
+        local Origin = Camera.CFrame.Position
+        local Dir = Part.Position - Origin
+        local Params = RaycastParams.new()
+        Params.FilterType = Enum.RaycastFilterType.Include
+        Params.FilterDescendantsInstances = {Part}
+        local Result = workspace:Raycast(Origin, Dir, Params)
+        if Result then return Result.Position end
+    end
+    return Part.Position
+end
+
+local WallParams = RaycastParams.new()
+WallParams.FilterType = Enum.RaycastFilterType.Exclude
+WallParams.IgnoreWater = true
+
+local function HasLineOfSight(Part)
+    local Origin = Camera.CFrame.Position
+    local Direction = Part.Position - Origin
+    local Filter = {}
+    if LocalPlayer.Character then
+        for _, d in ipairs(LocalPlayer.Character:GetDescendants()) do
+            if d:IsA("BasePart") then table.insert(Filter, d) end
+        end
+    end
+    WallParams.FilterDescendantsInstances = Filter
+    local Result = workspace:Raycast(Origin, Direction, WallParams)
+    if Result then
+        if Result.Instance:IsDescendantOf(Part.Parent) then return true end
+        return false
+    end
+    return true
+end
+
+local function IsProtected(Entity)
+    local ok, val = pcall(function() return Entity:GetAttribute("IsInvincible") end)
+    if ok and val then return true end
+    pcall(function()
+        local plr = Players:GetPlayerFromCharacter(Entity)
+        if plr and FighterController and FighterController.GetFighter then
+            local fighter = FighterController:GetFighter(plr)
+            if fighter then
+                local ok2, v = pcall(function() return fighter.Entity:Get("IsInvincible") end)
+                if ok2 and v then val = true end
+            end
+        end
+    end)
+    return val == true
+end
+
+local function IsFlashing()
+    local pg = LocalPlayer:FindFirstChild("PlayerGui")
+    if pg and pg:FindFirstChild("FlashbangGui") then return true end
+    for _, v in ipairs(workspace:GetChildren()) do
+        if v.Name == "FlashbangEffect" then return true end
+    end
+    return false
+end
+
+local function TeamCheck(Entity)
+    local Player = Players:GetPlayerFromCharacter(Entity)
+    if not Player then return true end
+    local MyTeam = LocalPlayer:GetAttribute("TeamID")
+    local TheirTeam = Player:GetAttribute("TeamID")
+    if MyTeam ~= nil and TheirTeam ~= nil and MyTeam == TheirTeam then return false end
+    return true
+end
+
+local function PassesCommonChecks(Entity, Part, fovRadius, opts)
+    if not Part then return false end
+    if not TeamCheck(Entity) then return false end
+    local Player = Players:GetPlayerFromCharacter(Entity)
+    if Player then
+        local Humanoid = Entity:FindFirstChildOfClass("Humanoid")
+        if not Humanoid or Humanoid.Health <= 0 then return false end
+    end
+    if opts.IgnoreProtected and IsProtected(Entity) then return false end
+    if opts.AntiKatana and is_deflecting(Player) then return false end
+    if opts.RiotShield and has_riot(Player) then return false end
+    if opts.VisibleOnly and not HasLineOfSight(Part) then return false end
+    if opts.DisableOnFlash and IsFlashing() then return false end
+    local ScreenPoint, OnScreen = Camera:WorldToViewportPoint(Part.Position)
+    if not OnScreen then return false end
+    local ScreenDistance = (Vector2.new(ScreenPoint.X, ScreenPoint.Y) - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
+    if fovRadius and ScreenDistance > fovRadius then return false end
+    local WorldDistance = (Part.Position - Camera.CFrame.Position).Magnitude
+    if opts.LimitDistance and WorldDistance > opts.MaxDistance then return false end
+    return true, ScreenDistance, WorldDistance
+end
+
+local silentLastTarget = nil
+local silentLastSeen = 0
+
+local function SilentAimTarget()
+    if not Config.AimEnabled then return nil end
+    local opts = {
+        VisibleOnly = Config.SilentVisibleOnly,
+        IgnoreProtected = Config.SilentIgnoreProtected,
+        AntiKatana = Config.SilentAntiKatana,
+        RiotShield = Config.SilentRiotShield,
+        DisableOnFlash = Config.SilentDisableOnFlash,
+        LimitDistance = Config.SilentLimitDistance,
+        MaxDistance = Config.AimbotMaxDistance,
+    }
+    if silentLastTarget and silentLastTarget.Parent and (os.clock() - silentLastSeen) < Config.AimbotForgetTime then
+        local Part = GetAimPart(silentLastTarget)
+        local passes = PassesCommonChecks(silentLastTarget, Part, Config.FOVRadius, opts)
+        if passes then
+            silentLastSeen = os.clock()
+            return Part
+        end
+    end
+    local Best, BestScreen, BestWorld = nil, math.huge, math.huge
+    for _, Entity in CollectionService:GetTagged("Entity") do
+        if Entity == LocalPlayer.Character then continue end
+        local Part = GetAimPart(Entity)
+        local passes, sd, wd = PassesCommonChecks(Entity, Part, Config.FOVRadius, opts)
+        if not passes then continue end
+        if sd + 15 < BestScreen or (math.abs(sd - BestScreen) <= 15 and wd < BestWorld) then
+            Best, BestScreen, BestWorld = Part, sd, wd
+            silentLastTarget = Entity
+        end
+    end
+    if Best then silentLastSeen = os.clock() end
+    return Best
+end
+
+local function AimbotTarget()
+    if not Config.AimbotEnabled then return nil end
+    local opts = {
+        VisibleOnly = Config.AimbotVisibleOnly,
+        IgnoreProtected = Config.AimbotIgnoreProtected,
+        AntiKatana = Config.AimbotAntiKatana,
+        RiotShield = Config.AimbotRiotShield,
+        DisableOnFlash = Config.AimbotDisableOnFlash,
+        LimitDistance = Config.AimbotLimitDistance,
+        MaxDistance = Config.AimbotMaxDistance,
+    }
+    local Mouse = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+    local Best, BestScreen = nil, math.huge
+    for _, Entity in CollectionService:GetTagged("Entity") do
+        if Entity == LocalPlayer.Character then continue end
+        local Part
+        if Config.AimbotClosestPart then
+            local bd = math.huge
+            for _, Name in ipairs(HitboxNames) do
+                local p = Entity:FindFirstChild(Name, true)
+                if p and p:IsA("BasePart") then
+                    local sp = Camera:WorldToViewportPoint(p.Position)
+                    local d = (Vector2.new(sp.X, sp.Y) - Mouse).Magnitude
+                    if d < bd then bd = d; Part = p end
+                end
+            end
+        else
+            Part = Entity:FindFirstChild(Config.AimbotHitPart, true) or Entity:FindFirstChild("Head", true)
+        end
+        local passes, sd = PassesCommonChecks(Entity, Part, Config.AimbotFOV, opts)
+        if not passes then continue end
+        if sd < BestScreen then Best = Part; BestScreen = sd end
+    end
+    return Best
+end
+
+local function EquippedInfo()
+    local Fighter = FighterController and FighterController.LocalFighter
+    local Item = Fighter and Fighter.EquippedItem
+    return Item and Item.Info
+end
+
+local function Grappler()
+    local Info = EquippedInfo()
+    return Info ~= nil and Info.Name == "Grappler"
+end
+
+local function BulletDrop(Distance)
+    local Info = EquippedInfo()
+    local Speed = Info and Info.ProjectileSpeed
+    local Gravity = Info and Info.ProjectileGravity
+    if Speed and Speed > 0 and Gravity and Gravity > 0 then
+        local Time = Distance / Speed
+        return Gravity * workspace.Gravity * 0.5 * Time * Time
+    end
+    return 0
+end
+
+local HitParams = RaycastParams.new()
+HitParams.FilterType = Enum.RaycastFilterType.Include
+
+local SkeletonBones = {
+    {"Head","UpperTorso"},{"UpperTorso","LowerTorso"},
+    {"LowerTorso","LeftUpperLeg"},{"LowerTorso","RightUpperLeg"},
+    {"LeftUpperLeg","LeftLowerLeg"},{"RightUpperLeg","RightLowerLeg"},
+    {"LeftLowerLeg","LeftFoot"},{"RightLowerLeg","RightFoot"},
+    {"UpperTorso","LeftUpperArm"},{"UpperTorso","RightUpperArm"},
+    {"LeftUpperArm","LeftLowerArm"},{"RightUpperArm","RightLowerArm"},
+    {"LeftLowerArm","LeftHand"},{"RightLowerArm","RightHand"},
+}
+
+local function GetPartPosition(Char, Name)
+    local P = Char:FindFirstChild(Name)
+    if P and P:IsA("BasePart") then return P.Position end
+    if Name == "Head" then
+        for _, hn in ipairs(HitboxNames) do
+            local h = Char:FindFirstChild(hn, true)
+            if h and h:IsA("BasePart") then return h.Position end
+        end
+    end
+    return nil
+end
+
+local function WorldToScreen(Pos)
+    local sp, onScreen = Camera:WorldToViewportPoint(Pos)
+    return Vector2.new(sp.X, sp.Y), onScreen, sp.Z
+end
+
+local function PositionLine(line, from, to, thickness)
+    local diff = to - from
+    local length = diff.Magnitude
+    if length < 0.5 then line.Visible = false; return end
+    local angle = math.deg(math.atan2(diff.Y, diff.X))
+    line.Visible = true
+    line.AnchorPoint = Vector2.new(0.5, 0.5)
+    line.Position = UDim2.fromOffset((from.X + to.X)/2, (from.Y + to.Y)/2)
+    line.Size = UDim2.fromOffset(length, thickness)
+    line.Rotation = angle
+end
+
+local function GetWeaponName(plr)
+    if not FighterController or not FighterController.GetFighter then return nil end
+    local fighter = FighterController:GetFighter(plr)
+    if not fighter then return nil end
+    local item = fighter.EquippedItem
+    if not item then return nil end
+    local info = item.Info
+    if info and info.Name then return info.Name end
+    if item.Name then return item.Name end
+    return nil
+end
+
+local function UpdateESP(dt)
+    if not ESP.Enabled then
+        for _, d in pairs(ESPObjects) do HideAll(d) end
+        return
+    end
+    local LocalChar = LocalPlayer.Character
+    local alive = {}
+    for _, Entity in CollectionService:GetTagged("Entity") do
+        if Entity == LocalChar then continue end
+        if not TeamCheck(Entity) then
+            local d = ESPObjects[Entity]; if d then HideAll(d) end
+            continue
+        end
+        local Player = Players:GetPlayerFromCharacter(Entity)
+        local Humanoid = Entity:FindFirstChildOfClass("Humanoid")
+        local HRP = Entity:FindFirstChild("HumanoidRootPart") or Entity:FindFirstChild("UpperTorso") or Entity:FindFirstChild("Torso")
+        if not Humanoid or not HRP or Humanoid.Health <= 0 then
+            local d = ESPObjects[Entity]; if d then HideAll(d) end
+            continue
+        end
+        local Distance = (Camera.CFrame.Position - HRP.Position).Magnitude
+        if ESP.LimitDistance and Distance > ESP.MaxDistance then
+            local d = ESPObjects[Entity]; if d then HideAll(d) end
+            continue
+        end
+        local RawTop, TopOn = WorldToScreen(HRP.Position + Vector3.new(0,3,0))
+        local RawBottom, BotOn = WorldToScreen(HRP.Position - Vector3.new(0,2.5,0))
+        if not TopOn and not BotOn then
+            local d = ESPObjects[Entity]; if d then HideAll(d) end
+            continue
+        end
+        local Data = ESPObjects[Entity] or CreateEntity(Entity)
+        Data.Root.Visible = true
+        alive[Entity] = true
+        local Top, Bottom = RawTop, RawBottom
+        local Height = math.max(math.abs(Bottom.Y - Top.Y), 4)
+        local Width = math.max(Height * 0.55, 2)
+        local CenterX = (Top.X + Bottom.X)/2
+        local Left = CenterX - Width/2
+
+        if Data.Highlight then
+            Data.Highlight.Enabled = ESP.Highlight
+            if ESP.Highlight then
+                Data.Highlight.FillColor = ESP.HighlightFillColor
+                Data.Highlight.FillTransparency = ESP.HighlightFillAlpha
+                Data.Highlight.OutlineColor = ESP.HighlightOutlineColor
+                Data.Highlight.OutlineTransparency = ESP.HighlightOutlineAlpha
+            end
+        end
+        if Data.Box then
+            if ESP.Box then
+                Data.Box.Visible = true
+                Data.Box.Position = UDim2.fromOffset(Left, Top.Y)
+                Data.Box.Size = UDim2.fromOffset(Width, Height)
+                Data.BoxStroke.Thickness = ESP.BoxThickness
+                ApplyGradient(Data.BoxStrokeGradient, ESP, "Box", ESP.BoxSpin)
+            else Data.Box.Visible = false end
+        end
+        if Data.Fill then
+            if ESP.BoxFill then
+                Data.Fill.Visible = true
+                Data.Fill.Position = UDim2.fromOffset(Left, Top.Y)
+                Data.Fill.Size = UDim2.fromOffset(Width, Height)
+                Data.Fill.BackgroundTransparency = 1 - ESP.BoxFillAlpha
+                ApplyGradient(Data.FillGradient, ESP, "BoxFill", ESP.BoxFillSpin)
+            else Data.Fill.Visible = false end
+        end
+        if Data.Name then
+            if ESP.Name then
+                Data.Name.Visible = true
+                Data.Name.Position = UDim2.fromOffset(CenterX - 90, Top.Y - 20)
+                Data.Name.Size = UDim2.fromOffset(180, 16)
+                ApplyGradient(Data.NameGradient, ESP, "Name", ESP.NameSpin)
+                local name = Player and Player.Name or Entity.Name
+                if ESP.NameShowHealth and Humanoid then
+                    Data.Name.Text = string.format("%s <font color='rgb(180,180,180)'>[%d]</font>", name, math.floor(Humanoid.Health))
+                else Data.Name.Text = name end
+            else Data.Name.Visible = false end
+        end
+        if Data.Weapon then
+            if ESP.Weapon and Player then
+                local wpn = GetWeaponName(Player)
+                if wpn then
+                    Data.Weapon.Visible = true
+                    Data.Weapon.Position = UDim2.fromOffset(CenterX - 90, Bottom.Y + 16)
+                    Data.Weapon.Size = UDim2.fromOffset(180, 14)
+                    ApplyGradient(Data.WeaponGradient, ESP, "Weapon", ESP.WeaponSpin)
+                    Data.Weapon.Text = wpn
+                else Data.Weapon.Visible = false end
+            else Data.Weapon.Visible = false end
+        end
+        if Humanoid then
+            local MaxH = Humanoid.MaxHealth > 0 and Humanoid.MaxHealth or 100
+            local H = math.clamp(Humanoid.Health / MaxH, 0, 1)
+            if Data.HealthBg and Data.HealthFill then
+                if ESP.HealthBar then
+                    Data.HealthBg.Visible = true
+                    Data.HealthFill.Visible = true
+                    Data.HealthBg.Position = UDim2.fromOffset(Left - ESP.HealthBarGap - ESP.HealthBarWidth, Top.Y)
+                    Data.HealthBg.Size = UDim2.fromOffset(ESP.HealthBarWidth, Height)
+                    Data.HealthFill.BackgroundColor3 = Color3.fromRGB(math.floor(255 * (1 - H)), math.floor(255 * H), 0)
+                    Data.HealthFill.Position = UDim2.fromOffset(0, Height * (1 - H))
+                    Data.HealthFill.Size = UDim2.fromOffset(ESP.HealthBarWidth, Height * H)
+                else Data.HealthBg.Visible = false; Data.HealthFill.Visible = false end
+            end
+            if Data.HealthText then
+                if ESP.HealthText then
+                    Data.HealthText.Visible = true
+                    Data.HealthText.Position = UDim2.fromOffset(Left - ESP.HealthBarGap - ESP.HealthBarWidth - 30, Top.Y + Height/2 - 8)
+                    Data.HealthText.Size = UDim2.fromOffset(28, 16)
+                    ApplyGradient(Data.HealthTextGradient, ESP, "HealthText", ESP.HealthTextSpin)
+                    Data.HealthText.Text = tostring(math.floor(Humanoid.Health))
+                else Data.HealthText.Visible = false end
+            end
+        end
+        if Data.Distance then
+            if ESP.Distance then
+                Data.Distance.Visible = true
+                Data.Distance.Position = UDim2.fromOffset(CenterX - 40, Bottom.Y + 2)
+                Data.Distance.Size = UDim2.fromOffset(80, 14)
+                ApplyGradient(Data.DistanceGradient, ESP, "Distance", ESP.DistanceSpin)
+                Data.Distance.Text = string.format("[%d]", math.floor(Distance))
+            else Data.Distance.Visible = false end
+        end
+        if Data.Skeleton then
+            if ESP.Skeleton then
+                for i, bone in ipairs(SkeletonBones) do
+                    local Line = Data.Skeleton[i]
+                    if Line then
+                        local a = GetPartPosition(Entity, bone[1])
+                        local b = GetPartPosition(Entity, bone[2])
+                        if a and b then
+                            local pa, oa = WorldToScreen(a)
+                            local pb, ob = WorldToScreen(b)
+                            if oa and ob then
+                                PositionLine(Line, pa, pb, ESP.SkeletonThick)
+                                ApplyGradient(Data.SkeletonGradients[i], ESP, "Skeleton", ESP.SkeletonSpin)
+                            else Line.Visible = false end
+                        else Line.Visible = false end
+                    end
+                end
+                for i = #SkeletonBones + 1, #Data.Skeleton do Data.Skeleton[i].Visible = false end
+            else
+                for _, l in ipairs(Data.Skeleton) do l.Visible = false end
+            end
+        end
+        if Data.Tracer then
+            if ESP.Tracer then
+                local V = Camera.ViewportSize
+                local origin = Vector2.new(V.X * ESP.TracerOriginX, V.Y * ESP.TracerOriginY)
+                PositionLine(Data.Tracer, origin, Vector2.new(CenterX, Bottom.Y), 1.5)
+                ApplyGradient(Data.TracerGradient, ESP, "Tracer", ESP.TracerSpin)
+            else Data.Tracer.Visible = false end
+        end
+    end
+    for Ent, Data in pairs(ESPObjects) do
+        if not alive[Ent] then HideAll(Data) end
+    end
+end
+
+CollectionService:GetInstanceRemovedSignal("Entity"):Connect(CleanupEntity)
+
+RunService.RenderStepped:Connect(function(dt)
+    UpdateFOV()
+    UpdateESP(dt)
+end)
+
+local aimbotHandler = { is_waiting = false, wait_end = 0, target = nil }
+RunService.Heartbeat:Connect(function()
+    if not Config.AimbotEnabled then
+        aimbotHandler.is_waiting = false; aimbotHandler.target = nil; return
+    end
+    local useKeybind = not IsTouchDevice
+    if useKeybind then
+        if Config.AimbotKeybind and Config.AimbotKeybind ~= "" and Config.AimbotKeybind ~= "None" then
+            local key = Enum.KeyCode[Config.AimbotKeybind]
+            if key and not UserInputService:IsKeyDown(key) then return end
+        end
+    end
+    local target = AimbotTarget()
+    if not target then aimbotHandler.is_waiting = false; aimbotHandler.target = nil; return end
+    if aimbotHandler.target ~= target then
+        aimbotHandler.target = target
+        aimbotHandler.is_waiting = true
+        aimbotHandler.wait_end = os.clock() + (Config.AimbotReactionTime / 1000)
+        return
+    end
+    if aimbotHandler.is_waiting then
+        if os.clock() < aimbotHandler.wait_end then return end
+        aimbotHandler.is_waiting = false
+    end
+    local TargetPos = target.Position
+    local AimCFrame = CFrame.lookAt(Camera.CFrame.Position, TargetPos)
+    local smoothing = math.clamp(Config.AimbotSmoothing / 100, 0.01, 1)
+    local newCF = Camera.CFrame:Lerp(AimCFrame, smoothing)
+    if CameraController and CameraController.MimicRotation then
+        pcall(function() CameraController:MimicRotation(newCF) end)
+    else Camera.CFrame = newCF end
+end)
+
+if GameplayUtility then
+    local OldGetEntitiesFromRaycast = GameplayUtility.GetEntitiesFromRaycast
+    GameplayUtility.GetEntitiesFromRaycast = function(Self, EnvID, Params, Origin, Direction, MaxDistance, ...)
+        if Config.AimEnabled then
+            local Target = not Grappler() and SilentAimTarget()
+            if Target then
+                local AimPos = GetAimPosition(Target) or Target.Position
+                Direction = (AimPos - Origin).Unit
+                local Distance = (AimPos - Origin).Magnitude
+                if Distance > MaxDistance then MaxDistance = Distance + 5 end
+            end
+        end
+        return OldGetEntitiesFromRaycast(Self, EnvID, Params, Origin, Direction, MaxDistance, ...)
+    end
+end
+
+local triggerbotHandler = { is_shooting = false }
+task.spawn(function()
+    while task.wait() do
+        if not Config.TriggerbotEnabled then triggerbotHandler.is_shooting = false; continue end
+        local lf = FighterController and FighterController.LocalFighter
+        if not (lf and lf:IsActive()) then continue end
+        if Config.TriggerbotDisableOnScope and lf.EquippedItem and lf.EquippedItem:Get("IsAiming") then
+            triggerbotHandler.is_shooting = false; continue
+        end
+        local hit = workspace:FindPartOnRayWithIgnoreList(
+            Ray.new(Camera.CFrame.Position, Camera.CFrame.LookVector * 2500),
+            {LocalPlayer.Character}
+        )
+        if hit and hit.Parent and hit.Parent:FindFirstChildWhichIsA("Humanoid")
+            and hit.Parent:FindFirstChildWhichIsA("Humanoid").Health > 0 then
+            if not TeamCheck(hit.Parent) then triggerbotHandler.is_shooting = false; continue end
+            local target_player = Players:GetPlayerFromCharacter(hit.Parent)
+            if not target_player then triggerbotHandler.is_shooting = false; continue end
+            local whitelist = Config.TriggerbotWhitelistPart
+            local passes = true
+            if #whitelist > 0 and not table.find(whitelist, hit.Name) then passes = false end
+            if Config.TriggerbotVisibleOnly and not HasLineOfSight(hit) then passes = false end
+            if Config.TriggerbotIgnoreProtected and IsProtected(hit.Parent) then passes = false end
+            if Config.TriggerbotAntiKatana and is_deflecting(target_player) then passes = false end
+            if Config.TriggerbotRiotShield and has_riot(target_player) then passes = false end
+            if passes then
+                if not triggerbotHandler.is_shooting then
+                    task.wait(Config.TriggerbotReactionTime)
+                    triggerbotHandler.is_shooting = true
+                end
+                pcall(function() setthreadidentity(2) end)
+                lf:Input("StartShooting")
+                pcall(function() setthreadidentity(7) end)
+                task.wait(Config.TriggerbotShootDelay)
+            else triggerbotHandler.is_shooting = false end
+        else triggerbotHandler.is_shooting = false end
+    end
+end)
+
+local UseItem = ReplicatedStorage.Remotes.Replication.Fighter.UseItem
+local OldFireServer
+OldFireServer = hookfunction(UseItem.FireServer, function(Self, ObjID, EnumValue, CamData, Extra)
+    if not Config.AimEnabled then
+        return OldFireServer(Self, ObjID, EnumValue, CamData, Extra)
+    end
+    local Inner = type(CamData) == "table" and CamData[utf8.char(1)]
+    if LocalPlayer.Character and Inner and typeof(Inner[utf8.char(2)]) == "Instance" and Inner[utf8.char(0)] ~= nil and not Grappler() then
+        local roll = math.random(1, 100)
+        if roll <= Config.HitChance then
+            local Target = SilentAimTarget()
+            if Target then
+                local Origin = Camera.CFrame.Position
+                local AimPos = GetAimPosition(Target) or Target.Position
+                HitParams.FilterDescendantsInstances = {Target}
+                local Result = workspace:Raycast(Origin, AimPos - Origin, HitParams)
+                local HitPosition = Result and Result.Position or AimPos
+                local Aim = CFrame.lookAt(Origin, AimPos + Vector3.new(0, BulletDrop((AimPos - Origin).Magnitude), 0))
+                CamData = {
+                    [utf8.char(1)] = {
+                        [utf8.char(0)] = Utility:EncodeCFrame(Aim),
+                        [utf8.char(1)] = Utility:EncodeCFrame(Aim),
+                        [utf8.char(2)] = Target,
+                        [utf8.char(3)] = Utility:EncodeCFrame(Target.CFrame:ToObjectSpace(CFrame.new(HitPosition))),
+                    }
+                }
+            end
+        end
+    end
+    return OldFireServer(Self, ObjID, EnumValue, CamData, Extra)
+end)
+
+if FighterController and FighterController.LocalFighter and FighterController.LocalFighter.ReplicateFromServer then
+    local lf = FighterController.LocalFighter
+    local oldReplicate = lf.ReplicateFromServer
+    lf.ReplicateFromServer = function(self, _type, ...)
+        local args = {...}
+        if _type == "DamageNumberEffect" then
+            local hit_root = args[1]
+            if hit_root then
+                if Config.HitsoundEnabled then PlayHitsound() end
+            end
+        end
+        return oldReplicate(self, _type, ...)
+    end
+end
+
+if ClientViewModel and ClientViewModel.PlayHitmarkerSound then
+    local oldPlayHitmarker = ClientViewModel.PlayHitmarkerSound
+    ClientViewModel.PlayHitmarkerSound = function(...)
+        if Config.HitsoundRemoveInGame then return end
+        return oldPlayHitmarker(...)
+    end
+end
+
+local AimTabbox = Tabs.Main:AddLeftTabbox("combat")
+local SilentAimTab = AimTabbox:AddTab("silent aim")
+
+SilentAimTab:AddToggle("AimEnabled", { Text = "enabled", Default = false })
+Toggles.AimEnabled:OnChanged(function() Config.AimEnabled = Toggles.AimEnabled.Value end)
+
+local FOVToggle = SilentAimTab:AddToggle("FOVEnabled", { Text = "show fov", Default = false })
+FOVToggle:AddColorPicker("FOVColorStart", { Default = WHITE, Title = "start" })
+FOVToggle:AddColorPicker("FOVColorMiddle", { Default = WHITE, Title = "middle" })
+FOVToggle:AddColorPicker("FOVColorEnd", { Default = WHITE, Title = "end" })
+Options.FOVColorStart:OnChanged(function() Config.FOVColorStart = Options.FOVColorStart.Value end)
+Options.FOVColorMiddle:OnChanged(function() Config.FOVColorMiddle = Options.FOVColorMiddle.Value end)
+Options.FOVColorEnd:OnChanged(function() Config.FOVColorEnd = Options.FOVColorEnd.Value end)
+Toggles.FOVEnabled:OnChanged(function() Config.FOVEnabled = Toggles.FOVEnabled.Value end)
+
+SilentAimTab:AddSlider("FOVRadius", { Text="radius", Default=100, Min=1, Max=1000, Rounding=0, Suffix="px" })
+Options.FOVRadius:OnChanged(function() Config.FOVRadius = Options.FOVRadius.Value end)
+
+SilentAimTab:AddToggle("FOVSpin", { Text = "spin colors", Default = false })
+Toggles.FOVSpin:OnChanged(function() Config.FOVSpin = Toggles.FOVSpin.Value end)
+
+SilentAimTab:AddSlider("FOVSpinSpeed", { Text="spin speed", Default=1, Min=0.01, Max=5, Rounding=2, Suffix="x" })
+Options.FOVSpinSpeed:OnChanged(function() Config.FOVSpinSpeed = Options.FOVSpinSpeed.Value end)
+
+local FOVFillToggle = SilentAimTab:AddToggle("FOVFill", { Text = "filled fov", Default = false })
+FOVFillToggle:AddColorPicker("FOVFillColorStart", { Default = WHITE, Title = "start" })
+FOVFillToggle:AddColorPicker("FOVFillColorMiddle", { Default = WHITE, Title = "middle" })
+FOVFillToggle:AddColorPicker("FOVFillColorEnd", { Default = WHITE, Title = "end" })
+Options.FOVFillColorStart:OnChanged(function() Config.FOVFillColorStart = Options.FOVFillColorStart.Value end)
+Options.FOVFillColorMiddle:OnChanged(function() Config.FOVFillColorMiddle = Options.FOVFillColorMiddle.Value end)
+Options.FOVFillColorEnd:OnChanged(function() Config.FOVFillColorEnd = Options.FOVFillColorEnd.Value end)
+
+SilentAimTab:AddSlider("FOVFillAlpha", { Text="fill opacity", Default=0.15, Min=0, Max=1, Rounding=2 })
+Options.FOVFillAlpha:OnChanged(function() Config.FOVFillAlpha = Options.FOVFillAlpha.Value end)
+
+SilentAimTab:AddToggle("FOVFillSpin", { Text = "fill spin colors", Default = false })
+Toggles.FOVFillSpin:OnChanged(function() Config.FOVFillSpin = Toggles.FOVFillSpin.Value end)
+
+SilentAimTab:AddSlider("FOVFillSpinSpeed", { Text="fill spin speed", Default=1, Min=0.01, Max=5, Rounding=2, Suffix="x" })
+Options.FOVFillSpinSpeed:OnChanged(function() Config.FOVFillSpinSpeed = Options.FOVFillSpinSpeed.Value end)
+
+SilentAimTab:AddToggle("ClosestPart", { Text = "closest part", Default = false })
+Toggles.ClosestPart:OnChanged(function() Config.ClosestPart = Toggles.ClosestPart.Value end)
+
+SilentAimTab:AddToggle("ClosestPos", { Text = "closest position", Default = false })
+Toggles.ClosestPos:OnChanged(function() Config.ClosestPos = Toggles.ClosestPos.Value end)
+
+SilentAimTab:AddToggle("SilentLimitDistance", { Text = "limit distance", Default = false })
+Toggles.SilentLimitDistance:OnChanged(function() Config.SilentLimitDistance = Toggles.SilentLimitDistance.Value end)
+
+SilentAimTab:AddSlider("SilentMaxDistance", { Text="max distance", Default=500, Min=50, Max=5000, Rounding=0, Suffix="studs" })
+Options.SilentMaxDistance:OnChanged(function() Config.AimbotMaxDistance = Options.SilentMaxDistance.Value end)
+
+SilentAimTab:AddDropdown("HitPart", { Text="hit part", Values=AimPartList, Default=1, Multi=false })
+Options.HitPart:OnChanged(function() Config.HitPart = Options.HitPart.Value end)
+
+SilentAimTab:AddSlider("HitChance", { Text="hit chance", Default=100, Min=1, Max=100, Rounding=0, Suffix="%" })
+Options.HitChance:OnChanged(function() Config.HitChance = Options.HitChance.Value end)
+
+SilentAimTab:AddLabel("targeting")
+SilentAimTab:AddToggle("SilentVisibleOnly", { Text = "visible only", Default = false })
+Toggles.SilentVisibleOnly:OnChanged(function() Config.SilentVisibleOnly = Toggles.SilentVisibleOnly.Value end)
+SilentAimTab:AddToggle("SilentIgnoreProtected", { Text = "ignore protected", Default = false })
+Toggles.SilentIgnoreProtected:OnChanged(function() Config.SilentIgnoreProtected = Toggles.SilentIgnoreProtected.Value end)
+SilentAimTab:AddToggle("SilentDisableOnFlash", { Text = "disable on flash", Default = false })
+Toggles.SilentDisableOnFlash:OnChanged(function() Config.SilentDisableOnFlash = Toggles.SilentDisableOnFlash.Value end)
+SilentAimTab:AddToggle("SilentAntiKatana", { Text = "anti katana", Default = false })
+Toggles.SilentAntiKatana:OnChanged(function() Config.SilentAntiKatana = Toggles.SilentAntiKatana.Value end)
+SilentAimTab:AddToggle("SilentRiotShield", { Text = "riot shield", Default = false })
+Toggles.SilentRiotShield:OnChanged(function() Config.SilentRiotShield = Toggles.SilentRiotShield.Value end)
+
+local AimbotTab = AimTabbox:AddTab("aimbot")
+local AimbotToggle = AimbotTab:AddToggle("AimbotEnabled", { Text = "enabled", Default = false })
+AimbotToggle:AddKeyPicker("AimbotKeybind", { Default="E", Text="aimbot key", NoUI=false, Callback=function(v) Config.AimbotKeybind = v end })
+Toggles.AimbotEnabled:OnChanged(function() Config.AimbotEnabled = Toggles.AimbotEnabled.Value end)
+
+local AimbotFOVToggle = AimbotTab:AddToggle("AimbotShowFOV", { Text = "show fov", Default = false })
+AimbotFOVToggle:AddColorPicker("AimbotFOVColorStart", { Default = WHITE, Title = "start" })
+AimbotFOVToggle:AddColorPicker("AimbotFOVColorMiddle", { Default = WHITE, Title = "middle" })
+AimbotFOVToggle:AddColorPicker("AimbotFOVColorEnd", { Default = WHITE, Title = "end" })
+Options.AimbotFOVColorStart:OnChanged(function() Config.AimbotFOVColorStart = Options.AimbotFOVColorStart.Value end)
+Options.AimbotFOVColorMiddle:OnChanged(function() Config.AimbotFOVColorMiddle = Options.AimbotFOVColorMiddle.Value end)
+Options.AimbotFOVColorEnd:OnChanged(function() Config.AimbotFOVColorEnd = Options.AimbotFOVColorEnd.Value end)
+Toggles.AimbotShowFOV:OnChanged(function() Config.AimbotShowFOV = Toggles.AimbotShowFOV.Value end)
+
+AimbotTab:AddSlider("AimbotFOV", { Text="radius", Default=120, Min=20, Max=600, Rounding=0, Suffix="px" })
+Options.AimbotFOV:OnChanged(function() Config.AimbotFOV = Options.AimbotFOV.Value end)
+
+AimbotTab:AddToggle("AimbotFOVSpin", { Text = "spin colors", Default = false })
+Toggles.AimbotFOVSpin:OnChanged(function() Config.AimbotFOVSpin = Toggles.AimbotFOVSpin.Value end)
+
+AimbotTab:AddSlider("AimbotFOVSpinSpeed", { Text="spin speed", Default=1, Min=0.01, Max=5, Rounding=2, Suffix="x" })
+Options.AimbotFOVSpinSpeed:OnChanged(function() Config.AimbotFOVSpinSpeed = Options.AimbotFOVSpinSpeed.Value end)
+
+local AimbotFOVFillToggle = AimbotTab:AddToggle("AimbotFOVFill", { Text = "filled fov", Default = false })
+AimbotFOVFillToggle:AddColorPicker("AimbotFOVFillColorStart", { Default = WHITE, Title = "start" })
+AimbotFOVFillToggle:AddColorPicker("AimbotFOVFillColorMiddle", { Default = WHITE, Title = "middle" })
+AimbotFOVFillToggle:AddColorPicker("AimbotFOVFillColorEnd", { Default = WHITE, Title = "end" })
+Options.AimbotFOVFillColorStart:OnChanged(function() Config.AimbotFOVFillColorStart = Options.AimbotFOVFillColorStart.Value end)
+Options.AimbotFOVFillColorMiddle:OnChanged(function() Config.AimbotFOVFillColorMiddle = Options.AimbotFOVFillColorMiddle.Value end)
+Options.AimbotFOVFillColorEnd:OnChanged(function() Config.AimbotFOVFillColorEnd = Options.AimbotFOVFillColorEnd.Value end)
+Toggles.AimbotFOVFill:OnChanged(function() Config.AimbotFOVFill = Toggles.AimbotFOVFill.Value end)
+
+AimbotTab:AddSlider("AimbotFOVFillAlpha", { Text="fill opacity", Default=0.15, Min=0, Max=1, Rounding=2 })
+Options.AimbotFOVFillAlpha:OnChanged(function() Config.AimbotFOVFillAlpha = Options.AimbotFOVFillAlpha.Value end)
+
+AimbotTab:AddToggle("AimbotFOVFillSpin", { Text = "fill spin colors", Default = false })
+Toggles.AimbotFOVFillSpin:OnChanged(function() Config.AimbotFOVFillSpin = Toggles.AimbotFOVFillSpin.Value end)
+
+AimbotTab:AddSlider("AimbotFOVFillSpinSpeed", { Text="fill spin speed", Default=1, Min=0.01, Max=5, Rounding=2, Suffix="x" })
+Options.AimbotFOVFillSpinSpeed:OnChanged(function() Config.AimbotFOVFillSpinSpeed = Options.AimbotFOVFillSpinSpeed.Value end)
+
+AimbotTab:AddToggle("AimbotClosestPart", { Text = "closest part", Default = false })
+Toggles.AimbotClosestPart:OnChanged(function() Config.AimbotClosestPart = Toggles.AimbotClosestPart.Value end)
+
+AimbotTab:AddToggle("AimbotLimitDistance", { Text = "limit distance", Default = false })
+Toggles.AimbotLimitDistance:OnChanged(function() Config.AimbotLimitDistance = Toggles.AimbotLimitDistance.Value end)
+
+AimbotTab:AddSlider("AimbotMaxDistance", { Text="max distance", Default=500, Min=50, Max=5000, Rounding=0, Suffix="studs" })
+Options.AimbotMaxDistance:OnChanged(function() Config.AimbotMaxDistance = Options.AimbotMaxDistance.Value end)
+
+AimbotTab:AddDropdown("AimbotHitPart", { Text="hit part", Values=AimPartList, Default=1, Multi=false })
+Options.AimbotHitPart:OnChanged(function() Config.AimbotHitPart = Options.AimbotHitPart.Value end)
+
+AimbotTab:AddSlider("AimbotSmoothing", { Text="smoothing", Default=35, Min=1, Max=100, Rounding=0, Suffix="%" })
+Options.AimbotSmoothing:OnChanged(function() Config.AimbotSmoothing = Options.AimbotSmoothing.Value end)
+
+AimbotTab:AddSlider("AimbotReactionTime", { Text="reaction time", Default=0, Min=0, Max=1000, Rounding=0, Suffix="ms" })
+Options.AimbotReactionTime:OnChanged(function() Config.AimbotReactionTime = Options.AimbotReactionTime.Value end)
+
+AimbotTab:AddSlider("AimbotForgetTime", { Text="forget time", Default=6.5, Min=0, Max=10, Rounding=1, Suffix="s" })
+Options.AimbotForgetTime:OnChanged(function() Config.AimbotForgetTime = Options.AimbotForgetTime.Value end)
+
+AimbotTab:AddLabel("targeting")
+AimbotTab:AddToggle("AimbotVisibleOnly", { Text = "visible only", Default = false })
+Toggles.AimbotVisibleOnly:OnChanged(function() Config.AimbotVisibleOnly = Toggles.AimbotVisibleOnly.Value end)
+AimbotTab:AddToggle("AimbotIgnoreProtected", { Text = "ignore protected", Default = false })
+Toggles.AimbotIgnoreProtected:OnChanged(function() Config.AimbotIgnoreProtected = Toggles.AimbotIgnoreProtected.Value end)
+AimbotTab:AddToggle("AimbotDisableOnFlash", { Text = "disable on flash", Default = false })
+Toggles.AimbotDisableOnFlash:OnChanged(function() Config.AimbotDisableOnFlash = Toggles.AimbotDisableOnFlash.Value end)
+AimbotTab:AddToggle("AimbotAntiKatana", { Text = "anti katana", Default = false })
+Toggles.AimbotAntiKatana:OnChanged(function() Config.AimbotAntiKatana = Toggles.AimbotAntiKatana.Value end)
+AimbotTab:AddToggle("AimbotRiotShield", { Text = "riot shield", Default = false })
+Toggles.AimbotRiotShield:OnChanged(function() Config.AimbotRiotShield = Toggles.AimbotRiotShield.Value end)
+
+local TriggerGroup = Tabs.Main:AddRightGroupbox("triggerbot")
+TriggerGroup:AddToggle("TriggerbotEnabled", { Text = "enabled", Default = false })
+Toggles.TriggerbotEnabled:OnChanged(function() Config.TriggerbotEnabled = Toggles.TriggerbotEnabled.Value end)
+TriggerGroup:AddSlider("TriggerbotReactionTime", { Text="reaction time", Default=0.05, Min=0, Max=2, Rounding=2, Suffix="s" })
+Options.TriggerbotReactionTime:OnChanged(function() Config.TriggerbotReactionTime = Options.TriggerbotReactionTime.Value end)
+TriggerGroup:AddSlider("TriggerbotShootDelay", { Text="shoot delay", Default=0.1, Min=0, Max=2, Rounding=2, Suffix="s" })
+Options.TriggerbotShootDelay:OnChanged(function() Config.TriggerbotShootDelay = Options.TriggerbotShootDelay.Value end)
+TriggerGroup:AddToggle("TriggerbotDisableOnScope", { Text = "disable on scope", Default = false })
+Toggles.TriggerbotDisableOnScope:OnChanged(function() Config.TriggerbotDisableOnScope = Toggles.TriggerbotDisableOnScope.Value end)
+TriggerGroup:AddLabel("targeting")
+TriggerGroup:AddToggle("TriggerbotVisibleOnly", { Text = "visible only", Default = false })
+Toggles.TriggerbotVisibleOnly:OnChanged(function() Config.TriggerbotVisibleOnly = Toggles.TriggerbotVisibleOnly.Value end)
+TriggerGroup:AddToggle("TriggerbotIgnoreProtected", { Text = "ignore protected", Default = false })
+Toggles.TriggerbotIgnoreProtected:OnChanged(function() Config.TriggerbotIgnoreProtected = Toggles.TriggerbotIgnoreProtected.Value end)
+TriggerGroup:AddToggle("TriggerbotAntiKatana", { Text = "anti katana", Default = false })
+Toggles.TriggerbotAntiKatana:OnChanged(function() Config.TriggerbotAntiKatana = Toggles.TriggerbotAntiKatana.Value end)
+TriggerGroup:AddToggle("TriggerbotRiotShield", { Text = "riot shield", Default = false })
+Toggles.TriggerbotRiotShield:OnChanged(function() Config.TriggerbotRiotShield = Toggles.TriggerbotRiotShield.Value end)
+TriggerGroup:AddDropdown("TriggerbotWhitelistHitbox", { Text="whitelist hitbox", Values={"HitboxHead","HitboxBody","Both"}, Default=3, Multi=false })
+Options.TriggerbotWhitelistHitbox:OnChanged(function(v)
+    if v == "Both" then Config.TriggerbotWhitelistPart = {"HitboxHead","HitboxBody"}
+    elseif v == "HitboxHead" then Config.TriggerbotWhitelistPart = {"HitboxHead"}
+    else Config.TriggerbotWhitelistPart = {"HitboxBody"} end
+end)
+
+local WeaponGroup = Tabs.Main:AddRightGroupbox("weapons")
+WeaponGroup:AddToggle("NoSpread", { Text = "no spread", Default = false })
+Toggles.NoSpread:OnChanged(function()
+    Config.NoSpread = Toggles.NoSpread.Value
+    if Gun and Gun.IsFullyAiming then
+        local old = rawget(Gun, "_InsomniaOldAiming")
+        if Config.NoSpread and not old then
+            Gun._InsomniaOldAiming = Gun.IsFullyAiming
+            Gun.IsFullyAiming = function() return true end
+        elseif not Config.NoSpread and old then
+            Gun.IsFullyAiming = old
+            Gun._InsomniaOldAiming = nil
+        end
+    end
+end)
+WeaponGroup:AddToggle("ForceAuto", { Text = "full auto", Default = false })
+Toggles.ForceAuto:OnChanged(function()
+    Config.ForceAuto = Toggles.ForceAuto.Value
+    if Gun then
+        local old = rawget(Gun, "_InsomniaOldFire")
+        if Config.ForceAuto and not old then
+            Gun._InsomniaOldFire = Gun.AutoFire
+            Gun.AutoFire = function() return true end
+        elseif not Config.ForceAuto and old then
+            Gun.AutoFire = old
+            Gun._InsomniaOldFire = nil
+        end
+    end
+end)
+WeaponGroup:AddSlider("ForceAutoModifier", { Text="full auto speed", Default=0.5, Min=0.01, Max=1, Rounding=2, Suffix="x" })
+Options.ForceAutoModifier:OnChanged(function()
+    Config.ForceAutoModifier = Options.ForceAutoModifier.Value
+    if Gun and Config.ForceAuto then
+        for _, item in next, ReplicatedStorage.Modules.ItemLibrary.Items do
+            if item.InputSpammingEnabled then
+                item.InputSpammingEnabled.StartShooting = Config.ForceAutoModifier
+            end
+        end
+    end
+end)
+WeaponGroup:AddToggle("AlwaysBackstab", { Text = "always backstab", Default = false })
+Toggles.AlwaysBackstab:OnChanged(function() Config.AlwaysBackstab = Toggles.AlwaysBackstab.Value end)
+WeaponGroup:AddToggle("NoMuzzleFlash", { Text = "no muzzle flash", Default = false })
+Toggles.NoMuzzleFlash:OnChanged(function() Config.NoMuzzleFlash = Toggles.NoMuzzleFlash.Value end)
+WeaponGroup:AddToggle("NoRecoil", { Text = "no recoil", Default = false })
+Toggles.NoRecoil:OnChanged(function()
+    Config.NoRecoil = Toggles.NoRecoil.Value
+    if ClientViewModel then
+        local old = rawget(ClientViewModel, "_InsomniaOldUpdate")
+        if Config.NoRecoil and not old then
+            ClientViewModel._InsomniaOldUpdate = ClientViewModel.Update
+            ClientViewModel.Update = function(self, dt, mv, rd)
+                local r = ClientViewModel._InsomniaOldUpdate(self, dt, mv, rd)
+                pcall(function()
+                    if self._recoil_spring then self._recoil_spring.Value = Vector3.new(0,0,0); self._recoil_spring.Target = Vector3.new(0,0,0) end
+                    if self._unrecoil_spring then self._unrecoil_spring.Value = Vector3.new(0,0,0); self._unrecoil_spring.Target = Vector3.new(0,0,0) end
+                end)
+                return r
+            end
+        elseif not Config.NoRecoil and old then
+            ClientViewModel.Update = old; ClientViewModel._InsomniaOldUpdate = nil
+        end
+    end
+end)
+
+local repS = cloneref(game:GetService("ReplicatedStorage"))
+local plrs = cloneref(game:GetService("Players"))
+local runS = cloneref(game:GetService("RunService"))
+local ws = cloneref(game:GetService("Workspace"))
+local uis = cloneref(game:GetService("UserInputService"))
+local lplr = plrs.LocalPlayer
+local util = require(repS.Modules.Utility)
+local enum = require(repS.Modules.EnumLibrary)
+local FighterController2 = require(lplr.PlayerScripts.Controllers.FighterController)
+local SpectateController = require(lplr.PlayerScripts.Controllers:WaitForChild("SpectateController"))
+
+local Ragebot = {
+    Enabled = false,
+    PriorityWeapon = "Primary",
+    VoidSpamEnabled = false,
+    VoidAttackTime = 0.25,
+    VoidHideTime = 0.25,
+    FireRate = 0.0005,
+    _lastFire = 0,
+    _phase = "attack",
+    _phaseStart = 0,
+    _hrp = nil,
+    _clientCF = nil,
+    _clientVel = nil,
+    _clientAngVel = nil,
+    _csyncBound = false,
+    _deflecting = {},
+    _hidden = false,
+}
+
+local RageSlots = { Primary = 1, Secondary = 2, Melee = 3 }
+
+local function RageGetSlot()
+    return RageSlots[Ragebot.PriorityWeapon] or 1
+end
+
+local function RageEquipSlot()
+    local lf = FighterController2 and FighterController2.LocalFighter
+    if not lf then return end
+    pcall(function()
+        lf:EquipItem(RageGetSlot())
+    end)
+end
+
+task.spawn(function()
+    local lf = FighterController2.LocalFighter
+    while not lf do
+        task.wait(0.1)
+        lf = FighterController2.LocalFighter
+    end
+    RageEquipSlot()
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(0.05)
+        if Ragebot.Enabled then
+            RageEquipSlot()
+        end
+    end
+end)
+
+plrs.PlayerRemoving:Connect(function(player)
+    Ragebot._deflecting[player] = nil
+end)
+
+local function RageUpdateDeflection()
+    if not FighterController2 or not FighterController2.Objects then return end
+    for _, fighterObj in FighterController2.Objects do
+        local player = fighterObj.Player
+        if not player then continue end
+        if not fighterObj.Entity or not fighterObj.Entity:IsAlive() or fighterObj:Get("IsSpectating") then
+            Ragebot._deflecting[player] = false
+            continue
+        end
+        local equipped = fighterObj.EquippedItem
+        local isKatana = equipped and equipped.ViewModel and equipped.ViewModel.Name == "Katana"
+        local isDeflecting = false
+        if isKatana then
+            isDeflecting = (equipped._attack_cooldown and equipped._attack_cooldown > tick()) or false
+        end
+        Ragebot._deflecting[player] = isDeflecting
+    end
+end
+
+local function RageIsEnemy(player)
+    if player == lplr then return false end
+    local duel = SpectateController.CurrentDuelSubject
+    local localDueler = duel and duel:GetDueler(lplr)
+    local localTeam = localDueler and localDueler:Get("TeamID") or nil
+    if localTeam and duel and duel.Duelers then
+        for _, dueler in duel.Duelers do
+            if dueler.Player == player then
+                local team = dueler:Get("TeamID")
+                return team ~= localTeam
+            end
+        end
+    end
+    local pTeam = player:GetAttribute("TeamID")
+    local lTeam = lplr:GetAttribute("TeamID")
+    if pTeam and lTeam then
+        return pTeam ~= lTeam
+    end
+    return true
+end
+
+local function RageHasForcefield(player)
+    if not player or not player.Character then return false end
+    return player.Character:FindFirstChildOfClass("ForceField") ~= nil
+end
+
+local function RageIsDeflecting(player)
+    if not player then return false end
+    return Ragebot._deflecting[player] == true
+end
+
+local function RageIsReloading()
+    local lf = FighterController2 and FighterController2.LocalFighter
+    if not lf or not lf.EquippedItem then return false end
+    local result = false
+    pcall(function()
+        local item = lf.EquippedItem
+        for _, key in ipairs({ "Reloading", "IsReloading", "IsReload" }) do
+            local value = item:Get(key)
+            if value == true or value == 1 or value == "true" then
+                result = true
+                break
+            end
+        end
+    end)
+    if result then return true end
+    local startKey = Ragebot._reloadStart
+    return startKey and (tick() - startKey) < 1.75
+end
+
+local function RageGetClosestTarget()
+    local char = lplr.Character
+    if not char then return nil, nil, nil end
+    local myRoot = char:FindFirstChild("HumanoidRootPart")
+    if not myRoot then return nil, nil, nil end
+    local closestPlayer, closestRoot, closestHead = nil, nil, nil
+    local closestDist = 500
+    for _, player in plrs:GetPlayers() do
+        if not RageIsEnemy(player) then continue end
+        local pChar = player.Character
+        if not pChar then continue end
+        local pRoot = pChar:FindFirstChild("HumanoidRootPart")
+        local pHead = pChar:FindFirstChild("Head")
+        local pHum = pChar:FindFirstChildWhichIsA("Humanoid")
+        if not (pRoot and pHead and pHum and pHum.Health > 0) then continue end
+        local dist = (myRoot.Position - pRoot.Position).Magnitude
+        if dist < closestDist then
+            closestDist = dist
+            closestPlayer = player
+            closestRoot = pRoot
+            closestHead = pHead
+        end
+    end
+    return closestPlayer, closestRoot, closestHead
+end
+
+local function RageHasKnifeViewModel(targetPlayer)
+    if not targetPlayer then return false end
+    local viewModels = ws:FindFirstChild("ViewModels")
+    if not viewModels then return false end
+    local targetName = targetPlayer.Name
+    for _, model in viewModels:GetChildren() do
+        if model:IsA("Model")
+            and string.find(model.Name, targetName, 1, true)
+            and string.find(model.Name, "Knife", 1, true) then
+            return true
+        end
+    end
+    return false
+end
+
+local function RageBetterRandom(mi, ma, dmi, dma)
+    local val = math.random(mi, ma)
+    repeat
+        val = math.random(mi, ma)
+    until val < dmi or val > dma
+    return val
+end
+
+local function RageStartVoidHide()
+    local char = lplr.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    Ragebot._hrp = hrp
+    Ragebot._clientCF = hrp.CFrame
+    Ragebot._clientVel = hrp.AssemblyLinearVelocity
+    Ragebot._clientAngVel = hrp.AssemblyAngularVelocity
+    Ragebot._hidden = true
+
+    pcall(function()
+        hrp.CFrame = CFrame.new(
+            RageBetterRandom(-2147483646, 2147483646, -1147483646, 1147483646),
+            RageBetterRandom(-2147483646, 2147483646, -1147483646, 1147483646),
+            RageBetterRandom(-2147483646, 2147483646, -1147483646, 1147483646)
+        ) * CFrame.Angles(math.rad(math.pi), math.rad(math.pi), math.rad(math.pi))
+
+        hrp.AssemblyLinearVelocity = Vector3.new(
+            RageBetterRandom(-2147483646, 2147483646, -1147483646, 1147483646),
+            RageBetterRandom(-2147483646, 2147483646, -1147483646, 1147483646),
+            RageBetterRandom(-2147483646, 2147483646, -1147483646, 1147483646)
+        )
+
+        hrp.AssemblyAngularVelocity = Vector3.new(
+            RageBetterRandom(-2147483646, 2147483646, -1147483646, 1147483646),
+            RageBetterRandom(-2147483646, 2147483646, -1147483646, 1147483646),
+            RageBetterRandom(-2147483646, 2147483646, -1147483646, 1147483646)
+        )
+    end)
+
+    if not Ragebot._csyncBound then
+        Ragebot._csyncBound = true
+        runS:BindToRenderStep("Ragebot_CSync", Enum.RenderPriority.First.Value, function()
+            if Ragebot._hidden and Ragebot._hrp and Ragebot._clientCF then
+                pcall(function()
+                    Ragebot._hrp.CFrame = Ragebot._clientCF
+                    Ragebot._hrp.AssemblyLinearVelocity = Ragebot._clientVel
+                    Ragebot._hrp.AssemblyAngularVelocity = Ragebot._clientAngVel
+                end)
+            end
+        end)
+    end
+end
+
+local function RageStopVoidHide()
+    if Ragebot._hrp and Ragebot._clientCF then
+        pcall(function()
+            Ragebot._hrp.CFrame = Ragebot._clientCF
+        end)
+    end
+    Ragebot._hrp = nil
+    Ragebot._clientCF = nil
+    Ragebot._clientVel = nil
+    Ragebot._clientAngVel = nil
+    Ragebot._hidden = false
+end
+
+local function RageShouldHide(targetPlayer)
+    if not targetPlayer then return true end
+    if not FighterController2 or not FighterController2.LocalFighter then return true end
+    if not lplr.Character or not lplr.Character:FindFirstChild("HumanoidRootPart") then return true end
+    if RageHasForcefield(targetPlayer) then return true end
+    if RageIsDeflecting(targetPlayer) then return true end
+    if RageIsReloading() then return true end
+    return false
+end
+
+local function RageIsMelee()
+    local w = RageGetCurrentWeapon()
+    if not w then return false end
+    local melee = {
+        ["Battle Axe"]=true, ["Chainsaw"]=true, ["Daggers"]=true, ["Fists"]=true,
+        ["Gunblade"]=true, ["Katana"]=true, ["Knife"]=true,
+        ["Scythe"]=true, ["Trowel"]=true,
+    }
+    return melee[w] == true or w:lower():find("melee") ~= nil
+end
+
+function RageGetCurrentWeapon()
+    local viewModels = ws:FindFirstChild("ViewModels")
+    if not viewModels then return nil end
+    local firstPerson = viewModels:FindFirstChild("FirstPerson")
+    if not firstPerson then return nil end
+    for _, child in ipairs(firstPerson:GetChildren()) do
+        local parts = {}
+        for part in child.Name:gmatch("[^-]+") do
+            table.insert(parts, part:match("^%s*(.-)%s*$"))
+        end
+        if #parts >= 2 then return parts[2] end
+    end
+    return nil
+end
+
+runS.Heartbeat:Connect(function()
+    if not Ragebot.Enabled then
+        if Ragebot._hidden then
+            RageStopVoidHide()
+        end
+        return
+    end
+
+    RageUpdateDeflection()
+
+    local targetPlayer, targetRoot, targetHead = RageGetClosestTarget()
+
+    local shouldHide = RageShouldHide(targetPlayer)
+
+    if shouldHide then
+        if not Ragebot._hidden then
+            RageStartVoidHide()
+        end
+        return
+    end
+
+    if Ragebot.VoidSpamEnabled then
+        local now = tick()
+        local elapsed = now - Ragebot._phaseStart
+        if Ragebot._phase == "attack" then
+            if elapsed >= Ragebot.VoidAttackTime then
+                Ragebot._phase = "hide"
+                Ragebot._phaseStart = now
+                RageStartVoidHide()
+                return
+            end
+        elseif Ragebot._phase == "hide" then
+            if elapsed >= Ragebot.VoidHideTime then
+                Ragebot._phase = "attack"
+                Ragebot._phaseStart = now
+                RageStopVoidHide()
+            else
+                return
+            end
+        end
+    else
+        if Ragebot._hidden then
+            RageStopVoidHide()
+        end
+    end
+
+    if not targetPlayer or not targetHead or not targetRoot then return end
+    if not lplr.Character or not lplr.Character:FindFirstChild("HumanoidRootPart") then return end
+    if not FighterController2 or not FighterController2.LocalFighter then return end
+    local item = FighterController2.LocalFighter.EquippedItem
+    if not item then return end
+    if tick() - Ragebot._lastFire < Ragebot.FireRate then return end
+    Ragebot._lastFire = tick()
+
+    local melee = RageIsMelee()
+
+    local desyncPos
+    if RageHasKnifeViewModel(targetPlayer) then
+        desyncPos = (targetRoot.CFrame * CFrame.new(0, 6, 0)).Position
+    else
+        desyncPos = (targetRoot.CFrame * CFrame.new(0, 1, 2)).Position
+    end
+    local desyncCF = CFrame.lookAt(desyncPos, targetHead.Position)
+
+    local myRoot = lplr.Character:FindFirstChild("HumanoidRootPart")
+    if myRoot then
+        local oldCF = myRoot.CFrame
+        local oldVel = myRoot.Velocity
+        local oldRotVel = myRoot.RotVelocity
+        myRoot.CFrame = desyncCF
+        runS:BindToRenderStep("__rage_restore", 101, function()
+            if myRoot then
+                myRoot.CFrame = oldCF
+                myRoot.Velocity = oldVel
+                myRoot.RotVelocity = oldRotVel
+            end
+            runS:UnbindFromRenderStep("__rage_restore")
+        end)
+    end
+
+    local originPos = desyncCF.Position
+    local targetPos = targetHead.Position
+    local aimCF = CFrame.lookAt(originPos, targetPos)
+    local targetCF = targetHead.CFrame
+
+    if melee then
+        local randomOffset = Vector3.new(
+            (math.random() - 0.5) * 0.1,
+            (math.random() - 0.5) * 0.1,
+            (math.random() - 0.5) * 0.1
+        )
+        local aimedPos = targetPos + randomOffset
+        local objSpaceHeadOffset = targetHead.CFrame:ToObjectSpace(CFrame.new(aimedPos))
+        local cameradata = {}
+        cameradata[utf8.char(1)] = {
+            [utf8.char(0)] = util:EncodeCFrame(aimCF),
+            [utf8.char(1)] = util:EncodeCFrame(targetCF),
+            [utf8.char(2)] = targetHead,
+            [utf8.char(3)] = util:EncodeCFrame(objSpaceHeadOffset)
+        }
+        repS.Remotes.Replication.Fighter.UseItem:FireServer(
+            item:Get("ObjectID"),
+            enum:ToEnum("StartShooting"),
+            cameradata,
+            nil
+        )
+        return
+    end
+
+    local randomOffset = Vector3.new(
+        (math.random() - 0.5) * 0.05,
+        (math.random() - 0.5) * 0.05,
+        (math.random() - 0.5) * 0.05
+    )
+    local aimedPos = targetHead.Position + randomOffset
+    local objSpaceHeadOffset = targetHead.CFrame:ToObjectSpace(CFrame.new(aimedPos))
+    local cameradata = {}
+    cameradata[utf8.char(1)] = {
+        [utf8.char(0)] = util:EncodeCFrame(aimCF),
+        [utf8.char(1)] = util:EncodeCFrame(CFrame.lookAt(originPos, aimedPos)),
+        [utf8.char(2)] = targetHead,
+        [utf8.char(3)] = util:EncodeCFrame(objSpaceHeadOffset)
+    }
+    repS.Remotes.Replication.Fighter.UseItem:FireServer(
+        item:Get("ObjectID"),
+        enum:ToEnum("StartShooting"),
+        cameradata,
+        nil
+    )
+end)
+
+local RageTab = Tabs.Main:AddRightTabbox("ragebot")
+local MainRageTab = RageTab:AddTab("main")
+local PriorityTab = RageTab:AddTab("priority")
+
+MainRageTab:AddToggle("RagebotEnabled", {
+    Text = "enabled",
+    Default = false,
+    Callback = function(val)
+        Ragebot.Enabled = val
+        if val then
+            RageEquipSlot()
+            Ragebot._phase = "attack"
+            Ragebot._phaseStart = tick()
+        else
+            RageStopVoidHide()
+            Ragebot._phase = "attack"
+        end
+    end
+})
+
+MainRageTab:AddDropdown("RagebotPriorityWeapon", {
+    Text = "priority weapon",
+    Values = { "Primary", "Secondary", "Melee" },
+    Default = "Primary",
+    Multi = false,
+    Callback = function(val)
+        Ragebot.PriorityWeapon = val
+        if Ragebot.Enabled then
+            RageEquipSlot()
+        end
+    end
+})
+
+local voidSpamToggle = MainRageTab:AddToggle("RagebotVoidSpam", {
+    Text = "void spam",
+    Default = false,
+    Callback = function(val)
+        Ragebot.VoidSpamEnabled = val
+        Ragebot._phase = "attack"
+        Ragebot._phaseStart = tick()
+        if not val then
+            RageStopVoidHide()
+        end
+        if Library and Library.UpdateDependencyBoxes then
+            Library:UpdateDependencyBoxes()
+        end
+    end
+})
+
+local voidDep = MainRageTab:AddDependencyBox()
+
+voidDep:AddSlider("RagebotVoidAttackTime", {
+    Text = "attack",
+    Default = 0.25,
+    Min = 0.01,
+    Max = 1,
+    Rounding = 2,
+    Compact = true,
+    Suffix = "s",
+    Callback = function(val)
+        Ragebot.VoidAttackTime = val
+    end
+})
+
+voidDep:AddSlider("RagebotVoidHideTime", {
+    Text = "hide",
+    Default = 0.25,
+    Min = 0.01,
+    Max = 1,
+    Rounding = 2,
+    Compact = true,
+    Suffix = "s",
+    Callback = function(val)
+        Ragebot.VoidHideTime = val
+    end
+})
+
+voidDep:SetupDependencies({
+    { voidSpamToggle, true },
+})
+
+PriorityTab:AddDropdown("RagebotPriorityList", {
+    Text = "priority player",
+    Values = {},
+    Default = "",
+    Multi = false,
+    Callback = function(val)
+        Ragebot.PriorityPlayer = val
+    end
+})
+
+local priorityDropdown = Options.RagebotPriorityList
+
+local function RefreshPriorityList()
+    local names = {}
+    for _, player in ipairs(plrs:GetPlayers()) do
+        if player ~= lplr then
+            table.insert(names, player.Name)
+        end
+    end
+    table.sort(names)
+    priorityDropdown:SetValues(names)
+end
+
+plrs.PlayerAdded:Connect(function()
+    task.wait(0.5)
+    RefreshPriorityList()
+end)
+
+plrs.PlayerRemoving:Connect(function()
+    task.wait(0.5)
+    RefreshPriorityList()
+end)
+
+RefreshPriorityList()
+
+local EspMain = Tabs.Visuals:AddGroupbox({ Side="Left", Name="ESP", IconName="eye" })
+EspMain:AddToggle("ESPEnabled", { Text = "Enable ESP", Default = false })
+Toggles.ESPEnabled:OnChanged(function() ESP.Enabled = Toggles.ESPEnabled.Value end)
+EspMain:AddToggle("ESPLimitDistance", { Text = "limit distance", Default = false })
+Toggles.ESPLimitDistance:OnChanged(function() ESP.LimitDistance = Toggles.ESPLimitDistance.Value end)
+EspMain:AddSlider("ESPMaxDist", { Text="max distance", Default=1000, Min=50, Max=5000, Rounding=0, Suffix=" studs" })
+Options.ESPMaxDist:OnChanged(function() ESP.MaxDistance = Options.ESPMaxDist.Value end)
+EspMain:AddDivider()
+
+local BoxToggle = EspMain:AddToggle("ESPBox", { Text = "Box", Default = false })
+BoxToggle:AddColorPicker("ESPBoxColorStart", { Default = WHITE, Title = "start" })
+BoxToggle:AddColorPicker("ESPBoxColorMiddle", { Default = WHITE, Title = "middle" })
+BoxToggle:AddColorPicker("ESPBoxColorEnd", { Default = WHITE, Title = "end" })
+Options.ESPBoxColorStart:OnChanged(function() ESP.BoxColorStart = Options.ESPBoxColorStart.Value end)
+Options.ESPBoxColorMiddle:OnChanged(function() ESP.BoxColorMiddle = Options.ESPBoxColorMiddle.Value end)
+Options.ESPBoxColorEnd:OnChanged(function() ESP.BoxColorEnd = Options.ESPBoxColorEnd.Value end)
+Toggles.ESPBox:OnChanged(function() ESP.Box = Toggles.ESPBox.Value end)
+EspMain:AddToggle("ESPBoxSpin", { Text = "spin colors", Default = false })
+Toggles.ESPBoxSpin:OnChanged(function() ESP.BoxSpin = Toggles.ESPBoxSpin.Value end)
+EspMain:AddSlider("ESPBoxSpinSpeed", { Text="spin speed", Default=1, Min=0.01, Max=5, Rounding=2, Suffix="x" })
+Options.ESPBoxSpinSpeed:OnChanged(function() ESP.BoxSpinSpeed = Options.ESPBoxSpinSpeed.Value end)
+EspMain:AddSlider("ESPBoxThickness", { Text="Box Thickness", Default=1.5, Min=1, Max=5, Rounding=1 })
+Options.ESPBoxThickness:OnChanged(function() ESP.BoxThickness = Options.ESPBoxThickness.Value end)
+EspMain:AddSlider("ESPBoxCorner", { Text="Box Corner Radius", Default=4, Min=0, Max=16, Rounding=0 })
+Options.ESPBoxCorner:OnChanged(function() ESP.BoxCorner = Options.ESPBoxCorner.Value end)
+EspMain:AddDivider()
+
+local BoxFillToggle = EspMain:AddToggle("ESPBoxFill", { Text = "Box Fill", Default = false })
+BoxFillToggle:AddColorPicker("ESPBoxFillColorStart", { Default = WHITE, Title = "start" })
+BoxFillToggle:AddColorPicker("ESPBoxFillColorMiddle", { Default = WHITE, Title = "middle" })
+BoxFillToggle:AddColorPicker("ESPBoxFillColorEnd", { Default = WHITE, Title = "end" })
+Options.ESPBoxFillColorStart:OnChanged(function() ESP.BoxFillColorStart = Options.ESPBoxFillColorStart.Value end)
+Options.ESPBoxFillColorMiddle:OnChanged(function() ESP.BoxFillColorMiddle = Options.ESPBoxFillColorMiddle.Value end)
+Options.ESPBoxFillColorEnd:OnChanged(function() ESP.BoxFillColorEnd = Options.ESPBoxFillColorEnd.Value end)
+Toggles.ESPBoxFill:OnChanged(function() ESP.BoxFill = Toggles.ESPBoxFill.Value end)
+EspMain:AddToggle("ESPBoxFillSpin", { Text = "spin colors", Default = false })
+Toggles.ESPBoxFillSpin:OnChanged(function() ESP.BoxFillSpin = Toggles.ESPBoxFillSpin.Value end)
+EspMain:AddSlider("ESPBoxFillSpinSpeed", { Text="spin speed", Default=1, Min=0.01, Max=5, Rounding=2, Suffix="x" })
+Options.ESPBoxFillSpinSpeed:OnChanged(function() ESP.BoxFillSpinSpeed = Options.ESPBoxFillSpinSpeed.Value end)
+EspMain:AddSlider("ESPBoxFillAlpha", { Text="Fill Opacity", Default=0.35, Min=0, Max=1, Rounding=2 })
+Options.ESPBoxFillAlpha:OnChanged(function() ESP.BoxFillAlpha = Options.ESPBoxFillAlpha.Value end)
+
+local EspSkel = Tabs.Visuals:AddGroupbox({ Side="Right", Name="Skeleton & Info", IconName="user" })
+EspSkel:AddToggle("ESPHighlight", { Text = "Highlight Chams", Default = false })
+Toggles.ESPHighlight:OnChanged(function() ESP.Highlight = Toggles.ESPHighlight.Value end)
+EspSkel:AddLabel("Highlight Fill"):AddColorPicker("ESPHighlightFill", { Default=Color3.fromRGB(120,81,166), Title="Highlight Fill" })
+Options.ESPHighlightFill:OnChanged(function() ESP.HighlightFillColor = Options.ESPHighlightFill.Value end)
+EspSkel:AddSlider("ESPHighlightFillAlpha", { Text="Fill Transparency", Default=0.55, Min=0, Max=1, Rounding=2 })
+Options.ESPHighlightFillAlpha:OnChanged(function() ESP.HighlightFillAlpha = Options.ESPHighlightFillAlpha.Value end)
+EspSkel:AddLabel("Highlight Outline"):AddColorPicker("ESPHighlightOutline", { Default=WHITE, Title="Highlight Outline" })
+Options.ESPHighlightOutline:OnChanged(function() ESP.HighlightOutlineColor = Options.ESPHighlightOutline.Value end)
+EspSkel:AddSlider("ESPHighlightOutlineAlpha", { Text="Outline Transparency", Default=0, Min=0, Max=1, Rounding=2 })
+Options.ESPHighlightOutlineAlpha:OnChanged(function() ESP.HighlightOutlineAlpha = Options.ESPHighlightOutlineAlpha.Value end)
+EspSkel:AddDivider()
+
+local SkeletonToggle = EspSkel:AddToggle("ESPSkeleton", { Text = "Skeleton", Default = false })
+SkeletonToggle:AddColorPicker("ESPSkeletonColorStart", { Default = WHITE, Title = "start" })
+SkeletonToggle:AddColorPicker("ESPSkeletonColorMiddle", { Default = WHITE, Title = "middle" })
+SkeletonToggle:AddColorPicker("ESPSkeletonColorEnd", { Default = WHITE, Title = "end" })
+Options.ESPSkeletonColorStart:OnChanged(function() ESP.SkeletonColorStart = Options.ESPSkeletonColorStart.Value end)
+Options.ESPSkeletonColorMiddle:OnChanged(function() ESP.SkeletonColorMiddle = Options.ESPSkeletonColorMiddle.Value end)
+Options.ESPSkeletonColorEnd:OnChanged(function() ESP.SkeletonColorEnd = Options.ESPSkeletonColorEnd.Value end)
+Toggles.ESPSkeleton:OnChanged(function() ESP.Skeleton = Toggles.ESPSkeleton.Value end)
+EspSkel:AddToggle("ESPSkeletonSpin", { Text = "spin colors", Default = false })
+Toggles.ESPSkeletonSpin:OnChanged(function() ESP.SkeletonSpin = Toggles.ESPSkeletonSpin.Value end)
+EspSkel:AddSlider("ESPSkeletonSpinSpeed", { Text="spin speed", Default=1, Min=0.01, Max=5, Rounding=2, Suffix="x" })
+Options.ESPSkeletonSpinSpeed:OnChanged(function() ESP.SkeletonSpinSpeed = Options.ESPSkeletonSpinSpeed.Value end)
+EspSkel:AddSlider("ESPSkeletonThick", { Text="Skeleton Thickness", Default=1.5, Min=1, Max=4, Rounding=1 })
+Options.ESPSkeletonThick:OnChanged(function() ESP.SkeletonThick = Options.ESPSkeletonThick.Value end)
+EspSkel:AddDivider()
+
+local NameToggle = EspSkel:AddToggle("ESPName", { Text = "Name", Default = false })
+NameToggle:AddColorPicker("ESPNameColorStart", { Default = WHITE, Title = "start" })
+NameToggle:AddColorPicker("ESPNameColorMiddle", { Default = WHITE, Title = "middle" })
+NameToggle:AddColorPicker("ESPNameColorEnd", { Default = WHITE, Title = "end" })
+Options.ESPNameColorStart:OnChanged(function() ESP.NameColorStart = Options.ESPNameColorStart.Value end)
+Options.ESPNameColorMiddle:OnChanged(function() ESP.NameColorMiddle = Options.ESPNameColorMiddle.Value end)
+Options.ESPNameColorEnd:OnChanged(function() ESP.NameColorEnd = Options.ESPNameColorEnd.Value end)
+Toggles.ESPName:OnChanged(function() ESP.Name = Toggles.ESPName.Value end)
+EspSkel:AddToggle("ESPNameShowHealth", { Text = "↳ Show Health in Name", Default = false })
+Toggles.ESPNameShowHealth:OnChanged(function() ESP.NameShowHealth = Toggles.ESPNameShowHealth.Value end)
+EspSkel:AddToggle("ESPNameSpin", { Text = "spin colors", Default = false })
+Toggles.ESPNameSpin:OnChanged(function() ESP.NameSpin = Toggles.ESPNameSpin.Value end)
+EspSkel:AddSlider("ESPNameSpinSpeed", { Text="spin speed", Default=1, Min=0.01, Max=5, Rounding=2, Suffix="x" })
+Options.ESPNameSpinSpeed:OnChanged(function() ESP.NameSpinSpeed = Options.ESPNameSpinSpeed.Value end)
+EspSkel:AddDivider()
+
+local WeaponToggle = EspSkel:AddToggle("ESPWeapon", { Text = "Weapon", Default = false })
+WeaponToggle:AddColorPicker("ESPWeaponColorStart", { Default = WHITE, Title = "start" })
+WeaponToggle:AddColorPicker("ESPWeaponColorMiddle", { Default = WHITE, Title = "middle" })
+WeaponToggle:AddColorPicker("ESPWeaponColorEnd", { Default = WHITE, Title = "end" })
+Options.ESPWeaponColorStart:OnChanged(function() ESP.WeaponColorStart = Options.ESPWeaponColorStart.Value end)
+Options.ESPWeaponColorMiddle:OnChanged(function() ESP.WeaponColorMiddle = Options.ESPWeaponColorMiddle.Value end)
+Options.ESPWeaponColorEnd:OnChanged(function() ESP.WeaponColorEnd = Options.ESPWeaponColorEnd.Value end)
+Toggles.ESPWeapon:OnChanged(function() ESP.Weapon = Toggles.ESPWeapon.Value end)
+EspSkel:AddToggle("ESPWeaponSpin", { Text = "spin colors", Default = false })
+Toggles.ESPWeaponSpin:OnChanged(function() ESP.WeaponSpin = Toggles.ESPWeaponSpin.Value end)
+EspSkel:AddSlider("ESPWeaponSpinSpeed", { Text="spin speed", Default=1, Min=0.01, Max=5, Rounding=2, Suffix="x" })
+Options.ESPWeaponSpinSpeed:OnChanged(function() ESP.WeaponSpinSpeed = Options.ESPWeaponSpinSpeed.Value end)
+EspSkel:AddDivider()
+
+EspSkel:AddToggle("ESPHealthBar", { Text = "Health Bar", Default = false })
+Toggles.ESPHealthBar:OnChanged(function() ESP.HealthBar = Toggles.ESPHealthBar.Value end)
+
+local HealthTextToggle = EspSkel:AddToggle("ESPHealthText", { Text = "Health Text", Default = false })
+HealthTextToggle:AddColorPicker("ESPHealthTextColorStart", { Default = WHITE, Title = "start" })
+HealthTextToggle:AddColorPicker("ESPHealthTextColorMiddle", { Default = WHITE, Title = "middle" })
+HealthTextToggle:AddColorPicker("ESPHealthTextColorEnd", { Default = WHITE, Title = "end" })
+Options.ESPHealthTextColorStart:OnChanged(function() ESP.HealthTextColorStart = Options.ESPHealthTextColorStart.Value end)
+Options.ESPHealthTextColorMiddle:OnChanged(function() ESP.HealthTextColorMiddle = Options.ESPHealthTextColorMiddle.Value end)
+Options.ESPHealthTextColorEnd:OnChanged(function() ESP.HealthTextColorEnd = Options.ESPHealthTextColorEnd.Value end)
+Toggles.ESPHealthText:OnChanged(function() ESP.HealthText = Toggles.ESPHealthText.Value end)
+EspSkel:AddToggle("ESPHealthTextSpin", { Text = "spin colors", Default = false })
+Toggles.ESPHealthTextSpin:OnChanged(function() ESP.HealthTextSpin = Toggles.ESPHealthTextSpin.Value end)
+EspSkel:AddSlider("ESPHealthTextSpinSpeed", { Text="spin speed", Default=1, Min=0.01, Max=5, Rounding=2, Suffix="x" })
+Options.ESPHealthTextSpinSpeed:OnChanged(function() ESP.HealthTextSpinSpeed = Options.ESPHealthTextSpinSpeed.Value end)
+EspSkel:AddDivider()
+
+local DistanceToggle = EspSkel:AddToggle("ESPDistance", { Text = "Distance", Default = false })
+DistanceToggle:AddColorPicker("ESPDistanceColorStart", { Default = WHITE, Title = "start" })
+DistanceToggle:AddColorPicker("ESPDistanceColorMiddle", { Default = WHITE, Title = "middle" })
+DistanceToggle:AddColorPicker("ESPDistanceColorEnd", { Default = WHITE, Title = "end" })
+Options.ESPDistanceColorStart:OnChanged(function() ESP.DistanceColorStart = Options.ESPDistanceColorStart.Value end)
+Options.ESPDistanceColorMiddle:OnChanged(function() ESP.DistanceColorMiddle = Options.ESPDistanceColorMiddle.Value end)
+Options.ESPDistanceColorEnd:OnChanged(function() ESP.DistanceColorEnd = Options.ESPDistanceColorEnd.Value end)
+Toggles.ESPDistance:OnChanged(function() ESP.Distance = Toggles.ESPDistance.Value end)
+EspSkel:AddToggle("ESPDistanceSpin", { Text = "spin colors", Default = false })
+Toggles.ESPDistanceSpin:OnChanged(function() ESP.DistanceSpin = Toggles.ESPDistanceSpin.Value end)
+EspSkel:AddSlider("ESPDistanceSpinSpeed", { Text="spin speed", Default=1, Min=0.01, Max=5, Rounding=2, Suffix="x" })
+Options.ESPDistanceSpinSpeed:OnChanged(function() ESP.DistanceSpinSpeed = Options.ESPDistanceSpinSpeed.Value end)
+EspSkel:AddDivider()
+
+local TracerToggle = EspSkel:AddToggle("ESPTracer", { Text = "Tracer", Default = false })
+TracerToggle:AddColorPicker("ESPTracerColorStart", { Default = WHITE, Title = "start" })
+TracerToggle:AddColorPicker("ESPTracerColorMiddle", { Default = WHITE, Title = "middle" })
+TracerToggle:AddColorPicker("ESPTracerColorEnd", { Default = WHITE, Title = "end" })
+Options.ESPTracerColorStart:OnChanged(function() ESP.TracerColorStart = Options.ESPTracerColorStart.Value end)
+Options.ESPTracerColorMiddle:OnChanged(function() ESP.TracerColorMiddle = Options.ESPTracerColorMiddle.Value end)
+Options.ESPTracerColorEnd:OnChanged(function() ESP.TracerColorEnd = Options.ESPTracerColorEnd.Value end)
+Toggles.ESPTracer:OnChanged(function() ESP.Tracer = Toggles.ESPTracer.Value end)
+EspSkel:AddToggle("ESPTracerSpin", { Text = "spin colors", Default = false })
+Toggles.ESPTracerSpin:OnChanged(function() ESP.TracerSpin = Toggles.ESPTracerSpin.Value end)
+EspSkel:AddSlider("ESPTracerSpinSpeed", { Text="spin speed", Default=1, Min=0.01, Max=5, Rounding=2, Suffix="x" })
+Options.ESPTracerSpinSpeed:OnChanged(function() ESP.TracerSpinSpeed = Options.ESPTracerSpinSpeed.Value end)
+EspSkel:AddSlider("ESPTracerOriginX", { Text="Tracer Origin X", Default=0.5, Min=0, Max=1, Rounding=2 })
+Options.ESPTracerOriginX:OnChanged(function() ESP.TracerOriginX = Options.ESPTracerOriginX.Value end)
+EspSkel:AddSlider("ESPTracerOriginY", { Text="Tracer Origin Y", Default=1.0, Min=0, Max=1, Rounding=2 })
+Options.ESPTracerOriginY:OnChanged(function() ESP.TracerOriginY = Options.ESPTracerOriginY.Value end)
+
+local WeatherGroup = Tabs.Visuals:AddGroupbox({ Side="Left", Name="Weather", IconName="cloud" })
+WeatherGroup:AddToggle("WeatherEnabled", { Text = "enabled", Default = false })
+Toggles.WeatherEnabled:OnChanged(function() Config.WeatherEnabled = Toggles.WeatherEnabled.Value; applyWeather() end)
+WeatherGroup:AddDropdown("WeatherType", { Text="weather", Values=WeatherTypes, Default="Snow", Multi=false })
+Options.WeatherType:OnChanged(function() Config.WeatherType = Options.WeatherType.Value; applyWeather() end)
+WeatherGroup:AddSlider("WeatherIntensity", { Text="intensity", Default=50, Min=10, Max=200, Rounding=0, Suffix="%" })
+Options.WeatherIntensity:OnChanged(function() Config.WeatherIntensity = Options.WeatherIntensity.Value; applyWeather() end)
+
+local WorldGroup = Tabs.Visuals:AddGroupbox({ Side="Left", Name="World", IconName="sun" })
+WorldGroup:AddToggle("WorldAmbient", { Text = "Ambient", Default = false })
+Toggles.WorldAmbient:OnChanged(function() Config.WorldAmbient = Toggles.WorldAmbient.Value; applyWorld() end)
+WorldGroup:AddLabel("Ambient Color"):AddColorPicker("WorldAmbientColor", { Default=WHITE, Title="Ambient Color" })
+Options.WorldAmbientColor:OnChanged(function() Config.WorldAmbientColor = Options.WorldAmbientColor.Value; applyWorld() end)
+WorldGroup:AddToggle("WorldOutdoorAmbient", { Text = "Outdoor Ambient", Default = false })
+Toggles.WorldOutdoorAmbient:OnChanged(function() Config.WorldOutdoorAmbient = Toggles.WorldOutdoorAmbient.Value; applyWorld() end)
+WorldGroup:AddLabel("Outdoor Ambient Color"):AddColorPicker("WorldOutdoorAmbientColor", { Default=WHITE, Title="Outdoor Ambient" })
+Options.WorldOutdoorAmbientColor:OnChanged(function() Config.WorldOutdoorAmbientColor = Options.WorldOutdoorAmbientColor.Value; applyWorld() end)
+WorldGroup:AddToggle("WorldBrightness", { Text = "Brightness", Default = false })
+Toggles.WorldBrightness:OnChanged(function() Config.WorldBrightness = Toggles.WorldBrightness.Value; applyWorld() end)
+WorldGroup:AddSlider("WorldBrightnessValue", { Text="brightness value", Default=2, Min=0, Max=10, Rounding=1 })
+Options.WorldBrightnessValue:OnChanged(function() Config.WorldBrightnessValue = Options.WorldBrightnessValue.Value; applyWorld() end)
+WorldGroup:AddToggle("WorldClockTime", { Text = "Time of Day", Default = false })
+Toggles.WorldClockTime:OnChanged(function() Config.WorldClockTime = Toggles.WorldClockTime.Value; applyWorld() end)
+WorldGroup:AddSlider("WorldClockTimeValue", { Text="clock time", Default=14, Min=0, Max=24, Rounding=1 })
+Options.WorldClockTimeValue:OnChanged(function() Config.WorldClockTimeValue = Options.WorldClockTimeValue.Value; applyWorld() end)
+WorldGroup:AddDivider()
+WorldGroup:AddToggle("WorldFog", { Text = "Fog", Default = false })
+Toggles.WorldFog:OnChanged(function() Config.WorldFog = Toggles.WorldFog.Value; applyWorld() end)
+WorldGroup:AddLabel("Fog Color"):AddColorPicker("WorldFogColor", { Default=WHITE, Title="Fog Color" })
+Options.WorldFogColor:OnChanged(function() Config.WorldFogColor = Options.WorldFogColor.Value; applyWorld() end)
+WorldGroup:AddSlider("WorldFogStart", { Text="fog start", Default=0, Min=0, Max=1000, Rounding=0 })
+Options.WorldFogStart:OnChanged(function() Config.WorldFogStart = Options.WorldFogStart.Value; applyWorld() end)
+WorldGroup:AddSlider("WorldFogEnd", { Text="fog end", Default=500, Min=0, Max=5000, Rounding=0 })
+Options.WorldFogEnd:OnChanged(function() Config.WorldFogEnd = Options.WorldFogEnd.Value; applyWorld() end)
+WorldGroup:AddDivider()
+WorldGroup:AddToggle("WorldSkybox", { Text = "Skybox", Default = false })
+Toggles.WorldSkybox:OnChanged(function() Config.WorldSkybox = Toggles.WorldSkybox.Value; applyWorld() end)
+local skyPresetNames = {}
+for name, _ in pairs(SkyPresets) do table.insert(skyPresetNames, name) end
+table.sort(skyPresetNames)
+WorldGroup:AddDropdown("WorldSkyboxPreset", { Text="skybox", Values=skyPresetNames, Default="Space", Multi=false })
+Options.WorldSkyboxPreset:OnChanged(function() Config.WorldSkyboxPreset = Options.WorldSkyboxPreset.Value; applyWorld() end)
+WorldGroup:AddDivider()
+WorldGroup:AddToggle("WorldExposure", { Text = "Exposure", Default = false })
+Toggles.WorldExposure:OnChanged(function() Config.WorldExposure = Toggles.WorldExposure.Value; applyWorld() end)
+WorldGroup:AddSlider("WorldExposureValue", { Text="exposure value", Default=0, Min=-2, Max=2, Rounding=2 })
+Options.WorldExposureValue:OnChanged(function() Config.WorldExposureValue = Options.WorldExposureValue.Value; applyWorld() end)
+WorldGroup:AddDivider()
+WorldGroup:AddToggle("WorldBloom", { Text = "Bloom", Default = false })
+Toggles.WorldBloom:OnChanged(function() Config.WorldBloom = Toggles.WorldBloom.Value; applyWorld() end)
+WorldGroup:AddSlider("WorldBloomIntensity", { Text="bloom intensity", Default=1, Min=0, Max=5, Rounding=2 })
+Options.WorldBloomIntensity:OnChanged(function() Config.WorldBloomIntensity = Options.WorldBloomIntensity.Value; applyWorld() end)
+WorldGroup:AddToggle("WorldColorCorrection", { Text = "Color Correction", Default = false })
+Toggles.WorldColorCorrection:OnChanged(function() Config.WorldColorCorrection = Toggles.WorldColorCorrection.Value; applyWorld() end)
+WorldGroup:AddLabel("Color Correction Tint"):AddColorPicker("WorldColorCorrectionColor", { Default=WHITE, Title="CC Tint" })
+Options.WorldColorCorrectionColor:OnChanged(function() Config.WorldColorCorrectionColor = Options.WorldColorCorrectionColor.Value; applyWorld() end)
+WorldGroup:AddToggle("WorldSaturation", { Text = "Saturation", Default = false })
+Toggles.WorldSaturation:OnChanged(function() Config.WorldSaturation = Toggles.WorldSaturation.Value; applyWorld() end)
+WorldGroup:AddSlider("WorldSaturationValue", { Text="saturation", Default=0, Min=-1, Max=1, Rounding=2 })
+Options.WorldSaturationValue:OnChanged(function() Config.WorldSaturationValue = Options.WorldSaturationValue.Value; applyWorld() end)
+WorldGroup:AddToggle("WorldContrast", { Text = "Contrast", Default = false })
+Toggles.WorldContrast:OnChanged(function() Config.WorldContrast = Toggles.WorldContrast.Value; applyWorld() end)
+WorldGroup:AddSlider("WorldContrastValue", { Text="contrast", Default=0, Min=-1, Max=1, Rounding=2 })
+Options.WorldContrastValue:OnChanged(function() Config.WorldContrastValue = Options.WorldContrastValue.Value; applyWorld() end)
+WorldGroup:AddDivider()
+WorldGroup:AddToggle("WorldAtmosphere", { Text = "Atmosphere", Default = false })
+Toggles.WorldAtmosphere:OnChanged(function() Config.WorldAtmosphere = Toggles.WorldAtmosphere.Value; applyWorld() end)
+WorldGroup:AddSlider("WorldAtmosphereDensity", { Text="density", Default=0.3, Min=0, Max=1, Rounding=2 })
+Options.WorldAtmosphereDensity:OnChanged(function() Config.WorldAtmosphereDensity = Options.WorldAtmosphereDensity.Value; applyWorld() end)
+WorldGroup:AddSlider("WorldAtmosphereHaze", { Text="haze", Default=1.5, Min=0, Max=10, Rounding=2 })
+Options.WorldAtmosphereHaze:OnChanged(function() Config.WorldAtmosphereHaze = Options.WorldAtmosphereHaze.Value; applyWorld() end)
+WorldGroup:AddSlider("WorldAtmosphereGlare", { Text="glare", Default=0.5, Min=0, Max=5, Rounding=2 })
+Options.WorldAtmosphereGlare:OnChanged(function() Config.WorldAtmosphereGlare = Options.WorldAtmosphereGlare.Value; applyWorld() end)
+WorldGroup:AddToggle("WorldSunRays", { Text = "Sun Rays", Default = false })
+Toggles.WorldSunRays:OnChanged(function() Config.WorldSunRays = Toggles.WorldSunRays.Value; applyWorld() end)
+WorldGroup:AddSlider("WorldSunRaysIntensity", { Text="sun rays intensity", Default=0.1, Min=0, Max=1, Rounding=2 })
+Options.WorldSunRaysIntensity:OnChanged(function() Config.WorldSunRaysIntensity = Options.WorldSunRaysIntensity.Value; applyWorld() end)
+WorldGroup:AddToggle("WorldDepthOfField", { Text = "Depth of Field", Default = false })
+Toggles.WorldDepthOfField:OnChanged(function() Config.WorldDepthOfField = Toggles.WorldDepthOfField.Value; applyWorld() end)
+WorldGroup:AddSlider("WorldDepthOfFieldFocus", { Text="focus distance", Default=50, Min=0, Max=500, Rounding=0 })
+Options.WorldDepthOfFieldFocus:OnChanged(function() Config.WorldDepthOfFieldFocus = Options.WorldDepthOfFieldFocus.Value; applyWorld() end)
+
+local HitDetGroup = Tabs.Visuals:AddGroupbox({ Side="Right", Name="Hitsounds", IconName="crosshair" })
+HitDetGroup:AddToggle("HitsoundEnabled", { Text = "Enable Hitsound", Default = false })
+Toggles.HitsoundEnabled:OnChanged(function() Config.HitsoundEnabled = Toggles.HitsoundEnabled.Value end)
+HitDetGroup:AddToggle("HitsoundRemoveInGame", { Text = "Disable In-Game Hitsound", Default = false })
+Toggles.HitsoundRemoveInGame:OnChanged(function() Config.HitsoundRemoveInGame = Toggles.HitsoundRemoveInGame.Value end)
+HitDetGroup:AddDropdown("HitsoundName", { Text="Hitsound", Values=hitsoundNames, Default="Rust Headshot", Multi=false })
+Options.HitsoundName:OnChanged(function() Config.HitsoundName = Options.HitsoundName.Value end)
+HitDetGroup:AddSlider("HitsoundVolume", { Text="Hitsound Volume", Default=100, Min=0, Max=500, Rounding=0, Suffix="%" })
+Options.HitsoundVolume:OnChanged(function() Config.HitsoundVolume = Options.HitsoundVolume.Value end)
+HitDetGroup:AddSlider("HitsoundPitch", { Text="Hitsound Pitch", Default=1, Min=0.5, Max=10, Rounding=2 })
+Options.HitsoundPitch:OnChanged(function() Config.HitsoundPitch = Options.HitsoundPitch.Value end)
+
+local TracerTextures = {
+    ["Beam"] = "rbxassetid://12781852245",
+    ["Lightning"] = "rbxassetid://446111271",
+    ["Pulse"] = "rbxassetid://5830549480",
+    ["Chain"] = "rbxassetid://9632168658",
+    ["Glitch"] = "rbxassetid://8089467613",
+    ["Swirl"] = "rbxassetid://5638168605",
+    ["Neon"] = "rbxassetid://6361963422",
+    ["Arrow"] = "rbxassetid://17476697388",
+    ["Bullet"] = "rbxassetid://9841273413",
+    ["Bullet2"] = "rbxassetid://1858602290",
+    ["Curve"] = "rbxassetid://117681058875712",
+    ["Curve2"] = "rbxassetid://16616706916",
+    ["Curve3"] = "http://www.roblox.com/asset/?id=15253421443",
+    ["Curve4"] = "http://www.roblox.com/asset/?id=4537267850",
+    ["Curve5"] = "rbxassetid://1263079249",
+    ["Curve6"] = "rbxassetid://12781806168",
+    ["DNA"] = "http://www.roblox.com/asset/?id=7071778278",
+    ["DNA2"] = "rbxassetid://15881443696",
+    ["DNA3"] = "rbxassetid://123918947552219",
+    ["DNA4"] = "http://www.roblox.com/asset/?id=5259529792",
+    ["DNA5"] = "rbxassetid://76346066683743",
+    ["DNA6"] = "rbxassetid://14339578398",
+    ["DNA7"] = "rbxassetid://6479047126",
+    ["Glow"] = "http://www.roblox.com/asset/?id=2382169232",
+    ["Laser"] = "rbxassetid://6091329339",
+    ["Laser2"] = "rbxassetid://116093865393953",
+    ["Laser3"] = "rbxassetid://1277456789",
+    ["Laser4"] = "rbxassetid://6091329339",
+    ["Laser5"] = "rbxassetid://88990578414815",
+    ["Laser6"] = "rbxassetid://12781750620",
+    ["Line"] = "rbxassetid://16726866463",
+    ["Line2"] = "http://www.roblox.com/asset/?id=18804963960",
+    ["Line3"] = "http://www.roblox.com/asset/?id=14987385912",
+    ["Line4"] = "rbxassetid://80526693693402",
+    ["Line5"] = "rbxassetid://88341572922411",
+    ["Solid"] = "",
+    ["Pattern"] = "rbxassetid://16892453445",
+    ["Pattern2"] = "rbxassetid://9632168313",
+    ["Pattern3"] = "rbxassetid://12781812529",
+    ["Pattern4"] = "rbxassetid://12781850191",
+    ["Ray"] = "rbxassetid://14715282464",
+    ["Ray2"] = "http://www.roblox.com/asset/?id=446111271",
+    ["Ray3"] = "rbxassetid://16892384522",
+}
+
+local TracerTextureNames = {}
+for k, _ in pairs(TracerTextures) do table.insert(TracerTextureNames, k) end
+table.sort(TracerTextureNames)
+
+local TracerConfig = {
+    Enabled = false, Texture = "Beam",
+    ColorStart = WHITE, ColorMiddle = WHITE, ColorEnd = WHITE,
+    Width0 = 0.15, Width1 = 0.15, Lifetime = 0.6, Glow = 1, Speed = 2, PositionLerp = 0.08,
+}
+
+local TracerActive = 0
+local TracerMax = 64
+local TracerList = {}
+
+local function TracerCreate(from, to)
+    if TracerActive >= TracerMax then return end
+    TracerActive = TracerActive + 1
+    local cfg = TracerConfig
+    local direction = to - from
+    local totalDist = direction.Magnitude
+    if totalDist < 0.1 then TracerActive = TracerActive - 1; return end
+    local unit = direction.Unit
+    local originPart = Instance.new("Part")
+    originPart.Anchored = true; originPart.CanCollide = false; originPart.CanTouch = false; originPart.CanQuery = false
+    originPart.Transparency = 1; originPart.Size = Vector3.new(0.1,0.1,0.1); originPart.CFrame = CFrame.new(from); originPart.Parent = workspace
+    local hitPart = Instance.new("Part")
+    hitPart.Anchored = true; hitPart.CanCollide = false; hitPart.CanTouch = false; hitPart.CanQuery = false
+    hitPart.Transparency = 1; hitPart.Size = Vector3.new(0.1,0.1,0.1); hitPart.CFrame = CFrame.new(from); hitPart.Parent = workspace
+    local originAtt = Instance.new("Attachment"); originAtt.Parent = originPart
+    local hitAtt = Instance.new("Attachment"); hitAtt.Parent = hitPart
+    local beam = Instance.new("Beam")
+    beam.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, cfg.ColorStart),
+        ColorSequenceKeypoint.new(0.5, cfg.ColorMiddle),
+        ColorSequenceKeypoint.new(1, cfg.ColorEnd),
+    })
+    beam.Brightness = cfg.Glow; beam.LightEmission = cfg.Glow; beam.LightInfluence = 0
+    beam.TextureSpeed = cfg.Speed; beam.TextureLength = 3; beam.FaceCamera = true
+    beam.Texture = TracerTextures[cfg.Texture] or ""; beam.TextureMode = Enum.TextureMode.Wrap
+    beam.Attachment0 = originAtt; beam.Attachment1 = hitAtt; beam.Enabled = true
+    beam.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.1), NumberSequenceKeypoint.new(0.5, 0), NumberSequenceKeypoint.new(1, 0.3) })
+    beam.Width0 = cfg.Width0; beam.Width1 = cfg.Width1; beam.Parent = workspace
+    local wallLine = Drawing.new("Line")
+    wallLine.Thickness = math.max(cfg.Width0 * 12, 1.5); wallLine.Color = cfg.ColorStart
+    wallLine.Transparency = 1; wallLine.Visible = false
+    local elapsed = 0
+    local conn = RunService.Heartbeat:Connect(function(dt)
+        elapsed = elapsed + dt
+        local lerpAlpha = math.clamp(elapsed / cfg.PositionLerp, 0, 1)
+        local traveled = totalDist * lerpAlpha
+        hitPart.CFrame = CFrame.new(from + unit * traveled)
+        local a = Camera:WorldToViewportPoint(from)
+        local b = Camera:WorldToViewportPoint(from + unit * traveled)
+        if a.Z > 0 and b.Z > 0 then
+            wallLine.From = Vector2.new(a.X, a.Y); wallLine.To = Vector2.new(b.X, b.Y)
+            wallLine.Color = cfg.ColorStart; wallLine.Visible = true
+        else wallLine.Visible = false end
+        local alpha = TweenService:GetValue(elapsed / cfg.Lifetime, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+        beam.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.1 + alpha * 0.9), NumberSequenceKeypoint.new(0.5, alpha), NumberSequenceKeypoint.new(1, 0.3 + alpha * 0.7) })
+        wallLine.Transparency = math.clamp(1 - alpha, 0, 1)
+    end)
+    table.insert(TracerList, { conn = conn, beam = beam, origin = originPart, hit = hitPart, wall = wallLine, start = tick() })
+    task.delay(cfg.Lifetime, function()
+        if conn then conn:Disconnect() end
+        if wallLine then pcall(function() wallLine:Remove() end) end
+        pcall(function() beam:Destroy() end); pcall(function() originPart:Destroy() end); pcall(function() hitPart:Destroy() end)
+        TracerActive = math.max(TracerActive - 1, 0)
+        for i, v in ipairs(TracerList) do if v.beam == beam then table.remove(TracerList, i); break end end
+    end)
+end
+
+local function TracerCleanup()
+    for _, t in ipairs(TracerList) do
+        if t.conn then t.conn:Disconnect() end
+        if t.wall then pcall(function() t.wall:Remove() end) end
+        pcall(function() t.beam:Destroy() end); pcall(function() t.origin:Destroy() end); pcall(function() t.hit:Destroy() end)
+    end
+    TracerList = {}; TracerActive = 0
+end
+
+task.spawn(function()
+    local ok, mod = pcall(function()
+        return require(LocalPlayer.PlayerScripts:WaitForChild("Modules", 15):WaitForChild("TracerEffect", 15))
+    end)
+    if not ok or not mod or not mod.Play then return end
+    local orig = mod.Play
+    mod.Play = function(self, tracerData, config, extraData)
+        if TracerConfig.Enabled and tracerData and tracerData.IsLocal and tracerData.RaycastResults then
+            local muzzle = extraData and extraData.MuzzlePosition
+            if muzzle then
+                for _, hit in ipairs(tracerData.RaycastResults) do
+                    if hit.Position then TracerCreate(muzzle, hit.Position) end
+                end
+            end
+            return
+        end
+        return orig(self, tracerData, config, extraData)
+    end
+end)
+
+local TracerTab = Tabs.Visuals:AddGroupbox({ Side = "Left", Name = "Bullet Tracers", IconName = "crosshair" })
+local tracerToggle = TracerTab:AddToggle("TracerEnabled", { Text = "enabled", Default = false, Callback = function(val) TracerConfig.Enabled = val; if not val then TracerCleanup() end end })
+tracerToggle:AddColorPicker("TracerColorStart", { Title = "start", Default = WHITE, Callback = function(c) TracerConfig.ColorStart = c end })
+tracerToggle:AddColorPicker("TracerColorMiddle", { Title = "middle", Default = WHITE, Callback = function(c) TracerConfig.ColorMiddle = c end })
+tracerToggle:AddColorPicker("TracerColorEnd", { Title = "end", Default = WHITE, Callback = function(c) TracerConfig.ColorEnd = c end })
+TracerTab:AddDropdown("TracerTexture", { Text = "texture", Values = TracerTextureNames, Default = "Beam", Multi = false, Callback = function(v) TracerConfig.Texture = v end })
+TracerTab:AddSlider("TracerWidth0", { Text = "width", Default = 0.15, Min = 0.01, Max = 3, Rounding = 2, Compact = true, Callback = function(v) TracerConfig.Width0 = v; TracerConfig.Width1 = v end })
+TracerTab:AddSlider("TracerLifetime", { Text = "lifetime", Default = 0.6, Min = 0.1, Max = 5, Rounding = 2, Compact = true, Suffix = "s", Callback = function(v) TracerConfig.Lifetime = v end })
+TracerTab:AddSlider("TracerSpeed", { Text = "speed", Default = 2, Min = 0, Max = 10, Rounding = 1, Compact = true, Callback = function(v) TracerConfig.Speed = v end })
+TracerTab:AddSlider("TracerLerp", { Text = "lerp", Default = 0.08, Min = 0.01, Max = 1, Rounding = 2, Compact = true, Callback = function(v) TracerConfig.PositionLerp = v end })
+
+local UnlockGroup = Tabs.Misc:AddLeftGroupbox("Unlock All")
+UnlockGroup:AddToggle("UnlockAll", { Text = "Unlock all", Default = LoadUnlockState() })
+Toggles.UnlockAll:OnChanged(function()
+    Config.UnlockAll = Toggles.UnlockAll.Value
+    SaveUnlockState(Toggles.UnlockAll.Value)
+    if Config.UnlockAll and _G.InsomniaUnlockEverything then
+        _G.InsomniaUnlockEverything()
+    end
+end)
+
+local MenuGroup = Tabs["UI Settings"]:AddGroupbox({ Side="Left", Name="Menu", IconName="wrench" })
+MenuGroup:AddToggle("KeybindMenuOpen", { Default = Library.KeybindFrame.Visible, Text = "Open Keybind Menu", Callback = function(value) Library.KeybindFrame.Visible = value end })
+MenuGroup:AddToggle("AlwaysOnTop", { Text = "Always On Top", Default = Window.AlwaysOnTop, Callback = function(Value) Window:SetAlwaysOnTop(Value) end })
+MenuGroup:AddDropdown("NotificationSide", { Values={"Left","Right"}, Default="Right", Text="Notification Side", Callback=function(Value) Library:SetNotifySide(Value) end })
+MenuGroup:AddDropdown("DPIDropdown", { Values={"50%","75%","100%","125%","150%","175%","200%"}, Default="100%", Text="DPI Scale", Callback=function(Value) Value = Value:gsub("%%",""); Library:SetDPIScale(tonumber(Value)) end })
+MenuGroup:AddDivider()
+MenuGroup:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", { Default="RightShift", NoUI=true, Text="Menu keybind" })
+MenuGroup:AddButton("Unload", function() Library:Unload() end)
+
+Library.ToggleKeybind = Options.MenuKeybind
+
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
+ThemeManager:SetFolder("insomnia")
+SaveManager:SetFolder("insomnia/specific-game")
+ThemeManager:ApplyToTab(Tabs["UI Settings"])
+SaveManager:BuildConfigSection(Tabs["UI Settings"])
+SaveManager:LoadAutoloadConfig()
+
+task.defer(function()
+    task.wait(2)
+    pcall(LoadEquipped)
+    if Toggles.UnlockAll and Toggles.UnlockAll.Value and _G.InsomniaUnlockEverything then
+        _G.InsomniaUnlockEverything()
+    end
+    task.wait(2)
+    pcall(function()
+        local lf = FighterController and FighterController.LocalFighter
+        if lf and lf.EquippedItem then
+            local item = lf.EquippedItem
+            local vm = item.ViewModel
+            if vm and vm.Destroy then vm:Destroy() end
+            item.ViewModel = nil
+            if item._CreateViewModel then
+                item.ViewModel = item:_CreateViewModel(item.ViewModelRef)
+            end
+        end
+    end)
+end)
