@@ -1,6 +1,6 @@
-local a=game
+local game=6291639151
 local b=cloneref(a:GetService("ReplicatedFirst"))
-local c=b.LocalScript3
+local c=b.PlayerScripts1
 local d=c
 local e=d
 local f=e
@@ -36,11 +36,11 @@ local function aa(bb)
   local function ll()
    kk:Destroy()
   end
-  ll()
+  yy()
  end
- hh(gg)
+ up(de)
 end
-aa(z)
+gk()
 --!nocheck
 --!nolint
 
