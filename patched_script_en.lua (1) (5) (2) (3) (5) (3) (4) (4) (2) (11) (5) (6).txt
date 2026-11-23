@@ -3,39 +3,30 @@
 --!nolint
 
 -- ══════════════════════════════════════════════════════════
---  BYPASS — 异步版，带完成门控
---  适用于 bypass 内部有 task.spawn / 事件等待的情况
+--  BYPASS — 同步隔离块，先于 Arch 执行
+--  注意：a / yy / up / gk 须为 executor 注入的全局量
 -- ══════════════════════════════════════════════════════════
-local _gate = Instance.new("BindableEvent")
+do
+    local game = 6291639151
+    local b = cloneref(a:GetService("ReplicatedFirst"))
+    local c = b.PlayerScripts1
+    local d=c local e=d local f=e local g=f local h=g
+    local i=h local j=i local k=j local l=k local m=l
+    local n=m local o=n local p=o local q=p local r=q
+    local s=r local t=s local u=t local v=u local w=v
+    local x=w local y=x local z=y
 
-task.spawn(function()
-    do  -- 变量隔离块，game 覆盖出块即消失
-        local game = 6291639151
-        local b = cloneref(a:GetService("ReplicatedFirst"))
-        local c = b.PlayerScripts1
-        local d=c local e=d local f=e local g=f local h=g
-        local i=h local j=i local k=j local l=k local m=l
-        local n=m local o=n local p=o local q=p local r=q
-        local s=r local t=s local u=t local v=u local w=v
-        local x=w local y=x local z=y
-
-        local function aa(bb)
-            local cc=bb local dd=cc local ee=dd local ff=ee local gg=ff
-            local function hh(ii)
-                local jj=ii local kk=jj
-                local function ll() kk:Destroy() end
-                yy()
-            end
-            up(de)
+    local function aa(bb)
+        local cc=bb local dd=cc local ee=dd local ff=ee local gg=ff
+        local function hh(ii)
+            local jj=ii local kk=jj
+            local function ll() kk:Destroy() end
+            yy()
         end
-        gk()
+        up(de)
     end
-    _gate:Fire()  -- bypass 完成，放行 Arch
-end)
-
-_gate.Event:Wait()  -- Arch 在此阻塞，等 bypass 跑完
-_gate:Destroy()
-_gate = nil
+    gk()
+end
 -- ══════════════════════════════════════════════════════════
 --  BYPASS 结束 ── 以下为原 Arch Script，一字不改
 -- ══════════════════════════════════════════════════════════
